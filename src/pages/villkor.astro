@@ -1,0 +1,88 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { site } from '../config/site.js';
+const p = site.promises;
+---
+<Base
+  title="Allmänna villkor för flytt och städning"
+  description="Allmänna villkor för TO Städ & Flytt: fast pris, bokning och avbokning, betalning och RUT, ansvar och försäkring, Bohag 2010 och konsumenttjänstlagen."
+  breadcrumbs={[{ name: 'Villkor', href: '/villkor' }]}
+>
+  <section class="section section--tight">
+    <div class="container prose">
+      <Breadcrumbs items={[{ name: 'Villkor', href: '/villkor' }]} />
+      <h1>Allmänna villkor</h1>
+      <p class="lead">Gäller för privatpersoner och företag som anlitar {site.legalName} (org.nr {site.orgNr}) för flytt, städning och tillhörande tjänster.</p>
+
+      <h2>1. Vilka regler gäller</h2>
+      <p>
+        För flytt av bohag inom Sverige gäller Bohag 2010 – allmänna bestämmelser för flyttning som tagits fram av branschen tillsammans med Konsumentverket. För
+        städning och övriga tjänster till privatpersoner gäller konsumenttjänstlagen. Villkoren nedan kompletterar dessa och ger dig aldrig sämre rättigheter än
+        lagen.
+      </p>
+
+      <h2>2. Pris och fast pris</h2>
+      <ul>
+        <li>Priser för privatpersoner anges efter RUT-avdrag och inklusive moms. Priser för företag anges exklusive moms.</li>
+        <li>
+          Det fasta priset i din bekräftelse gäller för de uppgifter du lämnat: storlek, våning, hiss, bärväg, avstånd och tillval. Om förutsättningarna på plats
+          skiljer sig väsentligt frågar vi dig skriftligt innan vi utför något som kostar extra.
+        </li>
+        <li>Tar uppdraget längre tid än beräknat men uppgifterna stämmer, betalar du det fasta priset.</li>
+      </ul>
+
+      <h2>3. Bokning och avbokning</h2>
+      <ul>
+        <li>Bokningen är bindande när du fått vår skriftliga bekräftelse.</li>
+        <li>Du kan avboka eller boka om utan kostnad fram till {p.lateCancelHours} timmar före start. Vid senare avbokning debiteras första timmen.</li>
+        <li>Om vi ställer in eller flyttar ett bekräftat uppdrag med kortare varsel än {p.lateCancelHours} timmar bjuder vi på första timmen.</li>
+        <li>Har du bokat på distans har du ångerrätt enligt distansavtalslagen. Om du vill att vi börjar inom ångerfristen ber vi om ditt uttryckliga godkännande.</li>
+      </ul>
+
+      <h2>4. Tillträde till bostaden</h2>
+      <p>
+        Du ser till att vi kommer in i bostaden vid avtalad tid, till exempel genom nyckel, kod eller att någon är på plats. Kommer vi inte in trots att vi försökt
+        nå dig i 30 minuter kan uppdraget debiteras som en sen avbokning.
+      </p>
+
+      <h2>5. Flytt</h2>
+      <ul>
+        <li>Packar du själv ska kartongerna vara packade, stängda och märkta när vi kommer.</li>
+        <li>Berätta i förväg om föremål som väger mer än 50 kg, till exempel piano eller kassaskåp, så att vi tar med rätt utrustning.</li>
+        <li>Pengar, smycken, värdepapper och viktiga handlingar transporterar du själv.</li>
+      </ul>
+
+      <h2>6. Städning och besiktningsgaranti</h2>
+      <ul>
+        <li>Flyttstädning utförs enligt vår checklista, som du hittar på sidan <a href="/flyttstadning">Flyttstädning</a>.</li>
+        <li>Efter flyttstädning får du en fotorapport. Anmärkningar vid besiktning inom {p.inspectionGuaranteeDays} dagar som gäller det vi städat åtgärdar vi utan kostnad.</li>
+        <li>Är du missnöjd med en städning – meddela oss så snart som möjligt, gärna med bilder, så kommer vi tillbaka och rättar till det.</li>
+      </ul>
+
+      <h2>7. Betalning och RUT-avdrag</h2>
+      <ul>
+        <li>Vi tar aldrig betalt i förskott. Faktura skickas efter utfört uppdrag med {p.invoiceDays} dagars betalningstid.</li>
+        <li>RUT-avdraget dras på fakturan. Om Skatteverket inte beviljar hela avdraget av skäl som beror på dig, till exempel att taket redan är nått, betalar du mellanskillnaden.</li>
+        <li>Vid försenad betalning har vi rätt till dröjsmålsränta enligt räntelagen och påminnelseavgift enligt lag.</li>
+      </ul>
+
+      <h2>8. Skador och ansvar</h2>
+      <ul>
+        <li>Vi ansvarar för skador som vi orsakar och har ansvarsförsäkring via {site.insurer}.</li>
+        <li>Anmäl skador så snart du upptäcker dem via <a href="/skadeanmalan">skadeanmälan</a>, gärna med bilder. Vi svarar inom {p.damageResponseHours} timmar.</li>
+        <li>Vid flytt gäller Bohag 2010:s regler om ansvar och reklamation.</li>
+      </ul>
+
+      <h2>9. Personuppgifter</h2>
+      <p>Hur vi hanterar dina uppgifter står i vår <a href="/integritetspolicy">integritetspolicy</a>.</p>
+
+      <h2>10. Tvister</h2>
+      <p>
+        Vi vill alltid lösa problem direkt med dig. Om vi inte kommer överens kan du som konsument vända dig till Allmänna reklamationsnämnden (ARN), arn.se.
+      </p>
+
+      <p class="muted small">Senast uppdaterad: {new Date().toLocaleDateString('sv-SE', { year: 'numeric', month: 'long' })}.</p>
+    </div>
+  </section>
+</Base>

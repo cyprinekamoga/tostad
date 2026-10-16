@@ -1,0 +1,89 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../config/site.js';
+---
+<form class="pc" data-postcode action="/boka" method="get" novalidate>
+  <label for="pc-input" class="pc-label"><Icon name="map" /> Kör vi till dig? Skriv ditt postnummer</label>
+  <div class="pc-row">
+    <input id="pc-input" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" placeholder="t.ex. 194 37" maxlength="6" />
+    <button class="btn" type="submit">Kolla</button>
+  </div>
+  <p class="pc-result" aria-live="polite" data-pc-result></p>
+  <p class="pc-links" hidden data-pc-links>
+    <a class="btn btn--sm" href="/priser">Räkna ut fast pris</a>
+    <a class="btn btn--sm btn--ghost" href={site.whatsappHref} rel="noopener"><Icon name="whatsapp" /> Fråga på WhatsApp</a>
+  </p>
+</form>
+
+<style>
+  .pc {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: clamp(18px, 3vw, 26px);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .pc-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--green-950);
+    margin-bottom: 10px;
+  }
+  .pc-label :global(svg) {
+    width: 20px;
+    height: 20px;
+    color: var(--green-700);
+  }
+  .pc-row {
+    display: flex;
+    gap: 10px;
+  }
+  .pc-row input {
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .pc-result {
+    margin: 12px 0 0;
+    font-weight: 600;
+    min-height: 1.6em;
+  }
+  .pc-result.yes {
+    color: var(--green-800);
+  }
+  .pc-result.ask {
+    color: #8a5a00;
+  }
+  .pc-result.invalid {
+    color: var(--danger);
+  }
+  .pc-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 0;
+  }
+</style>
+
+<script>
+  import { postcodeStatus } from '../data/areas.js';
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-postcode]')) {
+    const input = form.querySelector('input')!;
+    const out = form.querySelector<HTMLElement>('[data-pc-result]')!;
+    const links = form.querySelector<HTMLElement>('[data-pc-links]')!;
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const s = postcodeStatus(input.value);
+      out.className = `pc-result ${s}`;
+      out.textContent =
+        s === 'yes'
+          ? 'Ja! Vi kör i hela Stockholms län. Räkna ut ditt fasta pris direkt.'
+          : s === 'ask'
+            ? 'Det ligger utanför vårt vanliga område – men hör av dig, ofta löser vi det.'
+            : 'Skriv ett postnummer med fem siffror.';
+      links.hidden = s === 'invalid';
+    });
+  }
+</script>

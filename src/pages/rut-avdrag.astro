@@ -1,0 +1,119 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { RUT_MAX_PER_PERSON, formatKr } from '../lib/pricing.js';
+import { faqJsonLd } from '../lib/seo.js';
+
+const faq = [
+  { q: 'Hur mycket får man i RUT-avdrag?', a: `50 % av arbetskostnaden inklusive moms, upp till ${formatKr(RUT_MAX_PER_PERSON)} per person och år. Taket delas med ROT-avdraget.` },
+  { q: 'Gäller RUT för flytt?', a: 'Ja. Flyttjänster som packning, bärning och transport av bohag mellan bostäder räknas som hushållsnära tjänster. Avdraget gäller arbetskostnaden – inte material eller resekostnader.' },
+  { q: 'Gäller RUT för flyttstädning?', a: 'Ja, städning av bostaden du flyttar från eller till ger rätt till RUT-avdrag.' },
+  { q: 'Måste jag ansöka själv?', a: 'Nej. Vi drar av avdraget direkt på fakturan och ansöker om resten hos Skatteverket. Du behöver bara lämna ditt personnummer när vi bekräftar bokningen.' },
+  { q: 'Kan två personer dela på avdraget?', a: 'Ja, om ni båda bor i bostaden och betalar fakturan kan avdraget delas, så att taket blir dubbelt så högt.' },
+];
+---
+<Base
+  title="RUT-avdrag för flytt och städning 2026 – så funkar det"
+  description="Så fungerar RUT-avdraget för flytt och flyttstädning: 50 % av arbetskostnaden, max 75 000 kr per person och år. Räkna ut ditt avdrag och se vad du betalar."
+  breadcrumbs={[{ name: 'RUT-avdrag', href: '/rut-avdrag' }]}
+  jsonLd={[faqJsonLd(faq)].filter(Boolean)}
+  ogType="article"
+>
+  <section class="section section--tight">
+    <div class="container split">
+      <div class="prose">
+        <Breadcrumbs items={[{ name: 'RUT-avdrag', href: '/rut-avdrag' }]} />
+        <h1>RUT-avdrag för flytt och städning</h1>
+        <p class="lead">Med RUT-avdraget betalar du bara halva arbetskostnaden. Vi sköter allt pappersarbete – avdraget syns direkt på fakturan.</p>
+        <h2>Så fungerar det</h2>
+        <ol>
+          <li><strong>Du bokar</strong> – priserna vi visar är redan efter RUT-avdrag.</li>
+          <li><strong>Vi utför jobbet</strong> och skickar fakturan med avdraget redan avdraget.</li>
+          <li><strong>Du betalar din del</strong> – vi ansöker om resten hos Skatteverket.</li>
+        </ol>
+        <h2>Vem kan få RUT-avdrag?</h2>
+        <p>
+          Du som är privatperson, betalar skatt i Sverige och köper tjänsten till din egen bostad. Taket är {formatKr(RUT_MAX_PER_PERSON)} per person och år och
+          delas med ROT-avdraget. Företag kan inte få RUT-avdrag. Har du redan använt hela ditt tak under året betalar du mellanskillnaden.
+        </p>
+        <p class="muted small">
+          Uppgifterna följer Skatteverkets regler. Läs mer hos <a href="https://www.skatteverket.se/privat/fastigheterochbostad/rotochrutarbete.4.2e56d4ba1202f95012080002966.html" rel="noopener">Skatteverket</a>.
+        </p>
+      </div>
+
+      <div class="card rutcalc" data-rutcalc>
+        <h2 class="h3">Räkna ut ditt RUT-avdrag</h2>
+        <div class="field">
+          <label for="rut-cost">Arbetskostnad inkl. moms (kr)</label>
+          <input id="rut-cost" type="number" inputmode="numeric" min="0" step="100" value="6000" />
+        </div>
+        <div class="field">
+          <label for="rut-persons">Antal personer som delar på avdraget</label>
+          <select id="rut-persons">
+            <option value="1">1 person</option>
+            <option value="2">2 personer</option>
+          </select>
+        </div>
+        <dl>
+          <dt>RUT-avdrag</dt>
+          <dd data-rut-out="rut">−3 000 kr</dd>
+          <dt>Du betalar</dt>
+          <dd data-rut-out="pay" class="big">3 000 kr</dd>
+        </dl>
+        <p class="small muted" data-rut-out="note"></p>
+      </div>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Frågor om RUT-avdrag" />
+  <CtaBand />
+</Base>
+
+<style>
+  .h3 {
+    font-size: 1.3rem;
+  }
+  .rutcalc {
+    display: grid;
+    gap: 16px;
+    align-self: start;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 16px;
+    margin: 6px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  dd {
+    margin: 0;
+    font-weight: 700;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  dd.big {
+    font-size: 1.6rem;
+    color: var(--green-800);
+  }
+</style>
+
+<script>
+  import { rutDeduction, formatKr } from '../lib/pricing.js';
+  const root = document.querySelector<HTMLElement>('[data-rutcalc]');
+  if (root) {
+    const cost = root.querySelector<HTMLInputElement>('#rut-cost')!;
+    const persons = root.querySelector<HTMLSelectElement>('#rut-persons')!;
+    const out = (k: string) => root.querySelector<HTMLElement>(`[data-rut-out="${k}"]`)!;
+    const update = () => {
+      const r = rutDeduction(Math.max(0, Number(cost.value) || 0), Number(persons.value));
+      out('rut').textContent = '−' + formatKr(r.rut);
+      out('pay').textContent = formatKr(r.pay);
+      out('note').textContent = r.capped ? 'Taket för RUT-avdraget är nått – resten betalas utan avdrag.' : '';
+    };
+    root.addEventListener('input', update);
+    update();
+  }
+</script>

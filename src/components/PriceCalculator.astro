@@ -1,0 +1,682 @@
+---
+// Interaktiv priskalkylator. Fungerar utan JavaScript som ett vanligt formulär till /boka,
+// och räknar live med samma prislogik som testerna (src/lib/pricing.js).
+import Icon from './Icon.astro';
+import { HOME_SIZES, PRICES, flyttstadningPrice, movePrice, hourlyCleaningPrice, fonsterputsPrice, formatKr } from '../lib/pricing.js';
+import { site } from '../config/site.js';
+
+interface Props {
+  initial?: string;
+  only?: string[];
+  preset?: Record<string, unknown>;
+  id?: string;
+}
+const { initial = 'flyttstadning', only, preset = {}, id = 'kalkylator' } = Astro.props;
+
+const allServices = [
+  { key: 'flytt', label: 'Flytt', sub: 'från 595 kr/h' },
+  { key: 'flyttstadning', label: 'Flyttstädning', sub: '45 kr/kvm' },
+  { key: 'paket', label: 'Flytt + städ', sub: '10 % rabatt' },
+  { key: 'hemstadning', label: 'Hemstädning', sub: '125 kr/h' },
+  { key: 'storstadning', label: 'Storstädning', sub: '160 kr/h' },
+  { key: 'fonsterputs', label: 'Fönsterputs', sub: '64 kr/fönster' },
+  { key: 'kontor', label: 'Kontor', sub: '249 kr/h ex. moms' },
+];
+const list = only ? allServices.filter((s) => only.includes(s.key)) : allServices;
+const start = list.some((s) => s.key === initial) ? initial : list[0].key;
+
+// Förhandsberäkning så att sidan visar ett pris även innan JavaScript laddats.
+const pre =
+  start === 'flytt' || start === 'paket'
+    ? movePrice({ size: '2', packing: Boolean(preset.packing) }).price + (start === 'paket' ? flyttstadningPrice({ sqm: 50, discount: site.promises.packageDiscount }).pay : 0)
+    : start === 'hemstadning' || start === 'storstadning'
+      ? hourlyCleaningPrice({ service: start, hours: 3 }).pay
+      : start === 'fonsterputs'
+        ? fonsterputsPrice({ windows2: 8 }).pay
+        : start === 'kontor'
+          ? 4 * 4 * PRICES.kontorsstadning.perHourExVat
+          : flyttstadningPrice({ sqm: 60 }).pay;
+const sizes = Object.entries(HOME_SIZES);
+const crews = Object.entries(PRICES.flytt.crews);
+---
+<form class="calc" id={id} action="/boka" method="get" data-calc data-package-discount={site.promises.packageDiscount} data-recurring-discount={site.promises.recurringDiscount}>
+  <div class="calc-main">
+    <fieldset class="svc-pick" style={list.length === 1 ? 'display:none' : undefined}>
+      <legend class="calc-legend">Vad behöver du hjälp med?</legend>
+      <div class="svc-options">
+        {
+          list.map((s) => (
+            <label class="svc-opt">
+              <input type="radio" name="tjanst" value={s.key} checked={s.key === start} />
+              <span>
+                {s.label}
+                <small>{s.sub}</small>
+              </span>
+            </label>
+          ))
+        }
+      </div>
+    </fieldset>
+
+    <!-- Flytt -->
+    <fieldset class="panel" data-show="flytt paket">
+      <legend class="calc-legend">Din bostad</legend>
+      <div class="size-grid">
+        {
+          sizes.map(([key, s], i) => (
+            <label class="choice">
+              <input type="radio" name="storlek" value={key} checked={key === '2'} />
+              <span>
+                {key === 'villa' ? 'Villa/radhus' : `${key} rok`}
+                <small>{s.label.replace(/^.*\(/, '').replace(/\)$/, '')}</small>
+              </span>
+            </label>
+          ))
+        }
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <span class="lbl">Dag</span>
+          <div class="seg">
+            <label><input type="radio" name="dag" value="vardag" checked /><span>Vardag</span></label>
+            <label><input type="radio" name="dag" value="helg" /><span>Helg</span></label>
+          </div>
+        </div>
+        <div class="field">
+          <label class="lbl" for={`${id}-km`}>Avstånd mellan adresserna: <output data-for="km">10</output> km</label>
+          <input type="range" id={`${id}-km`} name="km" min="0" max="100" step="1" value="10" />
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field floor">
+          <label class="lbl" for={`${id}-vf`}>Våning – nuvarande bostad</label>
+          <div class="inline">
+            <input type="number" id={`${id}-vf`} name="vaningFran" min="0" max="20" value="1" inputmode="numeric" />
+            <label class="toggle small"><input type="checkbox" name="hissFran" value="ja" checked /> Hiss finns</label>
+          </div>
+        </div>
+        <div class="field floor">
+          <label class="lbl" for={`${id}-vt`}>Våning – nya bostaden</label>
+          <div class="inline">
+            <input type="number" id={`${id}-vt`} name="vaningTill" min="0" max="20" value="1" inputmode="numeric" />
+            <label class="toggle small"><input type="checkbox" name="hissTill" value="ja" checked /> Hiss finns</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="extras">
+        <label class="toggle"><input type="checkbox" name="langBarvag" value="ja" /> Lång bärväg (mer än 25 m till lastbilen)</label>
+        <label class="toggle"><input type="checkbox" name="packning" value="ja" checked={Boolean(preset.packing)} /> Packhjälp – vi packar åt dig</label>
+        <label class="toggle" data-show="flytt"><input type="checkbox" name="foretag" value="ja" /> Företagsflytt (pris exkl. moms, utan RUT)</label>
+      </div>
+
+      <details class="crew-pick">
+        <summary>Välj bemanning själv</summary>
+        <div class="seg seg--wrap">
+          <label><input type="radio" name="bemanning" value="auto" checked /><span>Rekommenderad</span></label>
+          {
+            crews.map(([key, c]) => (
+              <label>
+                <input type="radio" name="bemanning" value={key} />
+                <span>{c.label}</span>
+              </label>
+            ))
+          }
+        </div>
+      </details>
+    </fieldset>
+
+    <!-- Flyttstädning -->
+    <fieldset class="panel" data-show="flyttstadning paket">
+      <legend class="calc-legend" data-show="flyttstadning">Bostadens storlek</legend>
+      <legend class="calc-legend" data-show="paket">Flyttstädning av bostaden du lämnar</legend>
+      <div class="field">
+        <label class="lbl" for={`${id}-kvm`}>Boyta: <output data-for="kvm">60</output> kvm</label>
+        <input type="range" id={`${id}-kvm`} name="kvm" min="15" max="250" step="1" value="60" />
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <span class="lbl">2-sidiga fönster <small class="muted">(64 kr/st)</small></span>
+          <div class="stepper">
+            <button type="button" data-step="-1" aria-label="Färre 2-sidiga fönster">−</button>
+            <input type="number" name="fonster2" min="0" max="40" value="0" inputmode="numeric" aria-label="Antal 2-sidiga fönster" />
+            <button type="button" data-step="1" aria-label="Fler 2-sidiga fönster">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">4-sidiga fönster <small class="muted">(99 kr/st)</small></span>
+          <div class="stepper">
+            <button type="button" data-step="-1" aria-label="Färre 4-sidiga fönster">−</button>
+            <input type="number" name="fonster4" min="0" max="40" value="0" inputmode="numeric" aria-label="Antal 4-sidiga fönster" />
+            <button type="button" data-step="1" aria-label="Fler 4-sidiga fönster">+</button>
+          </div>
+        </div>
+      </div>
+      <p class="hint" data-show="flyttstadning paket">Fönsterputs är ett tillval. Ugn, kyl, frys, skåp och badrum ingår alltid.</p>
+    </fieldset>
+
+    <!-- Hem- och storstädning -->
+    <fieldset class="panel" data-show="hemstadning storstadning">
+      <legend class="calc-legend">Hur länge?</legend>
+      <div class="field">
+        <label class="lbl" for={`${id}-h`}>Arbetstid: <output data-for="timmar">3</output> timmar</label>
+        <input type="range" id={`${id}-h`} name="timmar" min="2" max="12" step="0.5" value="3" />
+        <span class="hint">En tvåa på 60 kvm tar ungefär 3 timmar vid hemstädning och 6–8 timmar vid storstädning.</span>
+      </div>
+      <label class="toggle" data-show="hemstadning"><input type="checkbox" name="regelbunden" value="ja" /> Regelbunden städning varje eller varannan vecka (−10 %)</label>
+    </fieldset>
+
+    <!-- Fönsterputs -->
+    <fieldset class="panel" data-show="fonsterputs">
+      <legend class="calc-legend">Antal fönster</legend>
+      <div class="row-2">
+        <div class="field">
+          <span class="lbl">2-sidiga fönster <small class="muted">(64 kr/st)</small></span>
+          <div class="stepper">
+            <button type="button" data-step="-1" aria-label="Färre fönster">−</button>
+            <input type="number" name="fp2" min="0" max="60" value="8" inputmode="numeric" aria-label="Antal 2-sidiga fönster" />
+            <button type="button" data-step="1" aria-label="Fler fönster">+</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lbl">4-sidiga fönster <small class="muted">(99 kr/st)</small></span>
+          <div class="stepper">
+            <button type="button" data-step="-1" aria-label="Färre fönster">−</button>
+            <input type="number" name="fp4" min="0" max="60" value="0" inputmode="numeric" aria-label="Antal 4-sidiga fönster" />
+            <button type="button" data-step="1" aria-label="Fler fönster">+</button>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Kontor -->
+    <fieldset class="panel" data-show="kontor">
+      <legend class="calc-legend">Kontorsstädning</legend>
+      <div class="row-2">
+        <div class="field">
+          <label class="lbl" for={`${id}-kh`}>Timmar per besök: <output data-for="kontorTimmar">4</output></label>
+          <input type="range" id={`${id}-kh`} name="kontorTimmar" min="1" max="12" step="0.5" value="4" />
+        </div>
+        <div class="field">
+          <label class="lbl" for={`${id}-kb`}>Besök per månad: <output data-for="besok">4</output></label>
+          <input type="range" id={`${id}-kb`} name="besok" min="1" max="22" step="1" value="4" />
+        </div>
+      </div>
+    </fieldset>
+  </div>
+
+  <aside class="result" aria-live="polite">
+    <p class="r-label" data-out="label">Ditt fasta pris</p>
+    <p class="r-total"><span data-out="total">{formatKr(pre)}</span></p>
+    <p class="r-sub" data-out="sub">efter RUT-avdrag, inkl. moms</p>
+    <dl class="r-rows" data-out="rows"></dl>
+    <ul class="r-promise">
+      <li><Icon name="check" /> Priset gäller om uppgifterna stämmer</li>
+      <li><Icon name="check" /> Ingen förskottsbetalning</li>
+      <li><Icon name="check" /> RUT dras direkt på fakturan</li>
+    </ul>
+    <input type="hidden" name="pris" value={String(pre)} data-out="priceField" />
+    <button class="btn btn--block" type="submit">Boka till detta pris <Icon name="arrow" /></button>
+    <a class="r-alt" href={site.whatsappHref} rel="noopener"><Icon name="whatsapp" /> Hellre skicka bilder på WhatsApp?</a>
+  </aside>
+</form>
+
+<style>
+  .calc {
+    display: grid;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (min-width: 980px) {
+    .calc {
+      grid-template-columns: 1.45fr 1fr;
+    }
+    .result {
+      position: sticky;
+      top: 96px;
+    }
+  }
+  .calc-main {
+    display: grid;
+    gap: 18px;
+  }
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .panel {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(18px, 2.5vw, 26px);
+    display: grid;
+    gap: 18px;
+  }
+  .panel[hidden],
+  [data-show][hidden] {
+    display: none !important;
+  }
+  .calc-legend {
+    font-weight: 750;
+    font-size: 1.08rem;
+    color: var(--green-950);
+    padding: 0;
+    margin-bottom: 4px;
+    float: left;
+    width: 100%;
+  }
+  .calc-legend + * {
+    clear: both;
+  }
+  .svc-options {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
+    clear: both;
+  }
+  .svc-opt {
+    position: relative;
+  }
+  .svc-opt input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    cursor: pointer;
+  }
+  .svc-opt span {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    font-weight: 650;
+    line-height: 1.25;
+    transition: all 0.15s ease;
+  }
+  .svc-opt small {
+    font-weight: 500;
+    color: var(--ink-3);
+    font-size: 0.8rem;
+    margin-top: 2px;
+  }
+  .svc-opt input:checked + span {
+    background: var(--green-900);
+    border-color: var(--green-900);
+    color: #fff;
+  }
+  .svc-opt input:checked + span small {
+    color: #b9dcc7;
+  }
+  .svc-opt input:focus-visible + span {
+    outline: 3px solid var(--sun);
+    outline-offset: 2px;
+  }
+  .size-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr));
+  }
+  .size-grid .choice span {
+    padding: 12px 14px;
+  }
+  .size-grid small {
+    font-size: 0.78rem;
+  }
+  .row-2 {
+    display: grid;
+    gap: 16px;
+  }
+  @media (min-width: 620px) {
+    .row-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .lbl {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--green-950);
+  }
+  .lbl output {
+    color: var(--green-700);
+    font-weight: 750;
+  }
+  .hint {
+    font-size: 0.86rem;
+    color: var(--ink-3);
+    margin: 0;
+  }
+  input[type='range'] {
+    width: 100%;
+    accent-color: var(--green-700);
+    height: 28px;
+  }
+  .inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .inline input[type='number'] {
+    width: 90px;
+  }
+  .toggle.small {
+    font-weight: 500;
+    font-size: 0.92rem;
+  }
+  .extras {
+    display: grid;
+    gap: 10px;
+  }
+  .extras .toggle {
+    font-weight: 500;
+  }
+  .seg {
+    display: inline-flex;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--mint);
+    gap: 4px;
+  }
+  .seg--wrap {
+    flex-wrap: wrap;
+    border-radius: 18px;
+    margin-top: 10px;
+  }
+  .seg label {
+    position: relative;
+  }
+  .seg input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+  }
+  .seg span {
+    display: block;
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+  }
+  .seg input:checked + span {
+    background: #fff;
+    color: var(--green-800);
+    box-shadow: var(--shadow-sm);
+  }
+  .seg input:focus-visible + span {
+    outline: 3px solid var(--sun);
+  }
+  .crew-pick summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--green-700);
+  }
+  .stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    width: fit-content;
+  }
+  .stepper button {
+    width: 46px;
+    height: 46px;
+    border: 0;
+    background: var(--mint);
+    color: var(--green-900);
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .stepper button:hover {
+    background: var(--green-100);
+  }
+  .stepper input {
+    width: 64px;
+    border: 0;
+    border-radius: 0;
+    text-align: center;
+    font-weight: 700;
+    min-height: 46px;
+    -moz-appearance: textfield;
+  }
+  .stepper input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+  .result {
+    background: var(--green-950);
+    color: #d6ebdf;
+    border-radius: var(--radius-lg);
+    padding: clamp(22px, 3vw, 30px);
+    box-shadow: var(--shadow-lg);
+  }
+  .r-label {
+    margin: 0;
+    font-weight: 600;
+    color: var(--green-500);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+  }
+  .r-total {
+    margin: 4px 0 0;
+    font-size: clamp(2.4rem, 2rem + 2vw, 3.2rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #fff;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .r-sub {
+    margin: 2px 0 16px;
+    font-size: 0.92rem;
+    color: #a9cbb6;
+  }
+  .r-rows {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 16px;
+    margin: 0 0 18px;
+    padding: 16px 0;
+    border-block: 1px solid rgb(255 255 255 / 0.12);
+    font-size: 0.95rem;
+  }
+  .r-rows:empty {
+    display: none;
+  }
+  .r-rows :global(dt) {
+    color: #c4dccd;
+  }
+  .r-rows :global(dd) {
+    margin: 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    font-weight: 600;
+  }
+  .r-rows :global(.r-note) {
+    grid-column: 1 / -1;
+    font-size: 0.85rem;
+    color: #a9cbb6;
+  }
+  .r-promise {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    font-size: 0.93rem;
+  }
+  .r-promise li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .r-promise :global(svg) {
+    width: 18px;
+    height: 18px;
+    color: var(--green-500);
+  }
+  .r-alt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    color: #c4dccd;
+    font-size: 0.92rem;
+  }
+  .r-alt:hover {
+    color: #fff;
+  }
+  .r-alt :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+</style>
+
+<script>
+  import { flyttstadningPrice, movePrice, hourlyCleaningPrice, fonsterputsPrice, PRICES, formatKr } from '../lib/pricing.js';
+
+  type Row = [string, string] | [string, string, 'note'];
+
+  function animateNumber(el: HTMLElement, to: number) {
+    const from = Number(el.dataset.value ?? to);
+    el.dataset.value = String(to);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || from === to) {
+      el.textContent = formatKr(to);
+      return;
+    }
+    const start = performance.now();
+    const dur = 380;
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = formatKr(from + (to - from) * eased);
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  for (const form of document.querySelectorAll<HTMLFormElement>('form[data-calc]')) {
+    const pkgDiscount = Number(form.dataset.packageDiscount || 0.1);
+    const recDiscount = Number(form.dataset.recurringDiscount || 0.1);
+    const $ = (sel: string) => form.querySelector(sel) as HTMLElement;
+    const val = (name: string) => {
+      const els = form.elements.namedItem(name);
+      if (!els) return '';
+      if (els instanceof RadioNodeList) return els.value;
+      const el = els as HTMLInputElement;
+      if (el.type === 'checkbox') return el.checked ? 'ja' : '';
+      return el.value;
+    };
+    const num = (name: string) => Number(val(name)) || 0;
+
+    // +/- knappar
+    form.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const input = b.parentElement!.querySelector('input') as HTMLInputElement;
+        const next = Math.min(Number(input.max || 99), Math.max(Number(input.min || 0), (Number(input.value) || 0) + Number(b.dataset.step)));
+        input.value = String(next);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+
+    function compute() {
+      const svc = val('tjanst') || 'flyttstadning';
+      form.querySelectorAll<HTMLElement>('[data-show]').forEach((el) => {
+        el.hidden = !el.dataset.show!.split(' ').includes(svc);
+      });
+      form.querySelectorAll<HTMLOutputElement>('output[data-for]').forEach((o) => {
+        o.textContent = String(val(o.dataset.for!)).replace('.', ',');
+      });
+
+      let total = 0;
+      let label = 'Ditt fasta pris';
+      let sub = 'efter RUT-avdrag, inkl. moms';
+      const rows: Row[] = [];
+      const moveInput = () => ({
+        size: val('storlek') || '2',
+        crew: val('bemanning') === 'auto' ? undefined : val('bemanning'),
+        weekend: val('dag') === 'helg',
+        distanceKm: num('km'),
+        floorsFrom: num('vaningFran'),
+        floorsTo: num('vaningTill'),
+        elevatorFrom: val('hissFran') === 'ja',
+        elevatorTo: val('hissTill') === 'ja',
+        longCarry: val('langBarvag') === 'ja',
+        packing: val('packning') === 'ja',
+        business: svc === 'flytt' && val('foretag') === 'ja',
+      });
+
+      if (svc === 'flyttstadning') {
+        const r = flyttstadningPrice({ sqm: num('kvm'), windows2: num('fonster2'), windows4: num('fonster4') });
+        total = r.pay;
+        rows.push([`${num('kvm')} kvm × ${PRICES.flyttstadning.perSqm} kr`, formatKr(r.base)]);
+        if (r.windows) rows.push(['Fönsterputs', formatKr(r.windows)]);
+        rows.push(['Pris före RUT', formatKr(r.full)], ['RUT-avdrag (50 %)', '−' + formatKr(r.rut)]);
+        rows.push(['Fotorapport och 14 dagars besiktningsgaranti ingår.', '', 'note']);
+      } else if (svc === 'flytt') {
+        const r = movePrice(moveInput());
+        total = r.price;
+        if (r.business) sub = 'exkl. moms, företagspris';
+        rows.push(['Bemanning', r.crewLabel], ['Beräknad tid', `${String(r.hours).replace('.', ',')} h`], ['Timpris', `${formatKr(r.rate)}/h`]);
+        rows.push(['Tar det längre tid betalar du ändå det fasta priset – om uppgifterna stämmer.', '', 'note']);
+      } else if (svc === 'paket') {
+        const m = movePrice({ ...moveInput(), business: false });
+        const c = flyttstadningPrice({ sqm: num('kvm'), windows2: num('fonster2'), windows4: num('fonster4'), discount: pkgDiscount });
+        total = m.price + c.pay;
+        label = 'Fast paketpris';
+        rows.push(['Flytt', formatKr(m.price)], ['Flyttstädning', formatKr(c.pay + c.discountKr)], [`Paketrabatt ${Math.round(pkgDiscount * 100)} % på städningen`, '−' + formatKr(c.discountKr)]);
+        rows.push([`${m.crewLabel}, ca ${String(m.hours).replace('.', ',')} h`, '', 'note']);
+      } else if (svc === 'hemstadning' || svc === 'storstadning') {
+        const r = hourlyCleaningPrice({ service: svc, hours: num('timmar'), recurring: val('regelbunden') === 'ja', recurringDiscount: recDiscount });
+        total = r.pay;
+        label = r.discount ? 'Pris per tillfälle' : 'Ditt fasta pris';
+        rows.push(['Pris före RUT', formatKr(r.full)], ['RUT-avdrag (50 %)', '−' + formatKr(r.rut)], ['Timpris efter RUT', `${formatKr(r.rate * (1 - r.discount))}/h`]);
+        if (r.discount) rows.push(['Regelbunden rabatt 10 % ingår', '', 'note']);
+      } else if (svc === 'fonsterputs') {
+        const r = fonsterputsPrice({ windows2: num('fp2'), windows4: num('fp4') });
+        total = r.pay;
+        rows.push(['Pris före RUT', formatKr(r.full)], ['RUT-avdrag (50 %)', '−' + formatKr(r.rut)], ['Karmar och fönsterbrädor ingår', '', 'note']);
+      } else if (svc === 'kontor') {
+        const hours = num('kontorTimmar') * num('besok');
+        total = hours * PRICES.kontorsstadning.perHourExVat;
+        label = 'Pris per månad';
+        sub = 'exkl. moms';
+        rows.push(['Timmar per månad', `${String(hours).replace('.', ',')} h`], ['Timpris', `${PRICES.kontorsstadning.perHourExVat} kr/h`], ['Fast månadspris efter besök på plats', '', 'note']);
+      }
+
+      $('[data-out="label"]').textContent = label;
+      $('[data-out="sub"]').textContent = sub;
+      animateNumber($('[data-out="total"]'), total);
+      ($('[data-out="priceField"]') as HTMLInputElement).value = String(Math.round(total));
+      const dl = $('[data-out="rows"]');
+      dl.innerHTML = '';
+      for (const [k, v, kind] of rows) {
+        if (kind === 'note') {
+          const p = document.createElement('dd');
+          p.className = 'r-note';
+          p.textContent = k;
+          dl.append(p);
+          continue;
+        }
+        const dt = document.createElement('dt');
+        dt.textContent = k;
+        const dd = document.createElement('dd');
+        dd.textContent = v;
+        dl.append(dt, dd);
+      }
+    }
+
+    form.addEventListener('input', compute);
+    form.addEventListener('change', compute);
+    compute();
+  }
+</script>

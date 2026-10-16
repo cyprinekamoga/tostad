@@ -1,0 +1,105 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import credits from '../data/image-credits.json';
+import { img } from '../lib/images.js';
+
+const licenseName: Record<string, string> = {
+  cc0: 'CC0 1.0 (fri att använda)',
+  by: 'CC BY',
+  'by-sa': 'CC BY-SA',
+  pdm: 'Public Domain Mark',
+};
+const sourceName: Record<string, string> = {
+  rawpixel: 'Rawpixel (public domain)',
+  stocksnap: 'StockSnap',
+  flickr: 'Flickr',
+  wikimedia: 'Wikimedia Commons',
+};
+---
+<Base
+  title="Bildkällor och licenser"
+  description="Alla foton på tostadflytt.se är fria att använda kommersiellt. Här listas fotograf, källa och licens för varje bild, med länk till originalet."
+  breadcrumbs={[{ name: 'Bildkällor', href: '/bildkallor' }]}
+>
+  <section class="section section--tight">
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Bildkällor', href: '/bildkallor' }]} />
+      <h1>Bildkällor och licenser</h1>
+      <p class="lead">
+        Fotona på webbplatsen är hämtade via Openverse och är fria att använda kommersiellt. De flesta är CC0. Bilder med CC BY-licens kräver att fotografen
+        anges – det gör vi här.
+      </p>
+      <ul class="credits">
+        {
+          credits.map((c) => (
+            <li>
+              <Image src={img(c.file.replace('.jpg', ''))} alt="" width={160} height={110} />
+              <div>
+                <strong>{c.title}</strong>
+                <span>
+                  {c.creator ? (c.creatorUrl ? <a href={c.creatorUrl} rel="noopener">{c.creator}</a> : c.creator) : 'Okänd fotograf'} ·{' '}
+                  {sourceName[c.source] ?? c.source}
+                </span>
+                <span>
+                  Licens:{' '}
+                  <a href={c.licenseUrl} rel="noopener license">
+                    {licenseName[c.license] ?? c.license}
+                    {c.licenseVersion && c.license !== 'cc0' ? ` ${c.licenseVersion}` : ''}
+                  </a>{' '}
+                  ·{' '}
+                  <a href={c.landingUrl} rel="noopener">
+                    Original
+                  </a>
+                  {c.license !== 'cc0' && ' · Beskuren och komprimerad för webben'}
+                </span>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="muted small">Logotypen tillhör {'TO Städ & Flytt AB'}.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .credits {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+    display: grid;
+    gap: 12px;
+  }
+  .credits li {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 12px;
+    border-radius: var(--radius);
+    background: #fff;
+    border: 1px solid var(--line);
+  }
+  .credits :global(img) {
+    width: 120px;
+    height: 82px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex: none;
+  }
+  .credits div {
+    display: grid;
+    gap: 2px;
+    font-size: 0.92rem;
+  }
+  .credits span {
+    color: var(--ink-3);
+  }
+  @media (max-width: 520px) {
+    .credits :global(img) {
+      width: 84px;
+      height: 64px;
+    }
+  }
+</style>

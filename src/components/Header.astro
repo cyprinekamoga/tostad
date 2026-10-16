@@ -1,0 +1,243 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import logo from '../assets/brand/logo.png';
+import { site, nav } from '../config/site.js';
+
+interface Props {
+  lang?: 'sv' | 'en';
+}
+const { lang = 'sv' } = Astro.props;
+const current = Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/').replace(/\/$/, '') || '/';
+const items =
+  lang === 'en'
+    ? [
+        { href: '/en#services', label: 'Services' },
+        { href: '/en#prices', label: 'Prices' },
+        { href: '/en#guarantees', label: 'Guarantees' },
+        { href: '/en#contact', label: 'Contact' },
+      ]
+    : nav;
+---
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href={lang === 'en' ? '/en' : '/'} aria-label={`${site.name} – ${lang === 'en' ? 'home' : 'startsidan'}`}>
+      <Image src={logo} alt="" width={52} height={52} loading="eager" />
+      <span class="brand-text">TO Städ <span>&amp;</span> Flytt</span>
+    </a>
+
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="site-nav">
+      <Icon name="menu" class="i-open" />
+      <Icon name="close" class="i-close" />
+      <span class="visually-hidden">{lang === 'en' ? 'Menu' : 'Meny'}</span>
+    </button>
+
+    <nav id="site-nav" class="nav" aria-label={lang === 'en' ? 'Main menu' : 'Huvudmeny'}>
+      <ul>
+        {
+          items.map((i) => (
+            <li>
+              <a href={i.href} aria-current={current === i.href ? 'page' : undefined}>
+                {i.label}
+              </a>
+            </li>
+          ))
+        }
+        <li class="lang">
+          {lang === 'en' ? <a href="/" hreflang="sv" lang="sv">Svenska</a> : <a href="/en" hreflang="en" lang="en" aria-label="English"><Icon name="globe" /> <span class="lang-text">English</span></a>}
+        </li>
+      </ul>
+      <div class="nav-cta">
+        <a class="phone" href={site.phoneHref}><Icon name="phone" /> {site.phone}</a>
+        <a class="btn btn--sm" href={lang === 'en' ? '/en#prices' : '/priser'}>{lang === 'en' ? 'Get a fixed price' : 'Få fast pris'}</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(255 255 255 / 0.92);
+    backdrop-filter: saturate(160%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-height: 72px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--green-950);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.1rem;
+    flex: none;
+  }
+  .brand img {
+    width: 52px;
+    height: 52px;
+  }
+  .brand-text span {
+    color: var(--green-600);
+  }
+  .nav {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 4px;
+  }
+  .nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: var(--ink-2);
+    font-weight: 550;
+    text-decoration: none;
+    font-size: 0.97rem;
+    white-space: nowrap;
+  }
+  .nav ul a:hover,
+  .nav a[aria-current='page'] {
+    color: var(--green-800);
+    background: var(--green-50);
+  }
+  .nav :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  .nav-cta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .phone {
+    font-weight: 650 !important;
+    color: var(--green-900) !important;
+    white-space: nowrap;
+  }
+  .nav-cta .btn {
+    color: #fff;
+    padding-inline: 18px;
+    white-space: nowrap;
+  }
+  .menu-btn {
+    display: none;
+    margin-left: auto;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--green-900);
+    cursor: pointer;
+    place-items: center;
+  }
+  .menu-btn :global(svg) {
+    width: 24px;
+    height: 24px;
+  }
+  .menu-btn :global(.i-close),
+  .menu-btn[aria-expanded='true'] :global(.i-open) {
+    display: none;
+  }
+  .menu-btn[aria-expanded='true'] :global(.i-close) {
+    display: block;
+  }
+
+  @media (max-width: 1240px) {
+    .nav {
+      gap: 12px;
+    }
+    .nav a {
+      padding: 8px 8px;
+      font-size: 0.94rem;
+    }
+    .lang .lang-text {
+      display: none;
+    }
+  }
+  @media (max-width: 960px) {
+    .menu-btn {
+      display: grid;
+    }
+    .nav {
+      position: fixed;
+      inset: 72px 0 auto 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 16px var(--gutter) 24px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      transform: translateY(-8px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+      max-height: calc(100dvh - 72px);
+      overflow-y: auto;
+    }
+    .nav.open {
+      transform: none;
+      opacity: 1;
+      visibility: visible;
+    }
+    .nav ul {
+      flex-direction: column;
+    }
+    .nav a {
+      padding: 12px;
+      font-size: 1.05rem;
+    }
+    .nav-cta {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .nav-cta .btn {
+      min-height: 50px;
+    }
+    .phone {
+      justify-content: center;
+    }
+  }
+  @media (max-width: 380px) {
+    .brand-text {
+      font-size: 1rem;
+    }
+  }
+</style>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('.menu-btn');
+  const navEl = document.getElementById('site-nav');
+  if (btn && navEl) {
+    const set = (open: boolean) => {
+      btn.setAttribute('aria-expanded', String(open));
+      navEl.classList.toggle('open', open);
+    };
+    btn.addEventListener('click', () => set(btn.getAttribute('aria-expanded') !== 'true'));
+    navEl.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) set(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') set(false);
+    });
+  }
+</script>

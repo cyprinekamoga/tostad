@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import BookingForm from '../components/BookingForm.astro';
+import { site } from '../config/site.js';
+---
+<Base
+  title="Boka flytt eller städning i Stockholm – fast pris"
+  description={`Boka flytt, flyttstädning eller hemstädning i Stockholm. Fyra korta steg, fast pris och svar ${site.responseTime}. Ingen förskottsbetalning.`}
+  breadcrumbs={[{ name: 'Boka', href: '/boka' }]}
+>
+  <section class="section section--tight">
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Boka', href: '/boka' }]} />
+      <h1>Boka flytt eller städning</h1>
+      <p class="lead">Fyra korta steg. Vi bekräftar tid och fast pris {site.responseTime} – du betalar först när jobbet är klart.</p>
+      <BookingForm />
+    </div>
+  </section>
+</Base>

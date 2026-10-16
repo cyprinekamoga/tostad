@@ -1,0 +1,92 @@
+---
+// Bildgalleri: det här rengör vi – en bild per yta.
+import { Picture } from 'astro:assets';
+import { img } from '../lib/images.js';
+
+const tiles = [
+  { image: 'oven', title: 'Ugn och spis', text: 'Avfettning av lucka, galler och plåtar.', alt: 'Närbild på ugnens reglage och lucka i rostfritt stål' },
+  { image: 'sponge-glove', title: 'Bänkskivor', text: 'Fläckar och fett bort från alla ytor.', alt: 'Hand i städhandske torkar en köksbänk med svamp' },
+  { image: 'bathtub-scrub', title: 'Badkar och handfat', text: 'Avkalkning tills kranarna blänker.', alt: 'Hand i lila gummihandske skurar ett handfat' },
+  { image: 'mop-floor', title: 'Golv', text: 'Våttorkning anpassad efter golvtypen.', alt: 'Mopp på ett blankt trägolv' },
+  { image: 'vacuum-floor', title: 'Mattor och lister', text: 'Dammsugning ända in i hörnen.', alt: 'Dammsugarmunstycke på ett trägolv' },
+  { image: 'livingroom-balcony', title: 'Fönster', text: 'Utan ränder, karmar och bleck ingår.', alt: 'Vardagsrum med stora glasdörrar mot balkongen' },
+  { image: 'spray-sponges', title: 'Rätt medel', text: 'Vi tar med allt som behövs.', alt: 'Sprayflaska och tvättsvampar på en bänk' },
+  { image: 'bedroom-making-bed', title: 'Sovrum', text: 'Damning, golv och bäddning vid hemstädning.', alt: 'Par som bäddar sängen i ett ljust sovrum' },
+];
+---
+<ul class="gallery">
+  {
+    tiles.map((t) => (
+      <li class="tile reveal">
+        <Picture src={img(t.image)} alt={t.alt} formats={['avif', 'webp']} widths={[320, 560]} sizes="(min-width: 1000px) 25vw, 50vw" />
+        <div class="cap">
+          <strong>{t.title}</strong>
+          <span>{t.text}</span>
+        </div>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .gallery {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  }
+  @media (max-width: 520px) {
+    .gallery {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .tile {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--mint);
+  }
+  .tile :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .tile:hover :global(img) {
+    transform: scale(1.06);
+  }
+  .cap {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 28px 14px 12px;
+    background: linear-gradient(transparent, rgb(6 42 25 / 0.85));
+    color: #fff;
+    display: grid;
+    gap: 2px;
+  }
+  .cap strong {
+    font-size: 1rem;
+  }
+  .cap span {
+    font-size: 0.82rem;
+    color: #d6ebdf;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+  }
+  .tile:hover .cap span,
+  .tile:focus-within .cap span {
+    max-height: 3em;
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .cap span {
+      max-height: 3em;
+      opacity: 1;
+    }
+  }
+</style>

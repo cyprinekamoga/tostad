@@ -1,0 +1,139 @@
+---
+// Berättande sektion: kundernas vanligaste problem – och vad vi gör åt dem.
+import Icon from './Icon.astro';
+
+const items = [
+  {
+    stat: '900+',
+    statText: 'klagomål på flyttfirmor till Konsumentverket på drygt ett år',
+    source: { label: 'Bygg.se, 2025', href: 'https://bygg.se/900-klagomal-pa-ett-ar-sa-lurar-oseriosa-flyttfirmor-svenskarna/' },
+    problem: '”Det blev dyrare på plats.”',
+    solution: 'Fast pris innan vi börjar. Behövs något extra frågar vi dig skriftligt först.',
+    icon: 'tag',
+  },
+  {
+    stat: '62 %',
+    statText: 'av missnöjda flyttkunder nämner skadade möbler',
+    source: { label: 'This Old House, USA 2025', href: 'https://www.thisoldhouse.com/moving/moving-survey' },
+    problem: '”Något gick sönder och ingen tog ansvar.”',
+    solution: 'Ansvarsförsäkring via Trygg-Hansa, Bohag 2010 och skadeanmälan med bilder direkt på sidan. Svar inom 48 timmar.',
+    icon: 'shield',
+  },
+  {
+    stat: '53 %',
+    statText: 'av missnöjda flyttkunder klagar på dålig kommunikation',
+    source: { label: 'This Old House, USA 2025', href: 'https://www.thisoldhouse.com/moving/moving-survey' },
+    problem: '”Vi väntade i två timmar utan att veta något.”',
+    solution: 'Namn på teamet kvällen före och ett SMS när vi är på väg – med länk så att du ser när vi är framme.',
+    icon: 'sms',
+  },
+  {
+    stat: '↑',
+    statText: 'Tvisterna om flyttstädning har ökat kraftigt de senaste tio åren',
+    source: { label: 'SVT / Hyresgästföreningen', href: 'https://www.svt.se/nyheter/inrikes/antalet-flyttstadtvister-har-okat-kraftigt' },
+    problem: '”Hyresvärden skickade en städräkning månader senare.”',
+    solution: 'Fotorapport rum för rum som bevis, och 14 dagars besiktningsgaranti om något ändå anmärks.',
+    icon: 'camera',
+  },
+];
+---
+<section class="section" id="varfor">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">Därför finns vi</p>
+      <h2>Vi byggde vår service runt det som brukar gå fel</h2>
+      <p class="lead">Flytt är ett av livets mest stressande moment. Det här är de fyra saker kunder klagar mest på – och hur vi har tagit bort dem.</p>
+    </div>
+    <div class="ps-grid">
+      {
+        items.map((it) => (
+          <article class="ps reveal">
+            <div class="ps-stat">
+              <span class="num">{it.stat}</span>
+              <span class="txt">
+                {it.statText}{' '}
+                <a href={it.source.href} rel="noopener" class="src">
+                  ({it.source.label})
+                </a>
+              </span>
+            </div>
+            <p class="ps-problem">{it.problem}</p>
+            <div class="ps-solution">
+              <span class="icon-badge">
+                <Icon name={it.icon} />
+              </span>
+              <p>
+                <strong>Så gör vi:</strong> {it.solution}
+              </p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .ps-grid {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  }
+  .ps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    background: #fff;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+  }
+  .ps-stat {
+    display: grid;
+    gap: 4px;
+  }
+  .num {
+    font-size: 2.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--green-700);
+    line-height: 1;
+  }
+  .txt {
+    font-size: 0.9rem;
+    color: var(--ink-3);
+  }
+  .src {
+    color: var(--ink-3);
+    font-size: 0.8rem;
+  }
+  .ps-problem {
+    font-size: 1.1rem;
+    font-weight: 650;
+    font-style: italic;
+    color: var(--green-950);
+    margin: 0;
+  }
+  .ps-solution {
+    margin-top: auto;
+    display: flex;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+  }
+  .ps-solution .icon-badge {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    flex: none;
+  }
+  .ps-solution .icon-badge :global(svg) {
+    width: 22px;
+    height: 22px;
+  }
+  .ps-solution p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+</style>

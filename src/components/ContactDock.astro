@@ -1,0 +1,94 @@
+---
+// Snabbkontakt: fast knapprad längst ned på mobilen och WhatsApp-knapp på dator.
+import Icon from './Icon.astro';
+import { site } from '../config/site.js';
+
+interface Props {
+  lang?: 'sv' | 'en';
+}
+const { lang = 'sv' } = Astro.props;
+const t =
+  lang === 'en'
+    ? { call: 'Call', chat: 'WhatsApp', price: 'Fixed price', priceHref: '/en#prices', wa: 'Chat with us on WhatsApp' }
+    : { call: 'Ring', chat: 'WhatsApp', price: 'Fast pris', priceHref: '/priser', wa: 'Chatta med oss på WhatsApp' };
+---
+<div class="dock" aria-label={lang === 'en' ? 'Quick contact' : 'Snabbkontakt'}>
+  <a href={site.phoneHref}><Icon name="phone" />{t.call}</a>
+  <a href={site.whatsappHref} rel="noopener"><Icon name="whatsapp" />{t.chat}</a>
+  <a class="primary" href={t.priceHref}><Icon name="tag" />{t.price}</a>
+</div>
+<a class="wa-float" href={site.whatsappHref} rel="noopener" aria-label={t.wa}>
+  <Icon name="whatsapp" />
+  <span>{t.wa}</span>
+</a>
+
+<style>
+  .dock {
+    display: none;
+  }
+  .wa-float {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px 12px 14px;
+    border-radius: 999px;
+    background: #1f8f4a;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 650;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.15s ease;
+  }
+  .wa-float:hover {
+    color: #fff;
+    transform: translateY(-2px);
+  }
+  .wa-float :global(svg) {
+    width: 26px;
+    height: 26px;
+  }
+  @media (max-width: 760px) {
+    .wa-float {
+      display: none;
+    }
+    .dock {
+      position: fixed;
+      inset: auto 0 0 0;
+      z-index: 45;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.2fr;
+      gap: 8px;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: rgb(255 255 255 / 0.96);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -6px 20px rgb(6 42 25 / 0.08);
+    }
+    .dock a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 48px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      color: var(--green-900);
+      font-weight: 650;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    .dock a.primary {
+      background: var(--green-700);
+      border-color: var(--green-700);
+      color: #fff;
+    }
+    .dock :global(svg) {
+      width: 20px;
+      height: 20px;
+    }
+  }
+</style>

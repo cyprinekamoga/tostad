@@ -1,0 +1,194 @@
+---
+// Klickbar bild: punkter som visar vad vi rengör på just den platsen.
+import { Picture } from 'astro:assets';
+import { img } from '../lib/images.js';
+
+interface Spot {
+  x: number;
+  y: number;
+  title: string;
+  text: string;
+}
+interface Props {
+  image: string;
+  alt: string;
+  spots: Spot[];
+  caption?: string;
+  id: string;
+}
+const { image, alt, spots, caption, id } = Astro.props;
+---
+<figure class="hotspots" data-hotspots id={id}>
+  <div class="hs-frame">
+    <Picture src={img(image)} alt={alt} formats={['avif', 'webp']} widths={[640, 1024]} sizes="(min-width: 1000px) 60vw, 100vw" />
+    {
+      spots.map((s, i) => (
+        <button
+          type="button"
+          class="hs-dot"
+          style={`left:${s.x}%;top:${s.y}%`}
+          aria-expanded="false"
+          aria-controls={`${id}-tip-${i}`}
+          data-tip={i}
+        >
+          <span class="visually-hidden">{s.title}</span>
+          <span aria-hidden="true">+</span>
+        </button>
+      ))
+    }
+    {
+      spots.map((s, i) => (
+        <div class="hs-tip" id={`${id}-tip-${i}`} role="note" hidden style={`--x:${s.x}%;--y:${s.y}%`} data-side={s.x > 55 ? 'left' : 'right'}>
+          <strong>{s.title}</strong>
+          <span>{s.text}</span>
+        </div>
+      ))
+    }
+  </div>
+  {caption && <figcaption>{caption}</figcaption>}
+  <ul class="hs-list">
+    {
+      spots.map((s) => (
+        <li>
+          <strong>{s.title}:</strong> {s.text}
+        </li>
+      ))
+    }
+  </ul>
+</figure>
+
+<style>
+  .hotspots {
+    margin: 0;
+  }
+  .hs-frame {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .hs-frame :global(img) {
+    width: 100%;
+  }
+  .hs-dot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: var(--green-700);
+    color: #fff;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgb(0 0 0 / 0.25);
+    display: grid;
+    place-items: center;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  .hs-dot::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 2px solid rgb(255 255 255 / 0.9);
+    animation: pulse 2.2s ease-out infinite;
+  }
+  .hs-dot[aria-expanded='true'] {
+    background: var(--green-950);
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .hs-dot[aria-expanded='true']::before {
+    animation: none;
+    opacity: 0;
+  }
+  @keyframes pulse {
+    from {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+    to {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+  .hs-tip[hidden] {
+    display: none;
+  }
+  .hs-tip {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: min(280px, 70%);
+    transform: translate(28px, -50%);
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow-lg);
+    display: grid;
+    gap: 4px;
+    font-size: 0.92rem;
+    z-index: 2;
+  }
+  .hs-tip[data-side='left'] {
+    transform: translate(calc(-100% - 28px), -50%);
+  }
+  .hs-tip strong {
+    color: var(--green-900);
+  }
+  figcaption {
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: var(--ink-3);
+  }
+  .hs-list {
+    display: none;
+  }
+  @media (max-width: 640px) {
+    .hs-dot {
+      width: 30px;
+      height: 30px;
+      font-size: 1.1rem;
+      border-width: 2px;
+    }
+    .hs-tip {
+      display: none !important;
+    }
+    .hs-list {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0 0;
+      padding-left: 1.2em;
+      font-size: 0.95rem;
+    }
+  }
+  :global(.no-js) .hs-list {
+    display: grid;
+  }
+</style>
+
+<script>
+  for (const fig of document.querySelectorAll<HTMLElement>('[data-hotspots]')) {
+    const dots = [...fig.querySelectorAll<HTMLButtonElement>('.hs-dot')];
+    const close = () =>
+      dots.forEach((d) => {
+        d.setAttribute('aria-expanded', 'false');
+        (document.getElementById(d.getAttribute('aria-controls')!) as HTMLElement).hidden = true;
+      });
+    dots.forEach((d) =>
+      d.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = d.getAttribute('aria-expanded') === 'true';
+        close();
+        if (!open) {
+          d.setAttribute('aria-expanded', 'true');
+          (document.getElementById(d.getAttribute('aria-controls')!) as HTMLElement).hidden = false;
+        }
+      }),
+    );
+    document.addEventListener('click', close);
+    document.addEventListener('keydown', (e) => e.key === 'Escape' && close());
+  }
+</script>

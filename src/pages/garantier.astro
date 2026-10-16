@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Guarantees from '../components/Guarantees.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../config/site.js';
+const p = site.promises;
+---
+<Base
+  title="Våra garantier – fast pris, besiktning och skador"
+  description={`Fast pris som gäller, fotorapport, ${p.inspectionGuaranteeDays} dagars besiktningsgaranti, SMS när vi är på väg och betalning efter jobbet. Så fungerar TO Städ & Flytts garantier.`}
+  breadcrumbs={[{ name: 'Garantier', href: '/garantier' }]}
+>
+  <section class="section section--tight">
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Garantier', href: '/garantier' }]} />
+      <h1>Våra garantier – på papper</h1>
+      <p class="lead">Löften är lätta att ge. Här står exakt vad som gäller, så att du kan hålla oss till dem.</p>
+    </div>
+  </section>
+
+  <Guarantees dark={false} heading={false} />
+
+  <section class="section">
+    <div class="container prose">
+      <h2>Så fungerar garantierna i detalj</h2>
+
+      <h3>Fast pris</h3>
+      <p>
+        Priset i din bekräftelse är det du betalar. Det bygger på uppgifterna du lämnat: bostadens storlek, våning, hiss, bärväg, avstånd och om du vill ha
+        packhjälp. Tar jobbet längre tid än vi räknat med är det vår risk. Om förutsättningarna är andra på plats – till exempel betydligt mer bohag eller ett förråd
+        som inte nämnts – frågar vi dig skriftligt (SMS eller e-post) innan vi gör något som kostar extra. Säger du nej gör vi bara det som ingick.
+      </p>
+
+      <h3>Fotorapport och besiktningsgaranti</h3>
+      <p>
+        Efter varje flyttstädning skickar vi en fotorapport med bilder på varje rum. Om besiktningen inom {p.inspectionGuaranteeDays} dagar från städningen
+        visar anmärkningar som gäller det vi städat, kommer vi tillbaka och åtgärdar dem utan kostnad, normalt inom {p.inspectionFixHours} timmar. Skicka gärna
+        besiktningsprotokollet till oss. Garantin gäller inte skador eller slitage som inte går att städa bort, eller ytor som inte ingick i beställningen.
+      </p>
+
+      <h3>SMS när vi är på väg</h3>
+      <p>Kvällen före får du namnen på ditt team och starttiden. På dagen får du ett SMS när vi åker, så att du vet ungefär när vi är framme.</p>
+
+      <h3>Betala när jobbet är klart</h3>
+      <p>
+        Vi tar aldrig betalt i förskott. Fakturan skickas när uppdraget är utfört, med RUT-avdraget redan avdraget, och har {p.invoiceDays} dagars betalningstid.
+      </p>
+
+      <h3>Om vi måste ställa in</h3>
+      <p>
+        Du kan avboka kostnadsfritt fram till {p.lateCancelHours} timmar innan. Samma regel gäller oss: om vi ställer in eller flyttar din tid med kortare varsel
+        än {p.lateCancelHours} timmar bjuder vi på första timmen när vi kommer.
+      </p>
+
+      <h3>Skador</h3>
+      <p>
+        Om något skadas anmäler du det via <a href="/skadeanmalan">skadeanmälan</a> med bilder, så snart du upptäcker det. Vi svarar inom
+        {p.damageResponseHours} timmar. Vi har ansvarsförsäkring via {site.insurer}. Flytt utförs enligt Bohag 2010, branschens konsumentvillkor som tagits fram
+        tillsammans med Konsumentverket, och för städning gäller konsumenttjänstlagen.
+      </p>
+
+      <h3>Riktiga omdömen</h3>
+      <p>Vi publicerar inga egenskrivna kundcitat. Omdömen om oss finns hos Reco och Google, där de lämnas av kunder efter utfört uppdrag.</p>
+
+      <p class="muted small">Se även våra <a href="/villkor">allmänna villkor</a>.</p>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>

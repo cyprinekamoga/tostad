@@ -1,0 +1,110 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Guarantees from '../components/Guarantees.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../config/site.js';
+import { img } from '../lib/images.js';
+---
+<Base
+  title="Om oss – lokal flytt- och städfirma i Upplands Väsby"
+  description={`TO Städ & Flytt är en lokal flytt- och städfirma i ${site.address.city} med uppdrag i hela Stockholms län. Fast pris, skrivna garantier och försäkring.`}
+  image={img('family-kitchen')}
+  breadcrumbs={[{ name: 'Om oss', href: '/om-oss' }]}
+>
+  <PageHero
+    h1="Vi skapar utrymme för det som betyder mest"
+    lead="Ett rent hem och en smidig flytt handlar om mer än bärhjälp och skurborstar. Det handlar om trygghet, tid och förtroende."
+    image={img('family-kitchen')}
+    imageAlt="Familj i ett ljust kök i sitt nya hem"
+    crumbs={[{ name: 'Om oss', href: '/om-oss' }]}
+    primary={{ href: '/priser', label: 'Se våra priser' }}
+  />
+
+  <section class="section section--white">
+    <div class="container split">
+      <div class="prose">
+        <h2>Vilka är vi?</h2>
+        <p>
+          TO Städ & Flytt startades med en enkel idé: att erbjuda flytt och städning med en personlig touch – och med löften som håller. Vi är ett lokalt företag
+          med bas i {site.address.city} och hjälper privatpersoner och företag i hela Stockholms län.
+        </p>
+        <p>
+          Vi vet att varje hem är unikt. Därför kombinerar vi den stora firmans ordning – fasta priser, försäkring och tydliga villkor – med det lilla företagets
+          engagemang. Ingen uppgift är för liten och ingen utmaning för stor.
+        </p>
+        <h2>Vårt löfte till dig</h2>
+        <p>
+          När du anlitar oss kan du förvänta dig punktlighet, noggrannhet och ett bemötande som gör att du känner dig prioriterad. Vi lämnar inget åt slumpen –
+          och om något ändå blir fel rättar vi till det. Därför har vi skrivit ner våra garantier, så att du kan hålla oss till dem.
+        </p>
+      </div>
+      <div class="facts card">
+        <h2 class="h3">Fakta</h2>
+        <dl>
+          <dt>Företag</dt><dd>{site.legalName}</dd>
+          <dt>Org.nr</dt><dd>{site.orgNr}</dd>
+          <dt>Adress</dt><dd>{site.address.street}, {site.address.postalCode} {site.address.city}</dd>
+          <dt>F-skatt</dt><dd>Godkänd</dd>
+          <dt>RUT</dt><dd>Godkänd för RUT-avdrag</dd>
+          <dt>Försäkring</dt><dd>Ansvarsförsäkring via {site.insurer}</dd>
+          <dt>Villkor</dt><dd>Bohag 2010 (flytt), konsumenttjänstlagen (städning)</dd>
+        </dl>
+        <div class="btn-row">
+          <a class="btn btn--sm" href={site.phoneHref}><Icon name="phone" /> Ring oss</a>
+          <a class="btn btn--sm btn--ghost" href="/kontakt">Kontakt</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Så jobbar vi</p>
+        <h2>Tre saker vi aldrig kompromissar med</h2>
+      </div>
+      <div class="grid grid-3">
+        <div class="card reveal">
+          <span class="icon-badge"><Icon name="check" /></span>
+          <h3>Erfarenhet som märks</h3>
+          <p>Vi vet vilka detaljer som gör skillnad – från de svåråtkomliga hörnen i badrummet till hur man packar porslin säkrast.</p>
+        </div>
+        <div class="card reveal">
+          <span class="icon-badge"><Icon name="users" /></span>
+          <h3>Trygghet i fokus</h3>
+          <p>Att släppa in någon i sitt hem är en tillitssak. Vi följer strikta checklistor och säger alltid i förväg vilka som kommer.</p>
+        </div>
+        <div class="card reveal">
+          <span class="icon-badge"><Icon name="calendar" /></span>
+          <h3>Flexibilitet och enkelhet</h3>
+          <p>Pris direkt på webben, bokning på några minuter och tider som passar ditt schema – även kvällar och helger.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Guarantees />
+  <CtaBand />
+</Base>
+
+<style>
+  .h3 {
+    font-size: 1.3rem;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 18px;
+    margin: 0 0 20px;
+  }
+  dt {
+    font-weight: 650;
+    color: var(--green-950);
+  }
+  dd {
+    margin: 0;
+    color: var(--ink-2);
+  }
+</style>

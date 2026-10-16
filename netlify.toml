@@ -1,0 +1,42 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Gamla adresser från den tidigare webbplatsen → nya sidor (301 behåller Google-rankingen).
+[[redirects]]
+  from = "/kalkylator"
+  to = "/priser"
+  status = 301
+
+[[redirects]]
+  from = "/copy-of-hem"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/hem"
+  to = "/"
+  status = 301
+
+# www → utan www (lägg till www.tostadflytt.se som domänalias i Netlify).
+[[redirects]]
+  from = "https://www.tostadflytt.se/*"
+  to = "https://tostadflytt.se/:splat"
+  status = 301
+  force = true
+
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    X-Frame-Options = "SAMEORIGIN"

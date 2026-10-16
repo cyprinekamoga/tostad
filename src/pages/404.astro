@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { services } from '../data/services.js';
+---
+<Base title="Sidan finns inte" description="Sidan du letar efter finns inte. Här hittar du våra tjänster, priser och kontaktuppgifter." noindex>
+  <section class="section">
+    <div class="container nf">
+      <p class="eyebrow">404</p>
+      <h1>Den här sidan har flyttat – eller fanns aldrig</h1>
+      <p class="lead">Här är det de flesta letar efter:</p>
+      <ul class="links">
+        <li><a class="btn" href="/priser">Räkna ut ditt pris <Icon name="arrow" /></a></li>
+        {services.slice(0, 5).map((s) => <li><a class="btn btn--ghost" href={`/${s.slug}`}>{s.name}</a></li>)}
+        <li><a class="btn btn--ghost" href="/kontakt">Kontakt</a></li>
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    max-width: 760px;
+  }
+  .links {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+</style>

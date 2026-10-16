@@ -1,0 +1,81 @@
+---
+// Visar bara riktiga omdömen. När Reco- eller Google-länken finns i site.js visas knappar dit.
+import Icon from './Icon.astro';
+import { site } from '../config/site.js';
+const { recoUrl, googleReviewUrl } = site.reviews;
+const hasProfiles = Boolean(recoUrl || googleReviewUrl);
+---
+<section class="section section--mint" id="omdomen">
+  <div class="container rev">
+    <div>
+      <p class="eyebrow"><Icon name="star" /> Omdömen</p>
+      <h2>Riktiga omdömen – från riktiga uppdrag</h2>
+      <p class="lead">
+        Många företag skriver sina egna kundcitat. Vi gör inte det. Efter varje uppdrag får du en länk till Reco eller Google, där omdömet syns för alla och inte kan
+        redigeras av oss.
+      </p>
+      {
+        hasProfiles ? (
+          <div class="btn-row">
+            {recoUrl && (
+              <a class="btn" href={recoUrl} rel="noopener">
+                Läs våra omdömen på Reco <Icon name="arrow" />
+              </a>
+            )}
+            {googleReviewUrl && (
+              <a class="btn btn--ghost" href={googleReviewUrl} rel="noopener">
+                Omdömen på Google
+              </a>
+            )}
+          </div>
+        ) : (
+          <p class="muted">Har du anlitat oss? Fråga efter länken så lägger du ett omdöme på en minut.</p>
+        )
+      }
+    </div>
+    <ul class="why">
+      <li><Icon name="check" /><span><strong>Kan inte ändras av oss.</strong> Omdömen ligger hos Reco och Google, inte på vår server.</span></li>
+      <li><Icon name="check" /><span><strong>Även kritik syns.</strong> Vi svarar öppet på alla omdömen – också de dåliga.</span></li>
+      <li><Icon name="check" /><span><strong>Bara efter utfört jobb.</strong> Länken skickas när uppdraget är klart och betalt.</span></li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .rev {
+    display: grid;
+    gap: 32px;
+    align-items: center;
+  }
+  @media (min-width: 900px) {
+    .rev {
+      grid-template-columns: 1.2fr 1fr;
+    }
+  }
+  .eyebrow :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+  .why {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+  .why li {
+    display: flex;
+    gap: 12px;
+    padding: 18px;
+    border-radius: var(--radius);
+    background: #fff;
+    border: 1px solid var(--line);
+  }
+  .why :global(svg) {
+    width: 22px;
+    height: 22px;
+    color: var(--green-700);
+    flex: none;
+    margin-top: 2px;
+  }
+</style>

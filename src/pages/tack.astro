@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../config/site.js';
+---
+<Base title="Tack – vi har fått ditt meddelande" description="Tack! Vi har tagit emot ditt meddelande och återkommer snart." noindex>
+  <section class="section">
+    <div class="container thanks">
+      <span class="ok"><Icon name="check" /></span>
+      <h1>Tack! Vi har fått ditt meddelande.</h1>
+      <p class="lead">Vi återkommer {site.responseTime}. Bråttom? Ring <a href={site.phoneHref}>{site.phone}</a> eller skriv på WhatsApp.</p>
+      <div class="card next">
+        <h2 class="h3">Under tiden</h2>
+        <ul class="check-list">
+          <li><a href="/flyttchecklista">Gör din flyttchecklista med datum</a> – och lägg in den i kalendern.</li>
+          <li><a href="/flyttstadning#checklista">Se exakt vad som ingår i flyttstädningen</a>.</li>
+          <li><a href="/garantier">Läs våra garantier</a> – så vet du vad du kan kräva av oss.</li>
+        </ul>
+      </div>
+      <div class="btn-row">
+        <a class="btn" href="/">Till startsidan</a>
+        <a class="btn btn--whatsapp" href={site.whatsappHref} rel="noopener"><Icon name="whatsapp" /> WhatsApp</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .thanks {
+    max-width: 720px;
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 12px;
+  }
+  .ok {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--green-100);
+    color: var(--green-700);
+  }
+  .ok :global(svg) {
+    width: 40px;
+    height: 40px;
+  }
+  .next {
+    text-align: left;
+    width: 100%;
+    margin: 12px 0;
+  }
+  .h3 {
+    font-size: 1.2rem;
+  }
+</style>

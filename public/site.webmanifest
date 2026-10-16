@@ -1,0 +1,13 @@
+{
+  "name": "TO Städ & Flytt",
+  "short_name": "TO Städ & Flytt",
+  "lang": "sv",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#0b3d24",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

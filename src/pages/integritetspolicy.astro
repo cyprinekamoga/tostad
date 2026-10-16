@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { site } from '../config/site.js';
+---
+<Base
+  title="Integritetspolicy – så hanterar vi dina personuppgifter"
+  description="Så hanterar TO Städ & Flytt dina personuppgifter: vilka uppgifter vi sparar, varför, hur länge och vilka rättigheter du har enligt GDPR. Inga spårningscookies."
+  breadcrumbs={[{ name: 'Integritetspolicy', href: '/integritetspolicy' }]}
+>
+  <section class="section section--tight">
+    <div class="container prose">
+      <Breadcrumbs items={[{ name: 'Integritetspolicy', href: '/integritetspolicy' }]} />
+      <h1>Integritetspolicy</h1>
+      <p class="lead">
+        {site.legalName} (org.nr {site.orgNr}) är personuppgiftsansvarig. Vi samlar bara in det vi behöver för att kunna utföra och fakturera ditt uppdrag.
+      </p>
+
+      <h2>Vilka uppgifter vi sparar</h2>
+      <ul>
+        <li><strong>Kontaktuppgifter:</strong> namn, telefonnummer, e-post och adresser – när du bokar, skickar ett meddelande eller en skadeanmälan.</li>
+        <li><strong>Uppdragsuppgifter:</strong> bostadens storlek, datum, önskemål och bilder du själv skickar till oss.</li>
+        <li><strong>Personnummer:</strong> bara för RUT-avdraget, och bara när vi bekräftar bokningen – aldrig via formulär på webbplatsen.</li>
+        <li><strong>Fotorapporter:</strong> bilder på bostaden efter flyttstädning. Bilderna visar rummen, inte personer.</li>
+      </ul>
+
+      <h2>Varför och med vilken rätt</h2>
+      <ul>
+        <li>För att utföra uppdraget och fakturera (avtal).</li>
+        <li>För att ansöka om RUT-avdrag och följa bokföringslagen (rättslig förpliktelse).</li>
+        <li>För att hantera reklamationer och skador (avtal och berättigat intresse).</li>
+      </ul>
+
+      <h2>Hur länge</h2>
+      <p>
+        Uppgifter som behövs för bokföring sparas i sju år enligt bokföringslagen. Fotorapporter sparas i två år, eftersom en hyresvärd kan ställa krav så länge.
+        Förfrågningar som inte blir uppdrag raderas efter tolv månader.
+      </p>
+
+      <h2>Vem som får ta del av uppgifterna</h2>
+      <p>
+        Skatteverket (RUT-avdrag), vårt försäkringsbolag vid skador och de leverantörer som driver vår webbplats och våra formulär (personuppgiftsbiträden). Vi
+        säljer aldrig dina uppgifter.
+      </p>
+
+      <h2>Cookies och spårning</h2>
+      <p>
+        Webbplatsen använder inga spårnings- eller marknadsföringscookies. Checklistorna sparar dina bockar lokalt i din egen webbläsare (localStorage) – de
+        skickas aldrig till oss.
+      </p>
+
+      <h2>Dina rättigheter</h2>
+      <p>
+        Du har rätt att få veta vilka uppgifter vi har om dig, få dem rättade eller raderade, begränsa behandlingen och invända mot den. Kontakta oss på
+        <a href={`mailto:${site.email}`}>{site.email}</a>. Om du är missnöjd kan du klaga hos Integritetsskyddsmyndigheten (IMY).
+      </p>
+    </div>
+  </section>
+</Base>

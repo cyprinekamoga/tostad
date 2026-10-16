@@ -1,0 +1,89 @@
+---
+interface Props {
+  items: { q: string; a: string }[];
+  title?: string;
+  eyebrow?: string;
+}
+const { items, title = 'Vanliga frågor', eyebrow = 'Frågor och svar' } = Astro.props;
+---
+<section class="section section--white" id="fragor">
+  <div class="container faq-wrap">
+    <div class="section-head">
+      <p class="eyebrow">{eyebrow}</p>
+      <h2>{title}</h2>
+    </div>
+    <div class="faq">
+      {
+        items.map((f) => (
+          <details class="reveal">
+            <summary>
+              <h3>{f.q}</h3>
+            </summary>
+            <p>{f.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-wrap {
+    display: grid;
+    gap: 24px;
+  }
+  @media (min-width: 960px) {
+    .faq-wrap {
+      grid-template-columns: 0.8fr 1.2fr;
+      align-items: start;
+    }
+  }
+  .faq {
+    display: grid;
+    gap: 12px;
+  }
+  details {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  details[open] {
+    background: #fff;
+    border-color: var(--green-100);
+    box-shadow: var(--shadow-sm);
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 18px 56px 18px 20px;
+    position: relative;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    width: 24px;
+    height: 24px;
+    margin-top: -12px;
+    border-radius: 50%;
+    background: var(--green-50) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2315803d' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M12 6v12M6 12h12'/%3E%3C/svg%3E") center / 14px no-repeat;
+    transition: transform 0.2s ease;
+  }
+  details[open] summary::after {
+    transform: rotate(45deg);
+  }
+  summary h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  details p {
+    padding: 0 20px 18px;
+    margin: 0;
+    color: var(--ink-2);
+  }
+</style>

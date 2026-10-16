@@ -1,0 +1,59 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  lang?: 'sv' | 'en';
+}
+const { lang = 'sv' } = Astro.props;
+const t =
+  lang === 'en'
+    ? { name: 'Name', contact: 'Phone or e-mail', msg: 'Message', consent: 'I agree that my details are stored so you can answer my message.', policy: 'Privacy policy (Swedish)', send: 'Send', hp: 'Leave empty:' }
+    : { name: 'Namn', contact: 'Telefon eller e-post', msg: 'Meddelande', consent: 'Jag godkänner att uppgifterna sparas för att svara på mitt meddelande.', policy: 'Integritetspolicy', send: 'Skicka', hp: 'Lämna tomt:' };
+---
+<form name="kontakt" method="POST" action="/tack" data-netlify="true" netlify-honeypot="bot-field" class="cf">
+  <input type="hidden" name="form-name" value="kontakt" />
+  <p class="visually-hidden"><label>{t.hp} <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+  <div class="form-grid form-grid--2">
+    <div class="field">
+      <label for="c-name">{t.name}</label>
+      <input id="c-name" name="namn" type="text" autocomplete="name" required />
+    </div>
+    <div class="field">
+      <label for="c-phone">{t.contact}</label>
+      <input id="c-phone" name="kontakt" type="text" autocomplete="tel" required />
+    </div>
+  </div>
+  <div class="field">
+    <label for="c-msg">{t.msg}</label>
+    <textarea id="c-msg" name="meddelande" required></textarea>
+  </div>
+  <label class="toggle consent">
+    <input type="checkbox" name="samtycke" value="ja" required />
+    <span>{t.consent} <a href="/integritetspolicy">{t.policy}</a></span>
+  </label>
+  <input type="hidden" name="sprak" value={lang} />
+  <button class="btn" type="submit">{t.send} <Icon name="arrow" /></button>
+</form>
+
+<style>
+  .cf {
+    display: grid;
+    gap: 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(18px, 3vw, 28px);
+    box-shadow: var(--shadow-sm);
+  }
+  .consent {
+    align-items: flex-start;
+    font-weight: 500;
+  }
+  .consent input {
+    margin-top: 3px;
+    flex: none;
+  }
+  .cf .btn {
+    justify-self: start;
+  }
+</style>

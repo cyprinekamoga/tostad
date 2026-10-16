@@ -1,0 +1,181 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import logoWhite from '../assets/brand/logo-white.png';
+import { site } from '../config/site.js';
+import { services } from '../data/services.js';
+import { areas } from '../data/areas.js';
+
+interface Props {
+  lang?: 'sv' | 'en';
+}
+const { lang = 'sv' } = Astro.props;
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="container cols">
+    <div class="about">
+      <Image src={logoWhite} alt={site.name} width={96} height={96} />
+      <p>
+        {lang === 'en'
+          ? 'Moving and cleaning in Stockholm with a fixed price, RUT deduction on the invoice and guarantees in writing.'
+          : 'Flytt och städ i Stockholm med fast pris, RUT-avdrag direkt på fakturan och garantier på papper.'}
+      </p>
+      <ul class="contact">
+        <li><a href={site.phoneHref}><Icon name="phone" /> {site.phone}</a></li>
+        <li><a href={site.whatsappHref} rel="noopener"><Icon name="whatsapp" /> WhatsApp</a></li>
+        <li><a href={`mailto:${site.email}`}><Icon name="mail" /> {site.email}</a></li>
+        <li><span><Icon name="map" /> {site.address.street}, {site.address.postalCode} {site.address.city}</span></li>
+      </ul>
+      {
+        (site.social.facebook || site.social.instagram) && (
+          <p class="social">
+            {site.social.facebook && <a href={site.social.facebook} rel="noopener">Facebook</a>}
+            {site.social.instagram && <a href={site.social.instagram} rel="noopener">Instagram</a>}
+          </p>
+        )
+      }
+    </div>
+
+    <nav aria-label="Tjänster">
+      <h2>Tjänster</h2>
+      <ul>
+        {services.map((s) => <li><a href={`/${s.slug}`}>{s.name}</a></li>)}
+        <li><a href="/priser">Priser och kalkylator</a></li>
+      </ul>
+    </nav>
+
+    <nav aria-label="Områden">
+      <h2>Områden</h2>
+      <ul>
+        {areas.map((a) => <li><a href={`/omraden/${a.slug}`}>Flytt och städ {a.name}</a></li>)}
+        <li><a href="/omraden">Alla områden</a></li>
+      </ul>
+    </nav>
+
+    <nav aria-label="Information">
+      <h2>Trygghet</h2>
+      <ul>
+        <li><a href="/garantier">Våra garantier</a></li>
+        <li><a href="/skadeanmalan">Skadeanmälan</a></li>
+        <li><a href="/rut-avdrag">RUT-avdrag</a></li>
+        <li><a href="/flyttchecklista">Flyttchecklista</a></li>
+        <li><a href="/boka">Boka</a></li>
+        <li><a href="/kontakt">Kontakt</a></li>
+        <li><a href="/om-oss">Om oss</a></li>
+        <li><a href="/en" hreflang="en" lang="en">English</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container facts">
+    <span>Org.nr {site.orgNr}</span>
+    <span>Godkänd för F-skatt</span>
+    <span>Godkänd för RUT-avdrag</span>
+    <span>Ansvarsförsäkrad via {site.insurer}</span>
+    <span>Flytt enligt Bohag 2010</span>
+  </div>
+
+  <div class="container legal">
+    <p>© {year} {site.legalName}</p>
+    <p>
+      <a href="/villkor">Villkor</a>
+      <a href="/integritetspolicy">Integritetspolicy</a>
+      <a href="/bildkallor">Bildkällor</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--green-950);
+    color: #c7dccf;
+    padding: clamp(48px, 7vw, 80px) 0 calc(24px + env(safe-area-inset-bottom));
+    font-size: 0.95rem;
+  }
+  .cols {
+    display: grid;
+    gap: 36px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  }
+  @media (min-width: 1000px) {
+    .cols {
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    }
+  }
+  h2 {
+    color: #fff;
+    font-size: 1rem;
+    letter-spacing: 0;
+    margin-bottom: 14px;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  a {
+    color: #c7dccf;
+    text-decoration: none;
+  }
+  a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+  .about img {
+    width: 96px;
+    height: 96px;
+    margin-bottom: 12px;
+  }
+  .about p {
+    max-width: 34ch;
+  }
+  .contact a,
+  .contact span {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .contact :global(svg) {
+    width: 18px;
+    height: 18px;
+    color: var(--green-500);
+    flex: none;
+  }
+  .social {
+    display: flex;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+    font-size: 0.85rem;
+    color: #9fbcaa;
+  }
+  .legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    font-size: 0.85rem;
+    color: #9fbcaa;
+  }
+  .legal p {
+    margin: 0;
+    display: flex;
+    gap: 16px;
+  }
+  @media (max-width: 760px) {
+    .site-footer {
+      padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    }
+  }
+</style>

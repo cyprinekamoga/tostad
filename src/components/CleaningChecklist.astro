@@ -1,0 +1,235 @@
+---
+// Interaktiv checklista för flyttstädning. Bockar sparas i webbläsaren och listan går att skriva ut.
+import Icon from './Icon.astro';
+import { cleaningChecklist } from '../data/checklists.js';
+
+const total = cleaningChecklist.reduce((n, r) => n + r.items.length, 0);
+---
+<div class="cl" data-checklist data-total={total}>
+  <div class="cl-top">
+    <div class="cl-progress" aria-hidden="true"><span data-cl-bar></span></div>
+    <p class="cl-count" aria-live="polite"><strong data-cl-done>0</strong> av {total} punkter avbockade</p>
+    <div class="cl-actions">
+      <button type="button" class="btn btn--ghost btn--sm" data-cl-reset>Rensa</button>
+      <button type="button" class="btn btn--ghost btn--sm" data-cl-print><Icon name="print" /> Skriv ut</button>
+    </div>
+  </div>
+
+  <div class="cl-tabs" role="tablist" aria-label="Rum">
+    {
+      cleaningChecklist.map((r, i) => (
+        <button type="button" role="tab" id={`cl-tab-${i}`} aria-controls={`cl-panel-${i}`} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1}>
+          {r.room}
+          <span class="badge" data-cl-room={i}>
+            0/{r.items.length}
+          </span>
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    cleaningChecklist.map((r, i) => (
+      <div class="cl-panel" role="tabpanel" id={`cl-panel-${i}`} aria-labelledby={`cl-tab-${i}`} hidden={i !== 0} data-panel={i}>
+        <h3 class="print-only">{r.room}</h3>
+        <ul>
+          {r.items.map((item, j) => (
+            <li>
+              <label>
+                <input type="checkbox" data-cl-item={`${i}-${j}`} />
+                <span>{item}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+  <p class="cl-note muted small">Det här är samma lista som vi bockar av på plats. Vill du städa själv? Använd den – eller låt oss göra det med garanti.</p>
+</div>
+
+<style>
+  .cl {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: clamp(18px, 3vw, 28px);
+    box-shadow: var(--shadow-sm);
+  }
+  .cl-top {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .cl-progress {
+    grid-column: 1 / -1;
+    height: 10px;
+    border-radius: 99px;
+    background: var(--mint);
+    overflow: hidden;
+  }
+  .cl-progress span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--green-600), var(--green-500));
+    transition: width 0.3s ease;
+  }
+  .cl-count {
+    margin: 0;
+  }
+  .cl-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .cl-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+  }
+  .cl-tabs button {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink-2);
+  }
+  .cl-tabs button[aria-selected='true'] {
+    background: var(--green-900);
+    border-color: var(--green-900);
+    color: #fff;
+  }
+  .badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--mint);
+    color: var(--green-800);
+  }
+  .cl-tabs button[aria-selected='true'] .badge {
+    background: rgb(255 255 255 / 0.18);
+    color: #fff;
+  }
+  .cl-panel ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  }
+  .cl-panel label {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: var(--bg);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+  .cl-panel label:hover {
+    background: var(--mint);
+  }
+  .cl-panel input {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--green-700);
+    flex: none;
+    margin-top: 1px;
+  }
+  .cl-panel input:checked + span {
+    text-decoration: line-through;
+    color: var(--ink-3);
+  }
+  .cl-note {
+    margin: 16px 0 0;
+  }
+  .print-only {
+    display: none;
+  }
+  @media print {
+    :global(body > *:not(main)),
+    :global(main > *:not(:has([data-checklist]))) {
+      display: none !important;
+    }
+    .cl-panel {
+      display: block !important;
+    }
+    .print-only {
+      display: block;
+    }
+    .cl-tabs,
+    .cl-actions,
+    .cl-progress {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const KEY = 'to-flyttstad-checklista';
+  for (const root of document.querySelectorAll<HTMLElement>('[data-checklist]')) {
+    const boxes = [...root.querySelectorAll<HTMLInputElement>('[data-cl-item]')];
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    let saved: string[] = [];
+    try {
+      saved = JSON.parse(localStorage.getItem(KEY) || '[]');
+    } catch {}
+    boxes.forEach((b) => (b.checked = saved.includes(b.dataset.clItem!)));
+
+    const update = () => {
+      const done = boxes.filter((b) => b.checked);
+      root.querySelector('[data-cl-done]')!.textContent = String(done.length);
+      (root.querySelector('[data-cl-bar]') as HTMLElement).style.width = `${(done.length / boxes.length) * 100}%`;
+      panels.forEach((p, i) => {
+        const inPanel = [...p.querySelectorAll<HTMLInputElement>('input')];
+        root.querySelector(`[data-cl-room="${i}"]`)!.textContent = `${inPanel.filter((b) => b.checked).length}/${inPanel.length}`;
+      });
+      try {
+        localStorage.setItem(KEY, JSON.stringify(done.map((b) => b.dataset.clItem)));
+      } catch {}
+    };
+    root.addEventListener('change', update);
+    update();
+
+    const select = (i: number) => {
+      tabs.forEach((t, j) => {
+        t.setAttribute('aria-selected', String(i === j));
+        t.tabIndex = i === j ? 0 : -1;
+      });
+      panels.forEach((p, j) => (p.hidden = i !== j));
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(i));
+      t.addEventListener('keydown', (e) => {
+        const next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null;
+        if (next === null) return;
+        const k = (next + tabs.length) % tabs.length;
+        select(k);
+        tabs[k].focus();
+      });
+    });
+    root.querySelector('[data-cl-reset]')?.addEventListener('click', () => {
+      boxes.forEach((b) => (b.checked = false));
+      update();
+    });
+    root.querySelector('[data-cl-print]')?.addEventListener('click', () => {
+      panels.forEach((p) => (p.hidden = false));
+      window.print();
+      select(tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true'));
+    });
+  }
+</script>

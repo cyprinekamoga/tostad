@@ -1,0 +1,21 @@
+{
+  "name": "tostadflytt-se",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Webbplats för TO Städ & Flytt – flytt och städ i Stockholm med fast pris och RUT-avdrag",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test tests/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.4",
+    "@fontsource-variable/inter": "5.3.0",
+    "astro": "7.3.5"
+  }
+}

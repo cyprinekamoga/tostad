@@ -1,0 +1,110 @@
+---
+import { Picture } from 'astro:assets';
+import Icon from './Icon.astro';
+import { services } from '../data/services.js';
+import { img } from '../lib/images.js';
+
+interface Props {
+  only?: string[];
+}
+const { only } = Astro.props;
+const list = only ? only.map((slug) => services.find((s) => s.slug === slug)).filter(Boolean) : services;
+---
+<div class="svc-grid">
+  {
+    list.map((s) => (
+      <a class="svc reveal" href={`/${s.slug}`}>
+        <div class="svc-img">
+          <Picture src={img(s.image)} alt="" formats={['avif', 'webp']} widths={[400, 640]} sizes="(min-width: 1000px) 30vw, (min-width: 640px) 45vw, 100vw" />
+        </div>
+        <div class="svc-body">
+          <h3>{s.name}</h3>
+          <p>{s.short}</p>
+          <span class="svc-price">
+            {s.priceFrom} <small>{s.priceNote}</small>
+          </span>
+          <span class="svc-more">
+            Läs mer <Icon name="arrow" />
+          </span>
+        </div>
+      </a>
+    ))
+  }
+</div>
+
+<style>
+  .svc-grid {
+    display: grid;
+    gap: clamp(16px, 2.4vw, 24px);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  }
+  .svc {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    color: inherit;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .svc:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+    color: inherit;
+  }
+  .svc-img {
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    background: var(--mint);
+  }
+  .svc-img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .svc:hover .svc-img :global(img) {
+    transform: scale(1.04);
+  }
+  .svc-body {
+    padding: 20px 22px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+  .svc-body h3 {
+    margin: 0;
+  }
+  .svc-body p {
+    color: var(--ink-2);
+    margin: 0 0 6px;
+  }
+  .svc-price {
+    font-weight: 700;
+    color: var(--green-800);
+    margin-top: auto;
+  }
+  .svc-price small {
+    font-weight: 500;
+    color: var(--ink-3);
+  }
+  .svc-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--green-700);
+    font-weight: 650;
+  }
+  .svc-more :global(svg) {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.2s ease;
+  }
+  .svc:hover .svc-more :global(svg) {
+    transform: translateX(4px);
+  }
+</style>

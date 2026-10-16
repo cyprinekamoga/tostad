@@ -1,0 +1,95 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import ContactForm from '../components/ContactForm.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../config/site.js';
+---
+<Base
+  title="Kontakt – ring, skriv på WhatsApp eller mejla"
+  description={`Kontakta TO Städ & Flytt: ring ${site.phone}, skriv på WhatsApp eller mejla ${site.email}. Vi svarar ${site.responseTime}.`}
+  breadcrumbs={[{ name: 'Kontakt', href: '/kontakt' }]}
+>
+  <section class="section section--tight">
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Kontakt', href: '/kontakt' }]} />
+      <h1>Kontakta oss</h1>
+      <p class="lead">Välj det som passar dig. Vi svarar {site.responseTime} – oftast mycket snabbare.</p>
+
+      <div class="ways">
+        <a class="way" href={site.phoneHref}>
+          <span class="icon-badge"><Icon name="phone" /></span>
+          <strong>Ring</strong>
+          <span>{site.phone}</span>
+        </a>
+        <a class="way" href={site.whatsappHref} rel="noopener">
+          <span class="icon-badge"><Icon name="whatsapp" /></span>
+          <strong>WhatsApp</strong>
+          <span>Skicka bilder för ett fast pris</span>
+        </a>
+        <a class="way" href={`mailto:${site.email}`}>
+          <span class="icon-badge"><Icon name="mail" /></span>
+          <strong>E-post</strong>
+          <span>{site.email}</span>
+        </a>
+        <a class="way" href="/boka">
+          <span class="icon-badge"><Icon name="calendar" /></span>
+          <strong>Boka online</strong>
+          <span>Fyra steg, fast pris</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--white">
+    <div class="container split">
+      <div>
+        <h2>Skicka ett meddelande</h2>
+        <p class="lead">Har du en fråga som inte passar i bokningen? Skriv här.</p>
+        <address>
+          <strong>{site.legalName}</strong><br />
+          {site.address.street}<br />
+          {site.address.postalCode} {site.address.city}<br />
+          Org.nr {site.orgNr}
+        </address>
+        <p class="muted small">Har något gått sönder? Använd <a href="/skadeanmalan">skadeanmälan</a> så kan du bifoga bilder.</p>
+      </div>
+      <ContactForm />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .ways {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    margin-top: 24px;
+  }
+  .way {
+    display: grid;
+    gap: 4px;
+    padding: 22px;
+    border-radius: var(--radius-lg);
+    background: #fff;
+    border: 1px solid var(--line);
+    text-decoration: none;
+    color: var(--ink-2);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .way:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    color: var(--ink-2);
+  }
+  .way strong {
+    color: var(--green-950);
+    font-size: 1.1rem;
+  }
+  address {
+    font-style: normal;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+</style>

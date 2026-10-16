@@ -1,0 +1,284 @@
+---
+// Scrollberättelse: bilden till vänster byts när man scrollar genom kapitlen.
+import { Picture } from 'astro:assets';
+import Icon from './Icon.astro';
+import { img } from '../lib/images.js';
+
+interface Chapter {
+  time: string;
+  title: string;
+  text: string;
+  image: string;
+  alt: string;
+  sms?: string[];
+  chip?: string;
+  icon?: string;
+}
+interface Props {
+  eyebrow?: string;
+  title: string;
+  intro?: string;
+  chapters: Chapter[];
+  id?: string;
+}
+const { eyebrow = 'Berättelse', title, intro, chapters, id = 'berattelse' } = Astro.props;
+---
+<section class="section section--white story" id={id} data-story>
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">{eyebrow}</p>
+      <h2>{title}</h2>
+      {intro && <p class="lead">{intro}</p>}
+    </div>
+
+    <div class="story-grid">
+      <div class="stage" aria-hidden="true">
+        <div class="stage-frame">
+          {
+            chapters.map((c, i) => (
+              <div class:list={['stage-img', i === 0 && 'active']} data-stage={i}>
+                <Picture src={img(c.image)} alt="" formats={['avif', 'webp']} widths={[480, 800]} sizes="(min-width: 960px) 44vw, 100vw" />
+              </div>
+            ))
+          }
+          <div class="stage-chip">
+            <Icon name="clock" /> <span data-stage-time>{chapters[0].time}</span>
+          </div>
+          <div class="stage-progress"><span data-stage-bar /></div>
+        </div>
+      </div>
+
+      <ol class="chapters">
+        {
+          chapters.map((c, i) => (
+            <li class="chapter" data-chapter={i} data-time={c.time}>
+              <div class="mobile-img">
+                <Picture src={img(c.image)} alt={c.alt} formats={['avif', 'webp']} widths={[480, 800]} sizes="100vw" />
+              </div>
+              <p class="ch-time">
+                <span class="ch-num">{String(i + 1).padStart(2, '0')}</span> {c.time}
+              </p>
+              <h3>{c.title}</h3>
+              <p>{c.text}</p>
+              {c.chip && (
+                <p class="pill">
+                  <Icon name={c.icon ?? 'check'} /> {c.chip}
+                </p>
+              )}
+              {c.sms && (
+                <div class="sms">
+                  {c.sms.map((m) => (
+                    <p class="bubble">{m}</p>
+                  ))}
+                </div>
+              )}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .story-grid {
+    display: grid;
+    gap: 32px;
+  }
+  .stage {
+    display: none;
+  }
+  @media (min-width: 960px) {
+    .story-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+    }
+    .stage {
+      display: block;
+    }
+    .stage-frame {
+      position: sticky;
+      top: 110px;
+      aspect-ratio: 4 / 5;
+      max-height: calc(100vh - 140px);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      background: var(--mint);
+    }
+    .mobile-img {
+      display: none;
+    }
+    .chapter {
+      min-height: 62vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+  }
+  .stage-img {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: scale(1.06);
+    transition: opacity 0.7s ease, transform 1.2s ease;
+  }
+  .stage-img.active {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .stage-img :global(img),
+  .stage-img :global(picture) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .stage-chip {
+    position: absolute;
+    left: 18px;
+    top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.92);
+    color: var(--green-900);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+  }
+  .stage-chip :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+  .stage-progress {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    height: 6px;
+    border-radius: 99px;
+    background: rgb(255 255 255 / 0.5);
+    overflow: hidden;
+  }
+  .stage-progress span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    background: var(--green-500);
+    transition: width 0.4s ease;
+  }
+  .chapters {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 40px;
+  }
+  .chapter {
+    opacity: 0.45;
+    transition: opacity 0.4s ease;
+  }
+  .chapter.active,
+  :global(.no-js) .chapter {
+    opacity: 1;
+  }
+  .mobile-img {
+    border-radius: var(--radius);
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    margin-bottom: 16px;
+  }
+  .mobile-img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .ch-time {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    color: var(--green-700);
+    margin-bottom: 8px;
+  }
+  .ch-num {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--green-900);
+    color: #fff;
+    font-size: 0.85rem;
+  }
+  .chapter h3 {
+    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.8rem);
+  }
+  .chapter > p {
+    color: var(--ink-2);
+    max-width: 52ch;
+  }
+  .chapter .pill {
+    align-self: flex-start;
+    width: fit-content;
+  }
+  .pill :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+  .sms {
+    display: grid;
+    gap: 8px;
+    max-width: 380px;
+    margin-top: 6px;
+  }
+  .bubble {
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 18px 18px 18px 6px;
+    background: var(--mint);
+    border: 1px solid var(--green-100);
+    font-size: 0.95rem;
+    color: var(--ink);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .chapter.active .bubble,
+  :global(.no-js) .bubble {
+    opacity: 1;
+    transform: none;
+  }
+  .chapter.active .bubble:nth-child(2) {
+    transition-delay: 0.35s;
+  }
+  .chapter.active .bubble:nth-child(3) {
+    transition-delay: 0.7s;
+  }
+</style>
+
+<script>
+  for (const story of document.querySelectorAll<HTMLElement>('[data-story]')) {
+    const chapters = [...story.querySelectorAll<HTMLElement>('[data-chapter]')];
+    const stages = [...story.querySelectorAll<HTMLElement>('[data-stage]')];
+    const timeEl = story.querySelector<HTMLElement>('[data-stage-time]');
+    const bar = story.querySelector<HTMLElement>('[data-stage-bar]');
+    const activate = (i: number) => {
+      chapters.forEach((c, j) => c.classList.toggle('active', j === i));
+      stages.forEach((s, j) => s.classList.toggle('active', j === i));
+      if (timeEl) timeEl.textContent = chapters[i].dataset.time ?? '';
+      if (bar) bar.style.width = `${((i + 1) / chapters.length) * 100}%`;
+    };
+    activate(0);
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) activate(Number((e.target as HTMLElement).dataset.chapter));
+        }
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    );
+    chapters.forEach((c) => io.observe(c));
+  }
+</script>

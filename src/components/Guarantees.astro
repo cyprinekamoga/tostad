@@ -1,0 +1,114 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../config/site.js';
+
+interface Props {
+  dark?: boolean;
+  heading?: boolean;
+}
+const { dark = true, heading = true } = Astro.props;
+const p = site.promises;
+const items = [
+  {
+    icon: 'tag',
+    title: 'Fast pris som gäller',
+    text: 'Priset i offerten är priset du betalar, så länge uppgifterna stämmer. Behövs något extra frågar vi dig skriftligt innan – aldrig nya avgifter på plats.',
+  },
+  {
+    icon: 'camera',
+    title: 'Fotorapport efter flyttstädning',
+    text: 'Tidsstämplade bilder på varje rum när vi är klara. Ditt bevis om hyresvärden eller köparen hör av sig senare.',
+  },
+  {
+    icon: 'shield',
+    title: `${p.inspectionGuaranteeDays} dagars besiktningsgaranti`,
+    text: `Anmärkning vid besiktningen? Vi kommer tillbaka och åtgärdar den kostnadsfritt inom ${p.inspectionFixHours} timmar.`,
+  },
+  {
+    icon: 'sms',
+    title: 'SMS när vi är på väg',
+    text: 'Kvällen före får du namn på ditt team. På dagen får du ett SMS när vi åker – så slipper du vänta och undra.',
+  },
+  {
+    icon: 'card',
+    title: 'Betala när jobbet är klart',
+    text: `Ingen förskottsbetalning. Fakturan kommer efteråt med RUT-avdraget redan avdraget och ${p.invoiceDays} dagars betaltid.`,
+  },
+  {
+    icon: 'clock',
+    title: 'Vi ställer inte in i sista stund',
+    text: `Om vi någon gång måste ställa in med kortare varsel än ${p.lateCancelHours} timmar bjuder vi på första timmen. Samma regel som gäller för dig.`,
+  },
+  {
+    icon: 'alert',
+    title: 'Enkel skadeanmälan',
+    text: `Anmäl med bilder direkt på sidan. Vi svarar inom ${p.damageResponseHours} timmar. Ansvarsförsäkring via ${site.insurer} och flytt enligt Bohag 2010.`,
+  },
+  {
+    icon: 'star',
+    title: 'Bara riktiga omdömen',
+    text: 'Vi visar omdömen från Reco och Google som kunder lämnat efter ett utfört uppdrag – inga egenskrivna citat.',
+  },
+];
+---
+<section class:list={['section', dark ? 'section--dark' : 'section--white']} id="garantier">
+  <div class="container">
+    {
+      heading && (
+        <div class="section-head">
+          <p class="eyebrow">Våra löften – på papper</p>
+          <h2>Åtta garantier som tar bort det kunder oroar sig mest för</h2>
+          <p class="lead">
+            Dolda avgifter, skador, sena team och underkända besiktningar är de vanligaste klagomålen på flytt- och städfirmor. Därför har vi en garanti för varje
+            sak – skriven så att du kan hålla oss till den.
+          </p>
+        </div>
+      )
+    }
+    <div class="g-grid">
+      {
+        items.map((g) => (
+          <div class:list={['g-card reveal', dark && 'g-card--dark']}>
+            <span class="icon-badge">
+              <Icon name={g.icon} />
+            </span>
+            <h3>{g.title}</h3>
+            <p>{g.text}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .g-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  }
+  .g-card {
+    padding: 24px;
+    border-radius: var(--radius);
+    background: #fff;
+    border: 1px solid var(--line);
+  }
+  .g-card--dark {
+    background: rgb(255 255 255 / 0.06);
+    border-color: rgb(255 255 255 / 0.12);
+  }
+  .g-card--dark h3 {
+    color: #fff;
+  }
+  .g-card--dark p {
+    color: #c4dccd;
+  }
+  .g-card--dark .icon-badge {
+    background: rgb(34 197 94 / 0.16);
+    color: var(--green-500);
+  }
+  .g-card p {
+    margin: 0;
+    font-size: 0.97rem;
+  }
+</style>

@@ -1,0 +1,156 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ServiceGrid from '../../components/ServiceGrid.astro';
+import PriceCalculator from '../../components/PriceCalculator.astro';
+import Faq from '../../components/Faq.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { areas } from '../../data/areas.js';
+import { site } from '../../config/site.js';
+import { img } from '../../lib/images.js';
+import { faqJsonLd } from '../../lib/seo.js';
+
+export function getStaticPaths() {
+  return areas.map((a) => ({ params: { ort: a.slug }, props: { a } }));
+}
+const { a } = Astro.props;
+const others = areas.filter((x) => x.slug !== a.slug);
+const faq = [
+  {
+    q: `Vad kostar flytthjälp i ${a.name}?`,
+    a: `2 flyttare och lastbil kostar 595 kr i timmen på vardagar efter RUT-avdrag. Det fasta priset för din flytt i ${a.name} beror på bostadens storlek, våning och avstånd – räkna ut det i kalkylatorn ovan.`,
+  },
+  {
+    q: `Vad kostar flyttstädning i ${a.name}?`,
+    a: `Samma pris i hela länet: 45 kr per kvadratmeter efter RUT-avdrag, med fotorapport och ${site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti.`,
+  },
+  {
+    q: `Kör ni till alla delar av ${a.name}?`,
+    a: `Ja, bland annat ${a.neighborhoods.slice(0, -1).join(', ')} och ${a.neighborhoods.at(-1)}.`,
+  },
+];
+const ld = [
+  {
+    '@type': 'Service',
+    name: `Flytt och flyttstädning i ${a.name}`,
+    provider: { '@id': `${site.url}/#foretag` },
+    areaServed: { '@type': 'City', name: a.name },
+    url: `${site.url}/omraden/${a.slug}`,
+  },
+  faqJsonLd(faq),
+].filter(Boolean);
+---
+<Base
+  title={`Flytt & flyttstädning ${a.name} – fast pris efter RUT`}
+  description={`Flytthjälp och flyttstädning i ${a.name} till fast pris efter RUT. ${a.neighborhoods.slice(0, 2).join(', ')} med flera. Fotorapport och besiktningsgaranti.`}
+  image={img('stockholm')}
+  imageAlt="Stockholm från vattnet"
+  breadcrumbs={[
+    { name: 'Områden', href: '/omraden' },
+    { name: a.name, href: `/omraden/${a.slug}` },
+  ]}
+  jsonLd={ld}
+>
+  <PageHero
+    h1={`Flytt och flyttstädning i ${a.name}`}
+    lead={a.intro}
+    image={img('stockholm')}
+    imageAlt={`Stockholm från vattnet – vi kör till ${a.name}`}
+    crumbs={[
+      { name: 'Områden', href: '/omraden' },
+      { name: a.name, href: `/omraden/${a.slug}` },
+    ]}
+    price="595 kr/h"
+    priceNote="2 flyttare + lastbil, efter RUT"
+    primary={{ href: '#pris', label: `Fast pris för ${a.name}` }}
+    points={['Fast pris innan vi börjar', 'Fotorapport och besiktningsgaranti', 'Betala efter jobbet']}
+  />
+
+  <section class="section section--white">
+    <div class="container split">
+      <div>
+        <p class="eyebrow">Lokalt</p>
+        <h2>Bra att veta om flytt i {a.name}</h2>
+        <p class="lead">{a.housing}</p>
+        <div class="tip">
+          <Icon name="sparkle" />
+          <p><strong>Tips:</strong> {a.tip}</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Vi flyttar och städar bland annat i</h3>
+        <ul class="hoods">
+          {a.neighborhoods.map((n) => <li>{n}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--mint" id="pris">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Pris</p>
+        <h2>Räkna ut ditt fasta pris i {a.name}</h2>
+      </div>
+      <PriceCalculator initial="paket" only={['flytt', 'flyttstadning', 'paket', 'hemstadning']} />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Tjänster i {a.name}</p>
+        <h2>Allt du behöver när du flyttar</h2>
+      </div>
+      <ServiceGrid only={['flyttfirma', 'flyttstadning', 'flytt-och-flyttstadning']} />
+    </div>
+  </section>
+
+  <Faq items={faq} title={`Vanliga frågor om flytt i ${a.name}`} />
+
+  <section class="section section--tight">
+    <div class="container">
+      <p class="muted">
+        Andra områden: {others.map((o, i) => <><a href={`/omraden/${o.slug}`}>{o.name}</a>{i < others.length - 1 ? ', ' : ''}</>)}
+      </p>
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+
+<style>
+  .tip {
+    display: flex;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    background: var(--sun-soft);
+    border: 1px solid #fde7a6;
+  }
+  .tip :global(svg) {
+    width: 24px;
+    height: 24px;
+    color: #a86b00;
+    flex: none;
+  }
+  .tip p {
+    margin: 0;
+  }
+  .hoods {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hoods li {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--green-50);
+    color: var(--green-800);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+</style>

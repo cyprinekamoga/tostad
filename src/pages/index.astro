@@ -1,0 +1,429 @@
+---
+import { Picture } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PainSolution from '../components/PainSolution.astro';
+import StoryScroll from '../components/StoryScroll.astro';
+import PriceCalculator from '../components/PriceCalculator.astro';
+import ServiceGrid from '../components/ServiceGrid.astro';
+import TrackingDemo from '../components/TrackingDemo.astro';
+import Hotspots from '../components/Hotspots.astro';
+import PhotoReport from '../components/PhotoReport.astro';
+import Guarantees from '../components/Guarantees.astro';
+import Reviews from '../components/Reviews.astro';
+import PostcodeCheck from '../components/PostcodeCheck.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../config/site.js';
+import { areas } from '../data/areas.js';
+import { homeFaq } from '../data/faq.js';
+import { kitchenSpots } from '../data/hotspots.js';
+import { movePrice, flyttstadningPrice, formatKr } from '../lib/pricing.js';
+import { faqJsonLd } from '../lib/seo.js';
+import { img } from '../lib/images.js';
+
+// Exempelflytten i berättelsen räknas med samma prislogik som kalkylatorn.
+const exMove = movePrice({ size: '2', distanceKm: 20, floorsFrom: 3, elevatorFrom: false });
+const exClean = flyttstadningPrice({ sqm: 55, discount: site.promises.packageDiscount });
+const exTotal = exMove.price + exClean.pay;
+
+const chapters = [
+  {
+    time: 'Två veckor kvar',
+    title: 'Sara vet vad flytten kostar på en minut',
+    text: `Sara ska flytta från en tvåa på tredje våningen utan hiss i Upplands Väsby till Solna. Hon fyller i kalkylatorn och ser direkt: flytt ${formatKr(exMove.price)} och flyttstädning ${formatKr(exClean.pay)} med paketrabatt. Inga ”från-priser”, inga överraskningar.`,
+    image: 'family-kitchen',
+    alt: 'Familj i ett ljust kök som räknar på flytten vid datorn',
+    chip: `Fast pris: ${formatKr(exTotal)} efter RUT`,
+    icon: 'tag',
+  },
+  {
+    time: 'Kvällen före, 18:00',
+    title: 'Hon vet vilka som kommer',
+    text: 'Ett SMS med namnen på teamet och starttiden. Sara behöver inte ringa och dubbelkolla – allt står där.',
+    image: 'livingroom-balcony',
+    alt: 'Vardagsrum i kvällsljus kvällen före flytten',
+    sms: ['Hej Sara! Imorgon kl 08:00 kommer Ali och Jonas. Fast pris ' + formatKr(exMove.price) + ' – inget tillkommer.'],
+  },
+  {
+    time: 'Flyttdagen, 07:42',
+    title: 'Ingen väntan vid fönstret',
+    text: 'När teamet åker får Sara ett SMS med en länk. Hon ser när lastbilen är framme och kan ta en kaffe i lugn och ro.',
+    image: 'stockholm',
+    alt: 'Stockholm från vattnet en solig dag',
+    sms: ['Vi har åkt från Upplands Väsby. Följ bilen live via länken →', 'Vi är framme om ca 5 minuter.'],
+  },
+  {
+    time: '08:05–13:30',
+    title: 'Tre trappor ner – samma pris',
+    text: `Trapporna tar längre tid än vanligt. Det spelar ingen roll: priset är fast. Möblerna skyddas, golven täcks och allt bärs med försäkring via ${site.insurer}.`,
+    image: 'mover-handtruck',
+    alt: 'Flyttare med säckkärra och kartong på väg till lastbilen',
+    chip: 'Försäkrat enligt Bohag 2010',
+    icon: 'shield',
+  },
+  {
+    time: '14:00–19:00',
+    title: 'Flyttstädning med bevis',
+    text: 'Medan Sara packar upp i Solna städar vi den gamla lägenheten efter besiktningsprotokollet. Kl 19:12 kommer fotorapporten – varje rum, med tidsstämpel.',
+    image: 'kitchen-white',
+    alt: 'Skinande rent vitt kök med ugn och mikrovågsugn efter flyttstädning',
+    chip: 'Fotorapport skickad 19:12',
+    icon: 'camera',
+  },
+  {
+    time: 'Tre dagar senare',
+    title: 'Godkänd besiktning. Nycklarna lämnas.',
+    text: `Besiktningen går igenom utan anmärkning. Fakturan kommer – ${formatKr(exTotal)}, RUT redan avdraget och ${site.promises.invoiceDays} dagar att betala. Hade något anmärkts hade vi kommit tillbaka inom ${site.promises.inspectionFixHours} timmar.`,
+    image: 'keys-door',
+    alt: 'Nyckel i ytterdörren – dags att lämna över',
+    chip: `${site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti`,
+    icon: 'key',
+  },
+];
+
+const ld = [faqJsonLd(homeFaq)].filter(Boolean);
+---
+<Base
+  title="Flytt & flyttstädning Stockholm – fast pris | TO Städ & Flytt"
+  description="Flytt och flyttstädning i Stockholm till fast pris efter RUT. Fotorapport, 14 dagars besiktningsgaranti, SMS när vi är på väg och betalning först efteråt."
+  jsonLd={ld}
+  alternates={[
+    { lang: 'sv', href: '/' },
+    { lang: 'en', href: '/en' },
+    { lang: 'x-default', href: '/' },
+  ]}
+>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow"><Icon name="leaf" /> Flytt & städ i Stockholms län</p>
+        <h1>Flytt och flyttstädning till ett <span class="hl">fast pris som gäller</span></h1>
+        <p class="lead">
+          Se priset direkt, få SMS när vi är på väg och en fotorapport när vi städat klart. RUT dras på fakturan – och den kommer först när jobbet är godkänt.
+        </p>
+        <div class="btn-row">
+          <a class="btn" href="#kalkylator">Räkna ut ditt fasta pris <Icon name="arrow" /></a>
+          <a class="btn btn--ghost" href={site.phoneHref}><Icon name="phone" /> {site.phone}</a>
+        </div>
+        <ul class="hero-points">
+          <li><Icon name="tag" /> Fast pris – inga avgifter på plats</li>
+          <li><Icon name="camera" /> Fotorapport och {site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti</li>
+          <li><Icon name="card" /> Betala efter jobbet</li>
+        </ul>
+      </div>
+      <div class="hero-visual">
+        <div class="media hero-img">
+          <Picture
+            src={img('hero-livingroom')}
+            alt="Ljust och städat vardagsrum i en nyflyttad lägenhet"
+            formats={['avif', 'webp']}
+            widths={[480, 768, 1024]}
+            sizes="(min-width: 960px) 48vw, 100vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+        <div class="float f1">
+          <span class="f-icon"><Icon name="tag" /></span>
+          <div><strong>{formatKr(exMove.price)}</strong><span>Fast pris, 2 rok · efter RUT</span></div>
+        </div>
+        <div class="float f2">
+          <span class="f-icon"><Icon name="sms" /></span>
+          <div><strong>Vi är på väg!</strong><span>Framme om ca 12 min</span></div>
+        </div>
+        <div class="float f3">
+          <span class="f-icon"><Icon name="camera" /></span>
+          <div><strong>Fotorapport klar</strong><span>Kök · Badrum · 3 rum ✓</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trust" aria-label="Fakta om företaget">
+    <div class="container trust-row">
+      <span><Icon name="check" /> Godkänd för F-skatt och RUT</span>
+      <span><Icon name="shield" /> Ansvarsförsäkrad via {site.insurer}</span>
+      <span><Icon name="truck" /> Flytt enligt Bohag 2010</span>
+      <span><Icon name="receipt" /> Org.nr {site.orgNr}</span>
+    </div>
+  </section>
+
+  <PainSolution />
+
+  <StoryScroll
+    eyebrow="En flytt med oss – ett exempel"
+    title="Från första kartongen till godkänd besiktning"
+    intro="Så här går en flytt till hos oss. Sara är ett påhittat exempel, men priserna är räknade med vår riktiga kalkylator."
+    chapters={chapters}
+  />
+
+  <section class="section section--mint" id="kalkylator">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Priskalkylator</p>
+        <h2>Ditt fasta pris – direkt, utan att lämna mejladress</h2>
+        <p class="lead">Dra i reglagen. Priset uppdateras medan du ändrar, med RUT-avdraget redan inräknat.</p>
+      </div>
+      <PriceCalculator initial="paket" />
+    </div>
+  </section>
+
+  <section class="section" id="tjanster">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Tjänster</p>
+        <h2>Allt för flytten – och för vardagen efter</h2>
+      </div>
+      <ServiceGrid />
+    </div>
+  </section>
+
+  <section class="section section--white" id="sms">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">SMS när vi är på väg</p>
+        <h2>Du vet alltid när vi kommer</h2>
+        <p class="lead">
+          Dålig kommunikation är det vanligaste klagomålet på flyttfirmor efter skador. Därför får du namnen på teamet kvällen före och ett SMS när vi åker.
+        </p>
+      </div>
+      <TrackingDemo price={formatKr(exMove.price)} />
+    </div>
+  </section>
+
+  <section class="section" id="flyttstadning">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Flyttstädning du kan bevisa</p>
+        <h2>Klicka i köket och se vad vi rengör</h2>
+        <p class="lead">
+          Vi städar efter besiktningsprotokollet och fotograferar varje rum när vi är klara. Om hyresvärden eller köparen hör av sig senare har du bevisen i
+          mobilen.
+        </p>
+      </div>
+      <div class="proof">
+        <Hotspots id="kok" image="kitchen-white" alt="Vitt kök med ugn, mikrovågsugn, diskbänk och skåp" spots={kitchenSpots} caption="Tryck på plustecknen." />
+        <PhotoReport />
+      </div>
+      <p class="center"><a class="btn" href="/flyttstadning">Mer om flyttstädning <Icon name="arrow" /></a></p>
+    </div>
+  </section>
+
+  <Guarantees />
+
+  <Reviews />
+
+  <section class="section section--white" id="omraden">
+    <div class="container split">
+      <div>
+        <p class="eyebrow">Områden</p>
+        <h2>Från Upplands Väsby – i hela Stockholms län</h2>
+        <p class="lead">Vår bas ligger i Upplands Väsby. Vi flyttar och städar i hela länet, och kortare körväg innebär ofta snabbare tider.</p>
+        <ul class="area-links">
+          {areas.map((a) => <li><a href={`/omraden/${a.slug}`}>{a.name}</a></li>)}
+        </ul>
+      </div>
+      <PostcodeCheck />
+    </div>
+  </section>
+
+  <Faq items={homeFaq} />
+
+  <CtaBand />
+</Base>
+
+<style>
+  .hero {
+    padding: clamp(28px, 5vw, 64px) 0 clamp(48px, 7vw, 88px);
+    background:
+      radial-gradient(900px 420px at 90% 0%, var(--green-100), transparent 65%),
+      radial-gradient(700px 360px at 0% 100%, #fff7df, transparent 60%),
+      var(--bg);
+    overflow: hidden;
+  }
+  .hero-grid {
+    display: grid;
+    gap: clamp(32px, 5vw, 64px);
+    align-items: center;
+  }
+  @media (min-width: 960px) {
+    .hero-grid {
+      grid-template-columns: 1.05fr 1fr;
+    }
+  }
+  .eyebrow :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+  .hl {
+    color: var(--green-700);
+    background: linear-gradient(transparent 62%, rgb(251 191 36 / 0.35) 62%);
+  }
+  .hero-points {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0 0;
+    display: grid;
+    gap: 10px;
+    color: var(--ink-2);
+    font-weight: 550;
+  }
+  .hero-points li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero-points :global(svg) {
+    width: 20px;
+    height: 20px;
+    color: var(--green-700);
+    flex: none;
+  }
+  .hero-visual {
+    position: relative;
+    padding: 24px 0 24px 24px;
+  }
+  .hero-img {
+    aspect-ratio: 5 / 4;
+  }
+  .hero-img :global(img),
+  .hero-img :global(picture) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .float {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px 12px 12px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: var(--shadow-lg);
+    font-size: 0.85rem;
+    animation: bob 6s ease-in-out infinite;
+  }
+  .float strong {
+    display: block;
+    font-size: 1rem;
+    color: var(--green-950);
+  }
+  .float span {
+    color: var(--ink-3);
+  }
+  .f-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    background: var(--green-50);
+    color: var(--green-700) !important;
+    flex: none;
+  }
+  .f-icon :global(svg) {
+    width: 22px;
+    height: 22px;
+  }
+  .f1 {
+    left: 0;
+    top: 8%;
+  }
+  .f2 {
+    right: -8px;
+    top: 42%;
+    animation-delay: -2s;
+  }
+  .f3 {
+    left: 6%;
+    bottom: 0;
+    animation-delay: -4s;
+  }
+  @keyframes bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  @media (max-width: 560px) {
+    .hero-visual {
+      padding: 16px 0;
+    }
+    .float {
+      font-size: 0.78rem;
+      padding: 8px 12px 8px 8px;
+    }
+    .f-icon {
+      width: 32px;
+      height: 32px;
+    }
+    .f2 {
+      right: 0;
+    }
+  }
+  .trust {
+    background: var(--green-900);
+    color: #d6ebdf;
+  }
+  .trust-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 28px;
+    padding-block: 18px;
+    font-weight: 550;
+    font-size: 0.95rem;
+  }
+  .trust-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .trust-row :global(svg) {
+    width: 20px;
+    height: 20px;
+    color: var(--green-500);
+  }
+  .proof {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    align-items: center;
+  }
+  @media (min-width: 1000px) {
+    .proof {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    }
+  }
+  .center {
+    text-align: center;
+    margin-top: 32px;
+  }
+  .area-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .area-links a {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--green-900);
+  }
+  .area-links a:hover {
+    border-color: var(--green-700);
+    background: var(--green-50);
+  }
+</style>

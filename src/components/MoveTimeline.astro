@@ -1,0 +1,248 @@
+---
+// Flyttchecklista med datum: välj flyttdag så räknas varje uppgifts datum ut,
+// och hela listan kan laddas ner till kalendern (.ics).
+import Icon from './Icon.astro';
+import { moveTimeline } from '../data/checklists.js';
+---
+<div class="tl" data-timeline>
+  <div class="tl-controls">
+    <div class="field">
+      <label for="flyttdag">Din flyttdag</label>
+      <input type="date" id="flyttdag" data-tl-date />
+    </div>
+    <p class="tl-count" aria-live="polite"><strong data-tl-done>0</strong> av <span data-tl-total>0</span> klara</p>
+    <div class="btn-row">
+      <button type="button" class="btn btn--sm" data-tl-ics><Icon name="calendar" /> Lägg till i kalendern</button>
+      <button type="button" class="btn btn--ghost btn--sm" data-tl-print><Icon name="print" /> Skriv ut</button>
+    </div>
+  </div>
+
+  <ol class="tl-phases">
+    {
+      moveTimeline.map((phase) => (
+        <li class="tl-phase reveal">
+          <h3>{phase.phase}</h3>
+          <ul>
+            {phase.tasks.map((t) => (
+              <li class="tl-task" data-offset={t.offset} data-id={t.id} data-title={t.title} data-text={t.text}>
+                <label>
+                  <input type="checkbox" data-tl-check={t.id} />
+                  <span class="tl-body">
+                    <span class="tl-title">{t.title}</span>
+                    <span class="tl-text">{t.text}</span>
+                  </span>
+                  <time class="tl-when" data-tl-when />
+                </label>
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .tl-controls {
+    position: sticky;
+    top: 80px;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 16px 24px;
+    padding: 18px;
+    border-radius: var(--radius-lg);
+    background: #fff;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+  }
+  .tl-controls .field {
+    min-width: 200px;
+  }
+  .tl-count {
+    margin: 0 auto 10px 0;
+  }
+  .tl-phases {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 26px;
+    border-left: 3px solid var(--green-100);
+    display: grid;
+    gap: 28px;
+  }
+  .tl-phase {
+    position: relative;
+  }
+  .tl-phase::before {
+    content: '';
+    position: absolute;
+    left: -36px;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--green-700);
+    border: 4px solid var(--bg);
+  }
+  .tl-phase ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .tl-task label {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: start;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .tl-task input {
+    width: 22px;
+    height: 22px;
+    accent-color: var(--green-700);
+    margin-top: 2px;
+  }
+  .tl-body {
+    display: grid;
+    gap: 2px;
+  }
+  .tl-title {
+    font-weight: 650;
+  }
+  .tl-text {
+    font-size: 0.92rem;
+    color: var(--ink-3);
+  }
+  .tl-when {
+    font-size: 0.85rem;
+    font-weight: 650;
+    color: var(--green-800);
+    background: var(--green-50);
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .tl-when:empty {
+    display: none;
+  }
+  .tl-task input:checked ~ .tl-body .tl-title {
+    text-decoration: line-through;
+    color: var(--ink-3);
+  }
+  @media (max-width: 560px) {
+    .tl-task label {
+      grid-template-columns: auto 1fr;
+    }
+    .tl-when {
+      grid-column: 2;
+      justify-self: start;
+    }
+    .tl-controls {
+      position: static;
+    }
+  }
+  @media print {
+    :global(.site-header),
+    :global(.site-footer),
+    :global(.dock),
+    :global(.wa-float),
+    .btn-row {
+      display: none !important;
+    }
+    .tl-controls {
+      position: static;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<script>
+  const KEY = 'to-flyttchecklista';
+  for (const root of document.querySelectorAll<HTMLElement>('[data-timeline]')) {
+    const dateInput = root.querySelector<HTMLInputElement>('[data-tl-date]')!;
+    const tasks = [...root.querySelectorAll<HTMLElement>('.tl-task')];
+    const checks = [...root.querySelectorAll<HTMLInputElement>('[data-tl-check]')];
+    root.querySelector('[data-tl-total]')!.textContent = String(checks.length);
+
+    let state: { date?: string; done?: string[] } = {};
+    try {
+      state = JSON.parse(localStorage.getItem(KEY) || '{}');
+    } catch {}
+    const def = new Date();
+    def.setDate(def.getDate() + 45);
+    dateInput.value = state.date || def.toISOString().slice(0, 10);
+    checks.forEach((c) => (c.checked = (state.done || []).includes(c.dataset.tlCheck!)));
+
+    const fmt = new Intl.DateTimeFormat('sv-SE', { weekday: 'short', day: 'numeric', month: 'short' });
+    const dateFor = (offset: number) => {
+      const d = new Date(dateInput.value + 'T09:00:00');
+      d.setDate(d.getDate() + offset);
+      return d;
+    };
+
+    const update = () => {
+      const valid = !Number.isNaN(new Date(dateInput.value).getTime());
+      tasks.forEach((t) => {
+        const when = t.querySelector<HTMLTimeElement>('[data-tl-when]')!;
+        if (!valid) {
+          when.textContent = '';
+          return;
+        }
+        const d = dateFor(Number(t.dataset.offset));
+        when.dateTime = d.toISOString().slice(0, 10);
+        when.textContent = Number(t.dataset.offset) === 0 ? 'Flyttdagen' : fmt.format(d);
+      });
+      const done = checks.filter((c) => c.checked).map((c) => c.dataset.tlCheck!);
+      root.querySelector('[data-tl-done]')!.textContent = String(done.length);
+      try {
+        localStorage.setItem(KEY, JSON.stringify({ date: dateInput.value, done }));
+      } catch {}
+    };
+    root.addEventListener('change', update);
+    dateInput.addEventListener('input', update);
+    update();
+
+    root.querySelector('[data-tl-print]')?.addEventListener('click', () => window.print());
+    root.querySelector('[data-tl-ics]')?.addEventListener('click', () => {
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const ymd = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+      const esc = (s: string) => s.replace(/[\\,;]/g, (m) => '\\' + m).replace(/\n/g, '\\n');
+      const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//TO Stad och Flytt//Flyttchecklista//SV', 'CALSCALE:GREGORIAN'];
+      tasks.forEach((t) => {
+        const d = dateFor(Number(t.dataset.offset));
+        const end = new Date(d);
+        end.setDate(end.getDate() + 1);
+        lines.push(
+          'BEGIN:VEVENT',
+          `UID:${t.dataset.id}-${dateInput.value}@tostadflytt.se`,
+          `DTSTAMP:${stamp}`,
+          `DTSTART;VALUE=DATE:${ymd(d)}`,
+          `DTEND;VALUE=DATE:${ymd(end)}`,
+          `SUMMARY:${esc('Flytt: ' + t.dataset.title)}`,
+          `DESCRIPTION:${esc((t.dataset.text || '') + '\nFrån flyttchecklistan på tostadflytt.se')}`,
+          'END:VEVENT',
+        );
+      });
+      lines.push('END:VCALENDAR');
+      const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'flyttchecklista.ics';
+      document.body.append(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+        a.remove();
+      }, 1000);
+    });
+  }
+</script>

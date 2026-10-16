@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /tack
+
+Sitemap: https://tostadflytt.se/sitemap-index.xml

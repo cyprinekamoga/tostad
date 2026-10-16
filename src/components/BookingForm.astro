@@ -1,0 +1,384 @@
+---
+// Bokningsflöde i fyra steg. Ett vanligt HTML-formulär (Netlify Forms) som fungerar även utan JavaScript;
+// med JavaScript visas ett steg i taget och uppgifter från priskalkylatorn fylls i automatiskt.
+import Icon from './Icon.astro';
+import { site } from '../config/site.js';
+import { HOME_SIZES } from '../lib/pricing.js';
+
+const services = [
+  ['flytt', 'Flytt'],
+  ['flyttstadning', 'Flyttstädning'],
+  ['paket', 'Flytt + flyttstädning'],
+  ['hemstadning', 'Hemstädning'],
+  ['storstadning', 'Storstädning'],
+  ['fonsterputs', 'Fönsterputs'],
+  ['kontor', 'Kontorsstädning'],
+  ['pianoflytt', 'Pianoflytt / tunga lyft'],
+];
+const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
+---
+<form name="bokning" method="POST" action="/tack" data-netlify="true" netlify-honeypot="bot-field" class="booking" data-booking>
+  <input type="hidden" name="form-name" value="bokning" />
+  <p class="visually-hidden"><label>Lämna tomt: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+  <input type="hidden" name="pris" data-bk="pris" />
+  <input type="hidden" name="kalkyl" data-bk="kalkyl" />
+
+  <ol class="bk-steps" aria-label="Steg">
+    {steps.map((s, i) => <li data-step-label={i} class:list={[i === 0 && 'current']}><span>{i + 1}</span> {s}</li>)}
+  </ol>
+
+  <div class="bk-body">
+    <div class="bk-main">
+      <fieldset class="bk-step" data-step="0">
+        <legend><h2>Vad vill du boka?</h2></legend>
+        <div class="choice-grid">
+          {
+            services.map(([v, l], i) => (
+              <label class="choice">
+                <input type="radio" name="tjanst" value={v} required checked={i === 0} />
+                <span>{l}</span>
+              </label>
+            ))
+          }
+        </div>
+      </fieldset>
+
+      <fieldset class="bk-step" data-step="1">
+        <legend><h2>Om bostaden</h2></legend>
+        <div class="form-grid form-grid--2">
+          <div class="field">
+            <label for="bk-from">Adress {`(nuvarande)`}</label>
+            <input id="bk-from" name="adress" type="text" autocomplete="street-address" required />
+          </div>
+          <div class="field">
+            <label for="bk-pc">Postnummer</label>
+            <input id="bk-pc" name="postnummer" type="text" inputmode="numeric" autocomplete="postal-code" pattern="[0-9 ]{5,6}" required />
+          </div>
+          <div class="field" data-for="flytt paket pianoflytt">
+            <label for="bk-to">Ny adress</label>
+            <input id="bk-to" name="nyAdress" type="text" />
+          </div>
+          <div class="field">
+            <label for="bk-size">Bostad</label>
+            <select id="bk-size" name="storlek">
+              {Object.entries(HOME_SIZES).map(([k, s]) => <option value={k}>{s.label}</option>)}
+              <option value="annat">Annat / företag</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="bk-kvm">Boyta (kvm)</label>
+            <input id="bk-kvm" name="kvm" type="number" min="5" max="1000" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label for="bk-floor">Våning och hiss</label>
+            <input id="bk-floor" name="vaningOchHiss" type="text" placeholder="t.ex. 3 tr utan hiss → 1 tr med hiss" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="bk-notes">Något vi bör veta?</label>
+          <textarea id="bk-notes" name="ovrigt" placeholder="Tunga möbler, piano, förråd, parkering, portkod, husdjur …"></textarea>
+        </div>
+      </fieldset>
+
+      <fieldset class="bk-step" data-step="2">
+        <legend><h2>När passar det?</h2></legend>
+        <div class="form-grid form-grid--2">
+          <div class="field">
+            <label for="bk-date">Önskat datum</label>
+            <input id="bk-date" name="datum" type="date" required data-min-today />
+          </div>
+          <div class="field">
+            <label for="bk-time">Tid</label>
+            <select id="bk-time" name="tid">
+              <option>Förmiddag (start 08–10)</option>
+              <option>Eftermiddag (start 12–14)</option>
+              <option>Kväll (start 16–18)</option>
+              <option>Spelar ingen roll</option>
+            </select>
+          </div>
+        </div>
+        <label class="toggle"><input type="checkbox" name="flexibel" value="ja" /> Jag är flexibel ± 2 dagar (lättare att få tid)</label>
+      </fieldset>
+
+      <fieldset class="bk-step" data-step="3">
+        <legend><h2>Dina kontaktuppgifter</h2></legend>
+        <div class="form-grid form-grid--2">
+          <div class="field">
+            <label for="bk-name">Namn</label>
+            <input id="bk-name" name="namn" type="text" autocomplete="name" required />
+          </div>
+          <div class="field">
+            <label for="bk-phone">Telefon</label>
+            <input id="bk-phone" name="telefon" type="tel" autocomplete="tel" required />
+          </div>
+          <div class="field">
+            <label for="bk-email">E-post</label>
+            <input id="bk-email" name="epost" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="bk-contact">Hur vill du bli kontaktad?</label>
+            <select id="bk-contact" name="kontaktsatt">
+              <option>SMS</option>
+              <option>Telefon</option>
+              <option>E-post</option>
+              <option>WhatsApp</option>
+            </select>
+          </div>
+        </div>
+        <label class="toggle consent">
+          <input type="checkbox" name="samtycke" value="ja" required />
+          <span>Jag godkänner att TO Städ & Flytt sparar mina uppgifter för att hantera bokningen. <a href="/integritetspolicy">Integritetspolicy</a></span>
+        </label>
+        <p class="hint">Personnummer för RUT-avdraget frågar vi efter när vi bekräftar bokningen – aldrig i ett formulär.</p>
+      </fieldset>
+
+      <div class="bk-nav">
+        <button type="button" class="btn btn--ghost" data-prev hidden>← Tillbaka</button>
+        <button type="button" class="btn" data-next>Nästa <Icon name="arrow" /></button>
+        <button type="submit" class="btn" data-submit>Skicka bokningsförfrågan</button>
+      </div>
+    </div>
+
+    <aside class="bk-aside">
+      <div class="bk-price" data-bk-price-box hidden>
+        <p class="lbl">Ditt pris från kalkylatorn</p>
+        <p class="val" data-bk-price></p>
+        <p class="small">Priset gäller om uppgifterna stämmer. Vi bekräftar inom 24 timmar.</p>
+      </div>
+      <ul class="check-list">
+        <li>Fast pris – inga avgifter på plats</li>
+        <li>Ingen förskottsbetalning</li>
+        <li>RUT dras direkt på fakturan</li>
+        <li>Svar {site.responseTime}</li>
+        <li>Kostnadsfri avbokning fram till 48 timmar innan</li>
+      </ul>
+      <p class="small muted">Hellre prata? Ring <a href={site.phoneHref}>{site.phone}</a> eller skriv på <a href={site.whatsappHref} rel="noopener">WhatsApp</a>.</p>
+    </aside>
+  </div>
+</form>
+
+<style>
+  .booking {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: clamp(18px, 3vw, 32px);
+  }
+  .bk-steps {
+    list-style: none;
+    margin: 0 0 24px;
+    padding: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .bk-steps li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px 8px 8px;
+    border-radius: 999px;
+    background: var(--bg);
+    color: var(--ink-3);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .bk-steps span {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    font-size: 0.8rem;
+  }
+  .bk-steps li.current {
+    background: var(--green-900);
+    color: #fff;
+  }
+  .bk-steps li.done span {
+    background: var(--green-600);
+    border-color: var(--green-600);
+    color: #fff;
+  }
+  .bk-steps li.current span {
+    background: #fff;
+    color: var(--green-900);
+    border-color: #fff;
+  }
+  .bk-body {
+    display: grid;
+    gap: 28px;
+  }
+  @media (min-width: 960px) {
+    .bk-body {
+      grid-template-columns: 1.6fr 1fr;
+    }
+  }
+  .bk-step {
+    border: 0;
+    padding: 0;
+    margin: 0 0 24px;
+    min-width: 0;
+    display: grid;
+    gap: 16px;
+  }
+  .bk-step legend {
+    padding: 0;
+    margin-bottom: 12px;
+  }
+  .bk-step legend h2 {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  :global(.js) .bk-step:not(.active) {
+    display: none;
+  }
+  .bk-nav {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  :global(.js) .bk-nav [data-submit] {
+    display: none;
+  }
+  :global(.js) .bk-nav.last [data-submit] {
+    display: inline-flex;
+  }
+  :global(.js) .bk-nav.last [data-next] {
+    display: none;
+  }
+  :global(.no-js) .bk-nav [data-next],
+  :global(.no-js) .bk-nav [data-prev] {
+    display: none;
+  }
+  .consent {
+    align-items: flex-start;
+    font-weight: 500;
+  }
+  .consent input {
+    margin-top: 3px;
+    flex: none;
+  }
+  .hint {
+    font-size: 0.86rem;
+    color: var(--ink-3);
+    margin: 0;
+  }
+  .bk-aside {
+    display: grid;
+    gap: 18px;
+    align-content: start;
+  }
+  .bk-price {
+    border-radius: var(--radius);
+    background: var(--green-950);
+    color: #d6ebdf;
+    padding: 20px;
+  }
+  .bk-price .lbl {
+    margin: 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--green-500);
+    font-weight: 700;
+  }
+  .bk-price .val {
+    margin: 4px 0;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+  .bk-price .small {
+    margin: 0;
+    color: #a9cbb6;
+  }
+  [data-for][hidden] {
+    display: none;
+  }
+</style>
+
+<script>
+  import { formatKr } from '../lib/pricing.js';
+
+  const form = document.querySelector<HTMLFormElement>('[data-booking]');
+  if (form) {
+    const steps = [...form.querySelectorAll<HTMLFieldSetElement>('.bk-step')];
+    const labels = [...form.querySelectorAll<HTMLElement>('[data-step-label]')];
+    const nav = form.querySelector<HTMLElement>('.bk-nav')!;
+    const prev = form.querySelector<HTMLButtonElement>('[data-prev]')!;
+    const next = form.querySelector<HTMLButtonElement>('[data-next]')!;
+    let current = 0;
+
+    // Fyll i från kalkylatorn (/boka?tjanst=…&pris=…)
+    const params = new URLSearchParams(location.search);
+    const setVal = (name: string, value: string | null) => {
+      if (!value) return;
+      const el = form.elements.namedItem(name);
+      if (el instanceof RadioNodeList) {
+        for (const r of el as unknown as HTMLInputElement[]) r.checked = r.value === value;
+      } else if (el) (el as HTMLInputElement).value = value;
+    };
+    setVal('tjanst', params.get('tjanst'));
+    setVal('storlek', params.get('storlek'));
+    setVal('kvm', params.get('kvm'));
+    setVal('postnummer', params.get('postnummer'));
+    const v = (k: string) => params.get(k);
+    if (v('vaningFran') || v('vaningTill')) {
+      setVal('vaningOchHiss', `${v('vaningFran') ?? '?'} tr ${v('hissFran') ? 'med' : 'utan'} hiss → ${v('vaningTill') ?? '?'} tr ${v('hissTill') ? 'med' : 'utan'} hiss`);
+    }
+    const price = Number(params.get('pris'));
+    if (price > 0) {
+      form.querySelector<HTMLElement>('[data-bk-price-box]')!.hidden = false;
+      form.querySelector<HTMLElement>('[data-bk-price]')!.textContent = formatKr(price);
+      (form.querySelector('[data-bk="pris"]') as HTMLInputElement).value = String(price);
+    }
+    if ([...params.keys()].length) {
+      (form.querySelector('[data-bk="kalkyl"]') as HTMLInputElement).value = [...params.entries()].map(([k, val]) => `${k}=${val}`).join(', ');
+    }
+
+    const dateEl = form.querySelector<HTMLInputElement>('[data-min-today]');
+    if (dateEl) dateEl.min = new Date().toISOString().slice(0, 10);
+
+    const toggleFor = () => {
+      const svc = (form.elements.namedItem('tjanst') as RadioNodeList).value;
+      form.querySelectorAll<HTMLElement>('[data-for]').forEach((el) => (el.hidden = !el.dataset.for!.split(' ').includes(svc)));
+    };
+    form.addEventListener('change', toggleFor);
+    toggleFor();
+
+    const show = (i: number) => {
+      current = i;
+      steps.forEach((s, j) => s.classList.toggle('active', j === i));
+      labels.forEach((l, j) => {
+        l.classList.toggle('current', j === i);
+        l.classList.toggle('done', j < i);
+      });
+      prev.hidden = i === 0;
+      nav.classList.toggle('last', i === steps.length - 1);
+    };
+    const valid = (i: number) => {
+      for (const el of steps[i].querySelectorAll<HTMLInputElement>('input, select, textarea')) {
+        if (el.closest('[hidden]')) continue;
+        if (!el.checkValidity()) {
+          el.reportValidity();
+          return false;
+        }
+      }
+      return true;
+    };
+    next.addEventListener('click', () => {
+      if (valid(current)) {
+        show(Math.min(steps.length - 1, current + 1));
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+    prev.addEventListener('click', () => show(Math.max(0, current - 1)));
+    show(0);
+  }
+</script>

@@ -1,0 +1,155 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import PriceCalculator from '../components/PriceCalculator.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { PRICES, HOME_SIZES, movePrice, formatKr } from '../lib/pricing.js';
+import { site } from '../config/site.js';
+import { faqJsonLd } from '../lib/seo.js';
+
+const year = new Date().getFullYear();
+const crews = Object.values(PRICES.flytt.crews);
+const bizCrews = Object.values(PRICES.foretagsflytt.crews);
+const examples = Object.entries(HOME_SIZES).map(([k, h]) => ({ label: h.label, weekday: movePrice({ size: k, distanceKm: 10 }), weekend: movePrice({ size: k, distanceKm: 10, weekend: true }) }));
+const faq = [
+  { q: 'Vad ingår i priset?', a: 'Personal, lastbil, bärhjälp, skydd för möbler och golv, försäkring och RUT-hanteringen. Vid flyttstädning ingår alla rengöringsmedel och verktyg.' },
+  { q: 'Tillkommer det några avgifter?', a: 'Nej. Det fasta priset gäller så länge uppgifterna du lämnat stämmer. Behövs något extra frågar vi dig skriftligt innan.' },
+  { q: 'Varför visar ni priser efter RUT?', a: 'Det är vad du faktiskt betalar. Vi drar av RUT-avdraget direkt på fakturan och ansöker om resten hos Skatteverket.' },
+  { q: 'Vad gäller för företag?', a: 'Företagspriser visas exklusive moms och har inget RUT-avdrag. Företagsflytt kostar från 952 kr/h och kontorsstädning 249 kr/h.' },
+];
+---
+<Base
+  title={`Priser ${year} – flytt och städning i Stockholm efter RUT`}
+  description={`Alla priser för flytt, flyttstädning och städning i Stockholm ${year}. Flytt från 595 kr/h och flyttstädning 45 kr/kvm efter RUT. Räkna ut ditt fasta pris direkt.`}
+  breadcrumbs={[{ name: 'Priser', href: '/priser' }]}
+  jsonLd={[faqJsonLd(faq)].filter(Boolean)}
+>
+  <section class="section section--tight intro">
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Priser', href: '/priser' }]} />
+      <h1>Priser för flytt och städning {year}</h1>
+      <p class="lead">Alla priser för privatpersoner är vad du betalar efter RUT-avdrag, inklusive moms. Räkna ut ett fast pris för just din bostad nedan.</p>
+    </div>
+  </section>
+
+  <section class="section section--mint" id="kalkylator">
+    <div class="container">
+      <PriceCalculator initial="flytt" />
+    </div>
+  </section>
+
+  <section class="section section--white">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Prislista</p>
+        <h2>Alla priser på ett ställe</h2>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3><Icon name="truck" class="h-icon" /> Flytt – privatperson</h3>
+          <table>
+            <caption class="visually-hidden">Timpriser för flytt efter RUT-avdrag</caption>
+            <thead><tr><th scope="col">Bemanning</th><th scope="col">Vardag</th><th scope="col">Helg</th></tr></thead>
+            <tbody>
+              {crews.map((c) => <tr><th scope="row">{c.label}</th><td>{c.weekday} kr/h</td><td>{c.weekend} kr/h</td></tr>)}
+            </tbody>
+          </table>
+          <p class="small muted">Efter RUT-avdrag, inkl. moms. Du får alltid ett fast totalpris innan vi börjar.</p>
+        </div>
+        <div class="card">
+          <h3><Icon name="sparkle" class="h-icon" /> Städning – privatperson</h3>
+          <table>
+            <caption class="visually-hidden">Priser för städning efter RUT-avdrag</caption>
+            <thead><tr><th scope="col">Tjänst</th><th scope="col">Efter RUT</th><th scope="col">Före RUT</th></tr></thead>
+            <tbody>
+              <tr><th scope="row"><a href="/flyttstadning">Flyttstädning</a></th><td>{PRICES.flyttstadning.perSqm} kr/kvm</td><td>{PRICES.flyttstadning.perSqm * 2} kr/kvm</td></tr>
+              <tr><th scope="row"><a href="/hemstadning">Hemstädning</a></th><td>{PRICES.hemstadning.perHour} kr/h</td><td>{PRICES.hemstadning.perHour * 2} kr/h</td></tr>
+              <tr><th scope="row"><a href="/storstadning">Storstädning</a></th><td>{PRICES.storstadning.perHour} kr/h</td><td>{PRICES.storstadning.perHour * 2} kr/h</td></tr>
+              <tr><th scope="row"><a href="/fonsterputs">Fönster, 2-sidigt</a></th><td>{PRICES.fonsterputs.window2} kr/st</td><td>{PRICES.fonsterputs.window2 * 2} kr/st</td></tr>
+              <tr><th scope="row">Fönster, 4-sidigt</th><td>{PRICES.fonsterputs.window4} kr/st</td><td>{PRICES.fonsterputs.window4 * 2} kr/st</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted">Minsta bokning för hem- och storstädning är 2 timmar. 10 % rabatt vid regelbunden hemstädning och på flyttstädning i paket med flytt.</p>
+        </div>
+        <div class="card">
+          <h3><Icon name="home" class="h-icon" /> Exempel: fast pris för flytt</h3>
+          <table>
+            <caption class="visually-hidden">Exempelpriser för flytt, 10 km, hiss i båda husen</caption>
+            <thead><tr><th scope="col">Bostad</th><th scope="col">Vardag</th><th scope="col">Helg</th></tr></thead>
+            <tbody>
+              {examples.map((e) => <tr><th scope="row">{e.label.replace(/ \(.*\)/, '')}</th><td>{formatKr(e.weekday.price)}</td><td>{formatKr(e.weekend.price)}</td></tr>)}
+            </tbody>
+          </table>
+          <p class="small muted">10 km mellan adresserna och hiss på båda ställena. Trappor, lång bärväg och packhjälp räknas in i kalkylatorn.</p>
+        </div>
+        <div class="card">
+          <h3><Icon name="building" class="h-icon" /> Företag (exkl. moms)</h3>
+          <table>
+            <caption class="visually-hidden">Företagspriser exklusive moms</caption>
+            <thead><tr><th scope="col">Tjänst</th><th scope="col">Vardag</th><th scope="col">Helg</th></tr></thead>
+            <tbody>
+              {bizCrews.map((c) => <tr><th scope="row">Flytt, {c.label.toLowerCase()}</th><td>{c.weekday} kr/h</td><td>{c.weekend} kr/h</td></tr>)}
+              <tr><th scope="row"><a href="/kontorsstadning">Kontorsstädning</a></th><td colspan="2">{PRICES.kontorsstadning.perHourExVat} kr/h</td></tr>
+            </tbody>
+          </table>
+          <p class="small muted">Inget RUT-avdrag för företag. Vi ger gärna ett fast pris efter ett besök.</p>
+        </div>
+      </div>
+      <p class="center"><a class="btn" href="/boka">Boka nu <Icon name="arrow" /></a> <a class="btn btn--ghost" href="/rut-avdrag">Så fungerar RUT-avdraget</a></p>
+    </div>
+  </section>
+
+  <Faq items={faq} title="Frågor om priser" />
+  <CtaBand title="Redo att boka?" text={`Ingen förskottsbetalning. Vi svarar ${site.responseTime}.`} href="/boka" label="Boka till fast pris" />
+</Base>
+
+<style>
+  .intro {
+    padding-bottom: 8px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px;
+    font-size: 0.97rem;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  thead th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-3);
+  }
+  td {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  tbody th {
+    font-weight: 550;
+  }
+  .card h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  :global(.h-icon) {
+    width: 24px;
+    height: 24px;
+    color: var(--green-700);
+  }
+  .center {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 32px;
+  }
+</style>

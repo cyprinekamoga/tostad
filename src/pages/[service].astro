@@ -1,0 +1,287 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import PriceCalculator from '../components/PriceCalculator.astro';
+import Hotspots from '../components/Hotspots.astro';
+import CleaningChecklist from '../components/CleaningChecklist.astro';
+import PhotoReport from '../components/PhotoReport.astro';
+import TrackingDemo from '../components/TrackingDemo.astro';
+import CleanGallery from '../components/CleanGallery.astro';
+import Guarantees from '../components/Guarantees.astro';
+import ServiceGrid from '../components/ServiceGrid.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { services } from '../data/services.js';
+import { areas } from '../data/areas.js';
+import { kitchenSpots, bathroomSpots, livingSpots } from '../data/hotspots.js';
+import { site } from '../config/site.js';
+import { img } from '../lib/images.js';
+import { faqJsonLd, serviceJsonLd } from '../lib/seo.js';
+
+export function getStaticPaths() {
+  return services.map((s) => ({ params: { service: s.slug }, props: { s } }));
+}
+
+const { s } = Astro.props;
+
+const calcOnly: Record<string, string[]> = {
+  flyttstadning: ['flyttstadning', 'paket'],
+  flytt: ['flytt', 'paket'],
+  paket: ['paket'],
+  hemstadning: ['hemstadning', 'storstadning'],
+  storstadning: ['storstadning', 'hemstadning'],
+  fonsterputs: ['fonsterputs'],
+  kontor: ['kontor'],
+};
+const schemaPrice: Record<string, [number, string]> = {
+  flyttstadning: [45, 'kr per kvm efter RUT-avdrag, inkl. moms'],
+  flyttfirma: [595, 'kr per timme efter RUT-avdrag, inkl. moms'],
+  hemstadning: [125, 'kr per timme efter RUT-avdrag, inkl. moms'],
+  storstadning: [160, 'kr per timme efter RUT-avdrag, inkl. moms'],
+  fonsterputs: [64, 'kr per fönster efter RUT-avdrag, inkl. moms'],
+  kontorsstadning: [249, 'kr per timme exkl. moms'],
+};
+const [price, unit] = schemaPrice[s.slug] ?? [];
+const ld = [
+  serviceJsonLd({ name: s.schemaType, description: s.description, slug: s.slug, price, unit, areaNames: areas.map((a) => a.name) }),
+  faqJsonLd(s.faq),
+].filter(Boolean);
+const has = (f: string) => s.features.includes(f);
+const isClean = s.group === 'stad';
+---
+<Base title={s.title} description={s.description} image={img(s.image)} imageAlt={s.imageAlt} breadcrumbs={[{ name: s.name, href: `/${s.slug}` }]} jsonLd={ld}>
+  <PageHero
+    h1={s.h1}
+    lead={s.lead}
+    image={img(s.image)}
+    imageAlt={s.imageAlt}
+    crumbs={[{ name: s.name, href: `/${s.slug}` }]}
+    price={s.priceFrom}
+    priceNote={s.priceNote}
+    primary={s.calc ? { href: '#pris', label: 'Räkna ut ditt fasta pris' } : { href: '/boka?tjanst=' + (s.slug === 'pianoflytt' ? 'pianoflytt' : s.slug), label: 'Begär fast pris' }}
+    points={s.highlights.slice(0, 3).map((h) => h.title)}
+  />
+
+  <section class="section section--white">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Därför väljer kunder oss</p>
+        <h2>{s.name} – så gör vi skillnad</h2>
+      </div>
+      <div class="grid grid-4">
+        {
+          s.highlights.map((h, i) => (
+            <div class="card reveal">
+              <span class="icon-badge">
+                <Icon name={['tag', 'camera', 'shield', 'card', 'sms', 'clock'][i % 6]} />
+              </span>
+              <h3>{h.title}</h3>
+              <p>{h.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {
+    s.calc && (
+      <section class="section section--mint" id="pris">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Pris</p>
+            <h2>Vad kostar {s.name.toLowerCase()}? Räkna ut det här.</h2>
+            <p class="lead">Priset uppdateras medan du ändrar. {isClean ? 'RUT-avdraget är redan inräknat.' : 'Det fasta priset gäller så länge uppgifterna stämmer.'}</p>
+          </div>
+          <PriceCalculator initial={s.calc} only={calcOnly[s.calc]} preset={s.calcPreset ?? {}} />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    has('hotspots') && s.slug === 'flyttstadning' && (
+      <section class="section" id="vad-ingar">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Vad ingår?</p>
+            <h2>Tryck på bilderna och se vad vi rengör</h2>
+            <p class="lead">Kök och badrum är där besiktningsmän tittar först. Här är vad vi gör i varje del.</p>
+          </div>
+          <div class="grid grid-2">
+            <Hotspots id="kok" image="kitchen-white" alt="Vitt kök med ugn, mikrovågsugn, diskbänk och skåp" spots={kitchenSpots} caption="Köket" />
+            <Hotspots id="badrum" image="bathroom-white" alt="Ljust badrum med fristående badkar, kakel och fönster" spots={bathroomSpots} caption="Badrummet" />
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    has('hotspots') && s.slug !== 'flyttstadning' && (
+      <section class="section" id="vad-ingar">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Vad ingår?</p>
+            <h2>Tryck på bilden och se vad vi gör</h2>
+            <p class="lead">
+              {s.slug === 'storstadning'
+                ? 'Storstädning innehåller allt i hemstädningen – plus ugn, kyl, frys, kakelfogar, element och lister.'
+                : 'Varje hemstädning följer samma lista, så att du vet vad du får – varje gång.'}
+            </p>
+            <ul class="check-list">
+              <li>Dammsugning och våttorkning av alla golv</li>
+              <li>Damning av fria ytor, lister och lampor</li>
+              <li>Kök: bänkar, spis, mikro och utsidan av vitvaror</li>
+              <li>Badrum: toalett, handfat, dusch och speglar</li>
+              {s.slug === 'storstadning' && <li>Ugn, kyl och frys in- och utvändigt</li>}
+              {s.slug === 'storstadning' && <li>Kakelfogar, element och dörrar</li>}
+            </ul>
+          </div>
+          <Hotspots id="vardagsrum" image="hero-livingroom" alt="Ljust vardagsrum med soffa, soffbord och växter" spots={livingSpots} />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    isClean && s.slug !== 'kontorsstadning' && (
+      <section class="section section--white" id="det-har-rengor-vi">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Det här rengör vi</p>
+            <h2>Från ugnen till golvlisterna</h2>
+          </div>
+          <CleanGallery />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    has('photoReport') && (
+      <section class="section section--white" id="fotorapport">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Fotorapport</p>
+            <h2>Bevis i mobilen om hyresvärden hör av sig</h2>
+            <p class="lead">
+              En hyresvärd kan kräva ersättning för bristfällig städning i upp till två år. När vi är klara fotograferar vi varje rum och skickar en rapport med
+              tidsstämpel – så har du bevis om frågan kommer upp.
+            </p>
+            <ul class="check-list">
+              <li>Bilder på varje rum, ugn, kyl och badrum</li>
+              <li>Tid och adress på varje bild</li>
+              <li>Skickas till din e-post samma kväll</li>
+              <li>{site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti – vi åtgärdar anmärkningar inom {site.promises.inspectionFixHours} timmar</li>
+            </ul>
+          </div>
+          <PhotoReport />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    has('checklist') && (
+      <section class="section" id="checklista">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">Checklista</p>
+            <h2>Hela vår checklista för flyttstädning</h2>
+            <p class="lead">Bocka av själv om du vill – listan sparas i din webbläsare och går att skriva ut.</p>
+          </div>
+          <CleaningChecklist />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    has('tracking') && (
+      <section class="section section--white" id="sms">
+        <div class="container">
+          <div class="section-head">
+            <p class="eyebrow">SMS när vi är på väg</p>
+            <h2>Ingen väntan vid fönstret</h2>
+            <p class="lead">Namn på teamet kvällen före. Ett SMS när vi åker. Du vet exakt när vi kommer.</p>
+          </div>
+          <TrackingDemo />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    has('damage') && (
+      <section class="section" id="skador">
+        <div class="container split">
+          <div>
+            <p class="eyebrow">Om något går sönder</p>
+            <h2>Tydligt ansvar – i tre steg</h2>
+            <ol class="steps">
+              <li>
+                <strong>Fota och anmäl.</strong> Anmäl skadan med bilder i vårt formulär så snart du upptäcker den.
+              </li>
+              <li>
+                <strong>Svar inom {site.promises.damageResponseHours} timmar.</strong> Vi återkommer med besked om hur vi lagar eller ersätter.
+              </li>
+              <li>
+                <strong>Försäkrat.</strong> Vi har ansvarsförsäkring via {site.insurer} och flyttar enligt konsumentvillkoren Bohag 2010.
+              </li>
+            </ol>
+            <a class="btn" href="/skadeanmalan">
+              Till skadeanmälan <Icon name="arrow" />
+            </a>
+          </div>
+          <div class="card tip">
+            <h3>Tips före flytten</h3>
+            <ul class="check-list">
+              <li>Fota dyrbara möbler innan flytten – då är det lätt att visa skicket.</li>
+              <li>Ta smycken, kontanter och viktiga papper med dig själv.</li>
+              <li>Berätta om ömtåliga saker när du bokar, så packar vi dem extra noga.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <Guarantees />
+
+  <Faq items={s.faq} title={`Vanliga frågor om ${s.name.toLowerCase()}`} />
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <p class="eyebrow">Passar ihop med</p>
+        <h2>Andra tjänster</h2>
+      </div>
+      <ServiceGrid only={s.related} />
+      <p class="areas-line">
+        {s.name} i: {areas.map((a, i) => <><a href={`/omraden/${a.slug}`}>{a.name}</a>{i < areas.length - 1 ? ', ' : ''}</>)}
+      </p>
+    </div>
+  </section>
+
+  <CtaBand />
+</Base>
+
+<style>
+  .steps {
+    padding-left: 1.2em;
+    display: grid;
+    gap: 12px;
+    margin: 0 0 24px;
+  }
+  .tip {
+    background: var(--sun-soft);
+    border-color: #fde7a6;
+  }
+  .areas-line {
+    margin-top: 28px;
+    color: var(--ink-3);
+    font-size: 0.95rem;
+  }
+</style>

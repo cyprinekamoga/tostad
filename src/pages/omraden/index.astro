@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import PostcodeCheck from '../../components/PostcodeCheck.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { areas } from '../../data/areas.js';
+import { site } from '../../config/site.js';
+---
+<Base
+  title="Områden – flytt och städning i hela Stockholms län"
+  description="Vi flyttar och städar i hela Stockholms län från vår bas i Upplands Väsby: Stockholm, Solna, Sundbyberg, Sollentuna, Täby, Järfälla, Sigtuna, Nacka och Lidingö."
+  breadcrumbs={[{ name: 'Områden', href: '/omraden' }]}
+>
+  <section class="section section--tight">
+    <div class="container split">
+      <div>
+        <Breadcrumbs items={[{ name: 'Områden', href: '/omraden' }]} />
+        <h1>Flytt och städning i hela Stockholms län</h1>
+        <p class="lead">
+          Vi utgår från {site.address.city} och kör i hela länet. Välj ditt område för lokala tips, eller skriv ditt postnummer för att kolla direkt.
+        </p>
+      </div>
+      <PostcodeCheck />
+    </div>
+  </section>
+  <section class="section section--white">
+    <div class="container">
+      <ul class="areas">
+        {
+          areas.map((a) => (
+            <li>
+              <a href={`/omraden/${a.slug}`} class="card">
+                <h2 class="h3">
+                  <Icon name="map" /> {a.name}
+                </h2>
+                <p>{a.intro}</p>
+                <span class="more">
+                  Flytt och städ i {a.name} <Icon name="arrow" />
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+  <CtaBand />
+</Base>
+
+<style>
+  .areas {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  }
+  .areas a {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .areas a:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+  }
+  .h3 {
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .h3 :global(svg) {
+    width: 22px;
+    height: 22px;
+    color: var(--green-700);
+  }
+  .areas p {
+    color: var(--ink-2);
+  }
+  .more {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 650;
+    color: var(--green-700);
+  }
+  .more :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+</style>

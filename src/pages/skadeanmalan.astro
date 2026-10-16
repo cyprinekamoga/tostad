@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import DamageForm from '../components/DamageForm.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../config/site.js';
+---
+<Base
+  title="Skadeanmälan – anmäl skada efter flytt eller städning"
+  description={`Anmäl en skada efter flytt eller städning med bilder direkt på sidan. Vi svarar inom ${site.promises.damageResponseHours} timmar. Ansvarsförsäkrade via ${site.insurer}.`}
+  breadcrumbs={[{ name: 'Skadeanmälan', href: '/skadeanmalan' }]}
+>
+  <section class="section section--tight">
+    <div class="container split">
+      <div>
+        <Breadcrumbs items={[{ name: 'Skadeanmälan', href: '/skadeanmalan' }]} />
+        <h1>Anmäl en skada</h1>
+        <p class="lead">Det ska inte hända – men om det gör det ska det vara enkelt att få det löst. Fyll i formuläret och bifoga bilder.</p>
+        <ol class="steps">
+          <li><span><Icon name="camera" /></span><div><strong>Fota skadan</strong> och gärna föremålet i sin helhet.</div></li>
+          <li><span><Icon name="upload" /></span><div><strong>Skicka formuläret</strong> så snart du upptäcker skadan.</div></li>
+          <li><span><Icon name="clock" /></span><div><strong>Svar inom {site.promises.damageResponseHours} timmar</strong> med besked om reparation eller ersättning.</div></li>
+        </ol>
+        <p class="muted small">
+          Vi har ansvarsförsäkring via {site.insurer}. Flytt utförs enligt Bohag 2010 och städning enligt konsumenttjänstlagen. Hellre prata? Ring
+          <a href={site.phoneHref}>{site.phone}</a>.
+        </p>
+      </div>
+      <DamageForm />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .steps {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0;
+    display: grid;
+    gap: 14px;
+  }
+  .steps li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .steps span {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--green-50);
+    color: var(--green-700);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .steps :global(svg) {
+    width: 22px;
+    height: 22px;
+  }
+</style>
