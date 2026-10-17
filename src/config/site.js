@@ -4,7 +4,7 @@
 
 export const site = {
   name: 'TO Städ & Flytt',
-  legalName: 'TO Städ & Flytt AB',
+  legalName: 'TO Städ och Flytt AB',
   url: 'https://tostadflytt.se',
   locale: 'sv-SE',
   orgNr: '559470-3398',

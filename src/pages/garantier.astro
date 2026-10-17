@@ -60,8 +60,14 @@ const p = site.promises;
         tillsammans med Konsumentverket, och för städning gäller konsumenttjänstlagen.
       </p>
 
-      <h3>Riktiga omdömen</h3>
-      <p>Vi publicerar inga egenskrivna kundcitat. Omdömen om oss finns hos Reco och Google, där de lämnas av kunder efter utfört uppdrag.</p>
+      {
+        (site.reviews.recoUrl || site.reviews.googleReviewUrl) && (
+          <>
+            <h3>Riktiga omdömen</h3>
+            <p>Vi publicerar inga egenskrivna kundcitat. Omdömen om oss finns hos Reco och Google, där de lämnas av kunder efter utfört uppdrag.</p>
+          </>
+        )
+      }
 
       <p class="muted small">Se även våra <a href="/villkor">allmänna villkor</a>.</p>
     </div>

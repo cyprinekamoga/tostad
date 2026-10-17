@@ -8,7 +8,8 @@ interface Props {
 }
 const { dark = true, heading = true } = Astro.props;
 const p = site.promises;
-const items = [
+const hasReviews = Boolean(site.reviews.recoUrl || site.reviews.googleReviewUrl);
+const allItems = [
   {
     icon: 'tag',
     title: 'Fast pris som gäller',
@@ -50,6 +51,8 @@ const items = [
     text: 'Vi visar omdömen från Reco och Google som kunder lämnat efter ett utfört uppdrag. Inga egenskrivna citat.',
   },
 ];
+const items = hasReviews ? allItems : allItems.filter((g) => g.icon !== 'star');
+const count = ['Noll', 'En', 'Två', 'Tre', 'Fyra', 'Fem', 'Sex', 'Sju', 'Åtta', 'Nio', 'Tio'][items.length] ?? String(items.length);
 ---
 <section class:list={['section', dark ? 'section--dark' : 'section--white']} id="garantier">
   <div class="container">
@@ -57,7 +60,7 @@ const items = [
       heading && (
         <div class="section-head">
           <p class="eyebrow">Våra löften på papper</p>
-          <h2>Åtta garantier som tar bort det kunder oroar sig mest för</h2>
+          <h2>{count} garantier som tar bort det kunder oroar sig mest för</h2>
           <p class="lead">
             Dolda avgifter, skador, sena team och underkända besiktningar är de vanligaste klagomålen på flyttfirmor och städfirmor. Därför har vi en garanti för varje
             sak, skriven så att du kan hålla oss till den.

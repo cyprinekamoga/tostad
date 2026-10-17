@@ -4,6 +4,7 @@ import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import credits from '../data/image-credits.json';
 import { img } from '../lib/images.js';
+import { site } from '../config/site.js';
 ---
 <Base
   title="Bildkällor och licenser"
@@ -40,7 +41,7 @@ import { img } from '../lib/images.js';
           ))
         }
       </ul>
-      <p class="muted small">Logotypen tillhör {'TO Städ & Flytt AB'}.</p>
+      <p class="muted small">Logotypen tillhör {site.legalName}.</p>
     </div>
   </section>
 </Base>

@@ -1,10 +1,11 @@
 ---
-// Visar bara riktiga omdömen. När länken till Reco eller Google finns i site.js visas knappar dit.
+// Visar bara riktiga omdömen. Sektionen syns först när länken till Reco eller Google finns i site.js.
 import Icon from './Icon.astro';
 import { site } from '../config/site.js';
 const { recoUrl, googleReviewUrl } = site.reviews;
 const hasProfiles = Boolean(recoUrl || googleReviewUrl);
 ---
+{hasProfiles && (
 <section class="section section--mint" id="omdomen">
   <div class="container rev">
     <div>
@@ -14,24 +15,18 @@ const hasProfiles = Boolean(recoUrl || googleReviewUrl);
         Många företag skriver sina egna kundcitat. Vi gör inte det. Efter varje uppdrag får du en länk till Reco eller Google, där omdömet syns för alla och inte kan
         redigeras av oss.
       </p>
-      {
-        hasProfiles ? (
-          <div class="btn-row">
-            {recoUrl && (
-              <a class="btn" href={recoUrl} rel="noopener">
-                Läs våra omdömen på Reco <Icon name="arrow" />
-              </a>
-            )}
-            {googleReviewUrl && (
-              <a class="btn btn--ghost" href={googleReviewUrl} rel="noopener">
-                Omdömen på Google
-              </a>
-            )}
-          </div>
-        ) : (
-          <p class="muted">Har du anlitat oss? Fråga efter länken så lägger du ett omdöme på en minut.</p>
-        )
-      }
+      <div class="btn-row">
+        {recoUrl && (
+          <a class="btn" href={recoUrl} rel="noopener">
+            Läs våra omdömen på Reco <Icon name="arrow" />
+          </a>
+        )}
+        {googleReviewUrl && (
+          <a class="btn btn--ghost" href={googleReviewUrl} rel="noopener">
+            Omdömen på Google
+          </a>
+        )}
+      </div>
     </div>
     <ul class="why">
       <li><Icon name="check" /><span><strong>Kan inte ändras av oss.</strong> Omdömen ligger hos Reco och Google, inte på vår server.</span></li>
@@ -40,6 +35,7 @@ const hasProfiles = Boolean(recoUrl || googleReviewUrl);
     </ul>
   </div>
 </section>
+)}
 
 <style>
   .rev {
