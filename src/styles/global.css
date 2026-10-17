@@ -1,4 +1,4 @@
-/* TO Städ & Flytt – gemensam stil.
+/* TO Städ & Flytt: gemensam stil.
    Typsnitt: Inter, samma som Fantastic Services och Molly Maid använder. */
 
 :root {
@@ -229,7 +229,7 @@ a:hover {
   gap: clamp(28px, 5vw, 64px);
   align-items: center;
 }
-/* Låt rutnätens kolumner krympa – annars kan stora bilder tvinga fram sidledsscroll på mobilen. */
+/* Låt rutnätens kolumner krympa, annars kan stora bilder tvinga fram sidledsscroll på mobilen. */
 .split > *,
 .grid > * {
   min-width: 0;

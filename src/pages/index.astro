@@ -31,19 +31,19 @@ const chapters = [
   {
     time: 'Två veckor kvar',
     title: 'Sara vet vad flytten kostar på en minut',
-    text: `Sara ska flytta från en tvåa på tredje våningen utan hiss i Upplands Väsby till Solna. Hon fyller i kalkylatorn och ser direkt: flytt ${formatKr(exMove.price)} och flyttstädning ${formatKr(exClean.pay)} med paketrabatt. Inga ”från-priser”, inga överraskningar.`,
-    image: 'family-kitchen',
-    alt: 'Familj i ett ljust kök som räknar på flytten vid datorn',
+    text: `Sara ska flytta från en tvåa på tredje våningen utan hiss i Upplands Väsby till Solna. Hon fyller i kalkylatorn och ser direkt: flytt ${formatKr(exMove.price)} och flyttstädning ${formatKr(exClean.pay)} med paketrabatt. Inga frånpriser och inga överraskningar.`,
+    image: 'packing-box',
+    alt: 'Flyttkartong som tejpas igen två veckor före flytten',
     chip: `Fast pris: ${formatKr(exTotal)} efter RUT`,
     icon: 'tag',
   },
   {
     time: 'Kvällen före, 18:00',
     title: 'Hon vet vilka som kommer',
-    text: 'Ett SMS med namnen på teamet och starttiden. Sara behöver inte ringa och dubbelkolla – allt står där.',
-    image: 'livingroom-balcony',
-    alt: 'Vardagsrum i kvällsljus kvällen före flytten',
-    sms: ['Hej Sara! Imorgon kl 08:00 kommer Ali och Jonas. Fast pris ' + formatKr(exMove.price) + ' – inget tillkommer.'],
+    text: 'Ett SMS med namnen på teamet och starttiden. Sara behöver inte ringa och dubbelkolla. Allt står där.',
+    image: 'couple-boxes',
+    alt: 'Två personer kramas bland flyttkartonger kvällen före flytten',
+    sms: ['Hej Sara! Imorgon kl 08:00 kommer Ali och Jonas. Fast pris ' + formatKr(exMove.price) + ', inget tillkommer.'],
   },
   {
     time: 'Flyttdagen, 07:42',
@@ -51,21 +51,21 @@ const chapters = [
     text: 'När teamet åker får Sara ett SMS med en länk. Hon ser när lastbilen är framme och kan ta en kaffe i lugn och ro.',
     image: 'stockholm',
     alt: 'Stockholm från vattnet en solig dag',
-    sms: ['Vi har åkt från Upplands Väsby. Följ bilen live via länken →', 'Vi är framme om ca 5 minuter.'],
+    sms: ['Vi har åkt från Upplands Väsby. Följ bilen live via länken.', 'Vi är framme om ca 5 minuter.'],
   },
   {
-    time: '08:05–13:30',
-    title: 'Tre trappor ner – samma pris',
+    time: 'Flyttdagen, 08:05',
+    title: 'Tre trappor ner, samma pris',
     text: `Trapporna tar längre tid än vanligt. Det spelar ingen roll: priset är fast. Möblerna skyddas, golven täcks och allt bärs med försäkring via ${site.insurer}.`,
-    image: 'mover-handtruck',
-    alt: 'Flyttare med säckkärra och kartong på väg till lastbilen',
+    image: 'movers-couch',
+    alt: 'Två flyttare bär en soffa genom lägenheten',
     chip: 'Försäkrat enligt Bohag 2010',
     icon: 'shield',
   },
   {
-    time: '14:00–19:00',
+    time: 'Eftermiddagen, 14:00',
     title: 'Flyttstädning med bevis',
-    text: 'Medan Sara packar upp i Solna städar vi den gamla lägenheten efter besiktningsprotokollet. Kl 19:12 kommer fotorapporten – varje rum, med tidsstämpel.',
+    text: 'Medan Sara packar upp i Solna städar vi den gamla lägenheten efter besiktningsprotokollet. Kl 19:12 kommer fotorapporten med varje rum och tidsstämpel.',
     image: 'kitchen-white',
     alt: 'Skinande rent vitt kök med ugn och mikrovågsugn efter flyttstädning',
     chip: 'Fotorapport skickad 19:12',
@@ -74,9 +74,9 @@ const chapters = [
   {
     time: 'Tre dagar senare',
     title: 'Godkänd besiktning. Nycklarna lämnas.',
-    text: `Besiktningen går igenom utan anmärkning. Fakturan kommer – ${formatKr(exTotal)}, RUT redan avdraget och ${site.promises.invoiceDays} dagar att betala. Hade något anmärkts hade vi kommit tillbaka inom ${site.promises.inspectionFixHours} timmar.`,
-    image: 'keys-door',
-    alt: 'Nyckel i ytterdörren – dags att lämna över',
+    text: `Besiktningen går igenom utan anmärkning. Fakturan kommer: ${formatKr(exTotal)}, RUT redan avdraget och ${site.promises.invoiceDays} dagar att betala. Hade något anmärkts hade vi kommit tillbaka inom ${site.promises.inspectionFixHours} timmar.`,
+    image: 'keys',
+    alt: 'Nycklar med husformad nyckelring hålls upp, redo att lämnas över',
     chip: `${site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti`,
     icon: 'key',
   },
@@ -85,7 +85,7 @@ const chapters = [
 const ld = [faqJsonLd(homeFaq)].filter(Boolean);
 ---
 <Base
-  title="Flytt & flyttstädning Stockholm – fast pris | TO Städ & Flytt"
+  title="Flytt och flyttstädning i Stockholm, fast pris | TO Städ & Flytt"
   description="Flytt och flyttstädning i Stockholm till fast pris efter RUT. Fotorapport, 14 dagars besiktningsgaranti, SMS när vi är på väg och betalning först efteråt."
   jsonLd={ld}
   alternates={[
@@ -98,16 +98,16 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
     <div class="container hero-grid">
       <div class="hero-copy">
         <p class="eyebrow"><Icon name="leaf" /> Flytt & städ i Stockholms län</p>
-        <h1>Flytt och flyttstädning till ett <span class="hl">fast pris som gäller</span></h1>
+        <h1>Flytt och flyttstädning till ett fast pris som gäller</h1>
         <p class="lead">
-          Se priset direkt, få SMS när vi är på väg och en fotorapport när vi städat klart. RUT dras på fakturan – och den kommer först när jobbet är godkänt.
+          Se priset direkt, få SMS när vi är på väg och en fotorapport när vi städat klart. RUT dras på fakturan, och den kommer först när jobbet är godkänt.
         </p>
         <div class="btn-row">
           <a class="btn" href="#kalkylator">Räkna ut ditt fasta pris <Icon name="arrow" /></a>
           <a class="btn btn--ghost" href={site.phoneHref}><Icon name="phone" /> {site.phone}</a>
         </div>
         <ul class="hero-points">
-          <li><Icon name="tag" /> Fast pris – inga avgifter på plats</li>
+          <li><Icon name="tag" /> Fast pris utan avgifter på plats</li>
           <li><Icon name="camera" /> Fotorapport och {site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti</li>
           <li><Icon name="card" /> Betala efter jobbet</li>
         </ul>
@@ -152,7 +152,7 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
   <PainSolution />
 
   <StoryScroll
-    eyebrow="En flytt med oss – ett exempel"
+    eyebrow="En flytt med oss, ett exempel"
     title="Från första kartongen till godkänd besiktning"
     intro="Så här går en flytt till hos oss. Sara är ett påhittat exempel, men priserna är räknade med vår riktiga kalkylator."
     chapters={chapters}
@@ -162,8 +162,8 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
     <div class="container">
       <div class="section-head">
         <p class="eyebrow">Priskalkylator</p>
-        <h2>Ditt fasta pris – direkt, utan att lämna mejladress</h2>
-        <p class="lead">Dra i reglagen. Priset uppdateras medan du ändrar, med RUT-avdraget redan inräknat.</p>
+        <h2>Ditt fasta pris direkt, utan att lämna mejladress</h2>
+        <p class="lead">Dra i reglagen. Priset uppdateras medan du ändrar, med rutavdraget redan inräknat.</p>
       </div>
       <PriceCalculator initial="paket" />
     </div>
@@ -173,7 +173,7 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
     <div class="container">
       <div class="section-head">
         <p class="eyebrow">Tjänster</p>
-        <h2>Allt för flytten – och för vardagen efter</h2>
+        <h2>Allt för flytten och för vardagen efter</h2>
       </div>
       <ServiceGrid />
     </div>
@@ -218,7 +218,7 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
     <div class="container split">
       <div>
         <p class="eyebrow">Områden</p>
-        <h2>Från Upplands Väsby – i hela Stockholms län</h2>
+        <h2>Från Upplands Väsby till hela Stockholms län</h2>
         <p class="lead">Vår bas ligger i Upplands Väsby. Vi flyttar och städar i hela länet, och kortare körväg innebär ofta snabbare tider.</p>
         <ul class="area-links">
           {areas.map((a) => <li><a href={`/omraden/${a.slug}`}>{a.name}</a></li>)}
@@ -255,10 +255,6 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
   .eyebrow :global(svg) {
     width: 16px;
     height: 16px;
-  }
-  .hl {
-    color: var(--green-700);
-    background: linear-gradient(transparent 62%, rgb(251 191 36 / 0.35) 62%);
   }
   .hero-points {
     list-style: none;

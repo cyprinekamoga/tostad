@@ -47,7 +47,7 @@ const { h1, lead, image, imageAlt = '', crumbs = [], price, priceNote, primary, 
     {
       image && (
         <div class="media hero-media">
-          <Picture src={image} alt={imageAlt} formats={['avif', 'webp']} widths={[480, 768, 1024]} sizes="(min-width: 900px) 46vw, 100vw" loading="eager" fetchpriority="high" />
+          <Picture src={image} alt={imageAlt} formats={['avif', 'webp']} widths={[640, 960, 1280, 1600]} sizes="(min-width: 900px) 46vw, 100vw" loading="eager" fetchpriority="high" />
         </div>
       )
     }

@@ -32,7 +32,7 @@ test('paketrabatt dras på flyttstädningen', () => {
   assert.equal(r.discountKr, 225);
 });
 
-test('RUT-uppdelning för städning: priset före RUT är det dubbla', () => {
+test('Rutuppdelning för städning: priset före RUT är det dubbla', () => {
   assert.deepEqual(cleaningBreakdown(1000), { full: 2000, rut: 1000, pay: 1000 });
 });
 
@@ -81,7 +81,7 @@ test('fönsterputs', () => {
   assert.equal(fonsterputsPrice({ windows2: 10 }).pay, 640);
 });
 
-test('RUT-taket på 75 000 kr per person', () => {
+test('Taket för rutavdrag är 75 000 kr per person', () => {
   assert.deepEqual(rutDeduction(10000), { rut: 5000, pay: 5000, capped: false });
   const big = rutDeduction(200000, 1);
   assert.equal(big.rut, 75000);

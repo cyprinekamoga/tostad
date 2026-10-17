@@ -1,15 +1,15 @@
 ---
-// Exempel på fotorapporten kunden får efter flyttstädningen – bläddringsbar i en telefon.
+// Exempel på fotorapporten kunden får efter flyttstädningen, bläddringsbar i en telefon.
 import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
 import { img } from '../lib/images.js';
 
 const rooms = [
-  { image: 'kitchen-white', room: 'Kök', time: '14:32', points: '10/10', note: 'Ugn, fläkt, kyl och frys rengjorda in- och utvändigt.' },
-  { image: 'oven', room: 'Ugn – närbild', time: '14:35', points: '3/3', note: 'Plåtar, galler och lucka mellan glasen.' },
+  { image: 'kitchen-white', room: 'Kök', time: '14:32', points: '10/10', note: 'Ugn, fläkt, kyl och frys rengjorda invändigt och utvändigt.' },
+  { image: 'oven', room: 'Ugn och spis', time: '14:35', points: '3/3', note: 'Plåtar, galler och lucka mellan glasen.' },
   { image: 'bathroom-white', room: 'Badrum', time: '15:48', points: '9/9', note: 'Avkalkat, golvbrunn rensad, fogar skurade.' },
   { image: 'empty-room', room: 'Vardagsrum', time: '16:20', points: '8/8', note: 'Lister, element, eluttag och fönsterbrädor.' },
-  { image: 'empty-room-sun', room: 'Sovrum', time: '16:41', points: '8/8', note: 'Garderober in- och utvändigt, golv våttorkat.' },
+  { image: 'empty-bedroom', room: 'Sovrum', time: '16:41', points: '8/8', note: 'Garderober invändigt och utvändigt, golv våttorkat.' },
 ];
 ---
 <div class="report" data-report>
@@ -27,7 +27,7 @@ const rooms = [
         {
           rooms.map((r) => (
             <article class="r-card">
-              <Image src={img(r.image)} alt={`${r.room} efter flyttstädning`} width={420} height={300} />
+              <Image src={img(r.image)} alt={`${r.room} efter flyttstädning`} width={420} height={300} densities={[1, 2]} />
               <div class="r-meta">
                 <span class="r-room">
                   <Icon name="check" /> {r.room}

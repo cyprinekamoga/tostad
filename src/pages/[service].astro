@@ -35,11 +35,11 @@ const calcOnly: Record<string, string[]> = {
   kontor: ['kontor'],
 };
 const schemaPrice: Record<string, [number, string]> = {
-  flyttstadning: [45, 'kr per kvm efter RUT-avdrag, inkl. moms'],
-  flyttfirma: [595, 'kr per timme efter RUT-avdrag, inkl. moms'],
-  hemstadning: [125, 'kr per timme efter RUT-avdrag, inkl. moms'],
-  storstadning: [160, 'kr per timme efter RUT-avdrag, inkl. moms'],
-  fonsterputs: [64, 'kr per fönster efter RUT-avdrag, inkl. moms'],
+  flyttstadning: [45, 'kr per kvm efter rutavdrag, inkl. moms'],
+  flyttfirma: [595, 'kr per timme efter rutavdrag, inkl. moms'],
+  hemstadning: [125, 'kr per timme efter rutavdrag, inkl. moms'],
+  storstadning: [160, 'kr per timme efter rutavdrag, inkl. moms'],
+  fonsterputs: [64, 'kr per fönster efter rutavdrag, inkl. moms'],
   kontorsstadning: [249, 'kr per timme exkl. moms'],
 };
 const [price, unit] = schemaPrice[s.slug] ?? [];
@@ -67,7 +67,7 @@ const isClean = s.group === 'stad';
     <div class="container">
       <div class="section-head">
         <p class="eyebrow">Därför väljer kunder oss</p>
-        <h2>{s.name} – så gör vi skillnad</h2>
+        <h2>{s.name}: så gör vi skillnad</h2>
       </div>
       <div class="grid grid-4">
         {
@@ -92,7 +92,7 @@ const isClean = s.group === 'stad';
           <div class="section-head">
             <p class="eyebrow">Pris</p>
             <h2>Vad kostar {s.name.toLowerCase()}? Räkna ut det här.</h2>
-            <p class="lead">Priset uppdateras medan du ändrar. {isClean ? 'RUT-avdraget är redan inräknat.' : 'Det fasta priset gäller så länge uppgifterna stämmer.'}</p>
+            <p class="lead">Priset uppdateras medan du ändrar. {isClean ? 'Rutavdraget är redan inräknat.' : 'Det fasta priset gäller så länge uppgifterna stämmer.'}</p>
           </div>
           <PriceCalculator initial={s.calc} only={calcOnly[s.calc]} preset={s.calcPreset ?? {}} />
         </div>
@@ -110,8 +110,8 @@ const isClean = s.group === 'stad';
             <p class="lead">Kök och badrum är där besiktningsmän tittar först. Här är vad vi gör i varje del.</p>
           </div>
           <div class="grid grid-2">
-            <Hotspots id="kok" image="kitchen-white" alt="Vitt kök med ugn, mikrovågsugn, diskbänk och skåp" spots={kitchenSpots} caption="Köket" />
-            <Hotspots id="badrum" image="bathroom-white" alt="Ljust badrum med fristående badkar, kakel och fönster" spots={bathroomSpots} caption="Badrummet" />
+            <Hotspots id="kok" image="kitchen-white" alt="Vitt kök med inbyggd ugn, mikrovågsugn, spis och skåp" spots={kitchenSpots} caption="Köket" />
+            <Hotspots id="badrum" image="bathroom-white" alt="Ljust badrum i marmor med fristående badkar, dubbla handfat och spegel" spots={bathroomSpots} caption="Badrummet" />
           </div>
         </div>
       </section>
@@ -127,19 +127,19 @@ const isClean = s.group === 'stad';
             <h2>Tryck på bilden och se vad vi gör</h2>
             <p class="lead">
               {s.slug === 'storstadning'
-                ? 'Storstädning innehåller allt i hemstädningen – plus ugn, kyl, frys, kakelfogar, element och lister.'
-                : 'Varje hemstädning följer samma lista, så att du vet vad du får – varje gång.'}
+                ? 'Storstädning innehåller allt i hemstädningen. Dessutom ugn, kyl, frys, kakelfogar, element och lister.'
+                : 'Varje hemstädning följer samma lista, så att du vet vad du får varje gång.'}
             </p>
             <ul class="check-list">
               <li>Dammsugning och våttorkning av alla golv</li>
               <li>Damning av fria ytor, lister och lampor</li>
               <li>Kök: bänkar, spis, mikro och utsidan av vitvaror</li>
               <li>Badrum: toalett, handfat, dusch och speglar</li>
-              {s.slug === 'storstadning' && <li>Ugn, kyl och frys in- och utvändigt</li>}
+              {s.slug === 'storstadning' && <li>Ugn, kyl och frys invändigt och utvändigt</li>}
               {s.slug === 'storstadning' && <li>Kakelfogar, element och dörrar</li>}
             </ul>
           </div>
-          <Hotspots id="vardagsrum" image="hero-livingroom" alt="Ljust vardagsrum med soffa, soffbord och växter" spots={livingSpots} />
+          <Hotspots id="vardagsrum" image="hero-livingroom" alt="Ljust vardagsrum med soffa, soffbord, matta och växter" spots={livingSpots} />
         </div>
       </section>
     )
@@ -168,13 +168,13 @@ const isClean = s.group === 'stad';
             <h2>Bevis i mobilen om hyresvärden hör av sig</h2>
             <p class="lead">
               En hyresvärd kan kräva ersättning för bristfällig städning i upp till två år. När vi är klara fotograferar vi varje rum och skickar en rapport med
-              tidsstämpel – så har du bevis om frågan kommer upp.
+              tidsstämpel. Då har du bevis om frågan kommer upp.
             </p>
             <ul class="check-list">
               <li>Bilder på varje rum, ugn, kyl och badrum</li>
               <li>Tid och adress på varje bild</li>
-              <li>Skickas till din e-post samma kväll</li>
-              <li>{site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti – vi åtgärdar anmärkningar inom {site.promises.inspectionFixHours} timmar</li>
+              <li>Skickas till din mejl samma kväll</li>
+              <li>{site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti. Vi åtgärdar anmärkningar inom {site.promises.inspectionFixHours} timmar</li>
             </ul>
           </div>
           <PhotoReport />
@@ -190,7 +190,7 @@ const isClean = s.group === 'stad';
           <div class="section-head">
             <p class="eyebrow">Checklista</p>
             <h2>Hela vår checklista för flyttstädning</h2>
-            <p class="lead">Bocka av själv om du vill – listan sparas i din webbläsare och går att skriva ut.</p>
+            <p class="lead">Bocka av själv om du vill. Listan sparas i din webbläsare och går att skriva ut.</p>
           </div>
           <CleaningChecklist />
         </div>
@@ -219,7 +219,7 @@ const isClean = s.group === 'stad';
         <div class="container split">
           <div>
             <p class="eyebrow">Om något går sönder</p>
-            <h2>Tydligt ansvar – i tre steg</h2>
+            <h2>Tydligt ansvar i tre steg</h2>
             <ol class="steps">
               <li>
                 <strong>Fota och anmäl.</strong> Anmäl skadan med bilder i vårt formulär så snart du upptäcker den.
@@ -238,7 +238,7 @@ const isClean = s.group === 'stad';
           <div class="card tip">
             <h3>Tips före flytten</h3>
             <ul class="check-list">
-              <li>Fota dyrbara möbler innan flytten – då är det lätt att visa skicket.</li>
+              <li>Fota dyrbara möbler innan flytten, då är det lätt att visa skicket.</li>
               <li>Ta smycken, kontanter och viktiga papper med dig själv.</li>
               <li>Berätta om ömtåliga saker när du bokar, så packar vi dem extra noga.</li>
             </ul>

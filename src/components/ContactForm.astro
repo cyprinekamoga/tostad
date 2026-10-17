@@ -7,8 +7,8 @@ interface Props {
 const { lang = 'sv' } = Astro.props;
 const t =
   lang === 'en'
-    ? { name: 'Name', contact: 'Phone or e-mail', msg: 'Message', consent: 'I agree that my details are stored so you can answer my message.', policy: 'Privacy policy (Swedish)', send: 'Send', hp: 'Leave empty:' }
-    : { name: 'Namn', contact: 'Telefon eller e-post', msg: 'Meddelande', consent: 'Jag godkänner att uppgifterna sparas för att svara på mitt meddelande.', policy: 'Integritetspolicy', send: 'Skicka', hp: 'Lämna tomt:' };
+    ? { name: 'Name', contact: 'Phone or email', msg: 'Message', consent: 'I agree that my details are stored so you can answer my message.', policy: 'Privacy policy (Swedish)', send: 'Send', hp: 'Leave empty:' }
+    : { name: 'Namn', contact: 'Telefon eller mejl', msg: 'Meddelande', consent: 'Jag godkänner att uppgifterna sparas för att svara på mitt meddelande.', policy: 'Integritetspolicy', send: 'Skicka', hp: 'Lämna tomt:' };
 ---
 <form name="kontakt" method="POST" action="/tack" data-netlify="true" netlify-honeypot="bot-field" class="cf">
   <input type="hidden" name="form-name" value="kontakt" />

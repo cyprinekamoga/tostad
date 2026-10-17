@@ -1,24 +1,24 @@
 ---
-// Bildgalleri: det här rengör vi – en bild per yta.
+// Bildgalleri: det här rengör vi, en bild per yta.
 import { Picture } from 'astro:assets';
 import { img } from '../lib/images.js';
 
 const tiles = [
-  { image: 'oven', title: 'Ugn och spis', text: 'Avfettning av lucka, galler och plåtar.', alt: 'Närbild på ugnens reglage och lucka i rostfritt stål' },
-  { image: 'sponge-glove', title: 'Bänkskivor', text: 'Fläckar och fett bort från alla ytor.', alt: 'Hand i städhandske torkar en köksbänk med svamp' },
-  { image: 'bathtub-scrub', title: 'Badkar och handfat', text: 'Avkalkning tills kranarna blänker.', alt: 'Hand i lila gummihandske skurar ett handfat' },
-  { image: 'mop-floor', title: 'Golv', text: 'Våttorkning anpassad efter golvtypen.', alt: 'Mopp på ett blankt trägolv' },
-  { image: 'vacuum-floor', title: 'Mattor och lister', text: 'Dammsugning ända in i hörnen.', alt: 'Dammsugarmunstycke på ett trägolv' },
-  { image: 'livingroom-balcony', title: 'Fönster', text: 'Utan ränder, karmar och bleck ingår.', alt: 'Vardagsrum med stora glasdörrar mot balkongen' },
-  { image: 'spray-sponges', title: 'Rätt medel', text: 'Vi tar med allt som behövs.', alt: 'Sprayflaska och tvättsvampar på en bänk' },
-  { image: 'bedroom-making-bed', title: 'Sovrum', text: 'Damning, golv och bäddning vid hemstädning.', alt: 'Par som bäddar sängen i ett ljust sovrum' },
+  { image: 'oven', title: 'Ugn och spis', text: 'Avfettning av lucka, galler och plåtar.', alt: 'Spis och ugn i rostfritt stål under en köksfläkt' },
+  { image: 'sponge-glove', title: 'Bänkskivor', text: 'Fläckar och fett bort från alla ytor.', alt: 'Hand i gul städhandske torkar en ljus bänkskiva vid diskhon' },
+  { image: 'sink-scrub', title: 'Handfat och kranar', text: 'Avkalkning tills kranarna blänker.', alt: 'Hand i gul gummihandske rengör ett vitt handfat' },
+  { image: 'mop-floor', title: 'Golv', text: 'Våttorkning anpassad efter golvtypen.', alt: 'Mopp på ett trägolv i ett ljust rum' },
+  { image: 'vacuum-floor', title: 'Mattor och lister', text: 'Dammsugning ända in i hörnen.', alt: 'Sladdlös dammsugare på ett trägolv framför en bokhylla' },
+  { image: 'window-cleaning', title: 'Fönster', text: 'Utan ränder, karmar och bleck ingår.', alt: 'Kvinna putsar ett fönster med duk och sprayflaska' },
+  { image: 'spray-sponge', title: 'Rätt medel', text: 'Vi tar med allt som behövs.', alt: 'Sprayflaska och blå tvättsvamp' },
+  { image: 'bedroom', title: 'Sovrum', text: 'Damning, golv och bäddning vid hemstädning.', alt: 'Ljust sovrum med bäddad säng, spegel och garderob' },
 ];
 ---
 <ul class="gallery">
   {
     tiles.map((t) => (
       <li class="tile reveal">
-        <Picture src={img(t.image)} alt={t.alt} formats={['avif', 'webp']} widths={[320, 560]} sizes="(min-width: 1000px) 25vw, 50vw" />
+        <Picture src={img(t.image)} alt={t.alt} formats={['avif', 'webp']} widths={[400, 640, 900]} sizes="(min-width: 1000px) 25vw, 50vw" />
         <div class="cap">
           <strong>{t.title}</strong>
           <span>{t.text}</span>

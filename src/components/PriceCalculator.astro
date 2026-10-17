@@ -91,14 +91,14 @@ const crews = Object.entries(PRICES.flytt.crews);
 
       <div class="row-2">
         <div class="field floor">
-          <label class="lbl" for={`${id}-vf`}>Våning – nuvarande bostad</label>
+          <label class="lbl" for={`${id}-vf`}>Våning i nuvarande bostad</label>
           <div class="inline">
             <input type="number" id={`${id}-vf`} name="vaningFran" min="0" max="20" value="1" inputmode="numeric" />
             <label class="toggle small"><input type="checkbox" name="hissFran" value="ja" checked /> Hiss finns</label>
           </div>
         </div>
         <div class="field floor">
-          <label class="lbl" for={`${id}-vt`}>Våning – nya bostaden</label>
+          <label class="lbl" for={`${id}-vt`}>Våning i nya bostaden</label>
           <div class="inline">
             <input type="number" id={`${id}-vt`} name="vaningTill" min="0" max="20" value="1" inputmode="numeric" />
             <label class="toggle small"><input type="checkbox" name="hissTill" value="ja" checked /> Hiss finns</label>
@@ -108,7 +108,7 @@ const crews = Object.entries(PRICES.flytt.crews);
 
       <div class="extras">
         <label class="toggle"><input type="checkbox" name="langBarvag" value="ja" /> Lång bärväg (mer än 25 m till lastbilen)</label>
-        <label class="toggle"><input type="checkbox" name="packning" value="ja" checked={Boolean(preset.packing)} /> Packhjälp – vi packar åt dig</label>
+        <label class="toggle"><input type="checkbox" name="packning" value="ja" checked={Boolean(preset.packing)} /> Packhjälp, vi packar åt dig</label>
         <label class="toggle" data-show="flytt"><input type="checkbox" name="foretag" value="ja" /> Företagsflytt (pris exkl. moms, utan RUT)</label>
       </div>
 
@@ -138,34 +138,34 @@ const crews = Object.entries(PRICES.flytt.crews);
       </div>
       <div class="row-2">
         <div class="field">
-          <span class="lbl">2-sidiga fönster <small class="muted">(64 kr/st)</small></span>
+          <span class="lbl">Tvåsidiga fönster <small class="muted">(64 kr/st)</small></span>
           <div class="stepper">
-            <button type="button" data-step="-1" aria-label="Färre 2-sidiga fönster">−</button>
-            <input type="number" name="fonster2" min="0" max="40" value="0" inputmode="numeric" aria-label="Antal 2-sidiga fönster" />
-            <button type="button" data-step="1" aria-label="Fler 2-sidiga fönster">+</button>
+            <button type="button" data-step="-1" aria-label="Färre tvåsidiga fönster">−</button>
+            <input type="number" name="fonster2" min="0" max="40" value="0" inputmode="numeric" aria-label="Antal tvåsidiga fönster" />
+            <button type="button" data-step="1" aria-label="Fler tvåsidiga fönster">+</button>
           </div>
         </div>
         <div class="field">
-          <span class="lbl">4-sidiga fönster <small class="muted">(99 kr/st)</small></span>
+          <span class="lbl">Fyrsidiga fönster <small class="muted">(99 kr/st)</small></span>
           <div class="stepper">
-            <button type="button" data-step="-1" aria-label="Färre 4-sidiga fönster">−</button>
-            <input type="number" name="fonster4" min="0" max="40" value="0" inputmode="numeric" aria-label="Antal 4-sidiga fönster" />
-            <button type="button" data-step="1" aria-label="Fler 4-sidiga fönster">+</button>
+            <button type="button" data-step="-1" aria-label="Färre fyrsidiga fönster">−</button>
+            <input type="number" name="fonster4" min="0" max="40" value="0" inputmode="numeric" aria-label="Antal fyrsidiga fönster" />
+            <button type="button" data-step="1" aria-label="Fler fyrsidiga fönster">+</button>
           </div>
         </div>
       </div>
       <p class="hint" data-show="flyttstadning paket">Fönsterputs är ett tillval. Ugn, kyl, frys, skåp och badrum ingår alltid.</p>
     </fieldset>
 
-    <!-- Hem- och storstädning -->
+    <!-- Hemstädning och storstädning -->
     <fieldset class="panel" data-show="hemstadning storstadning">
       <legend class="calc-legend">Hur länge?</legend>
       <div class="field">
         <label class="lbl" for={`${id}-h`}>Arbetstid: <output data-for="timmar">3</output> timmar</label>
         <input type="range" id={`${id}-h`} name="timmar" min="2" max="12" step="0.5" value="3" />
-        <span class="hint">En tvåa på 60 kvm tar ungefär 3 timmar vid hemstädning och 6–8 timmar vid storstädning.</span>
+        <span class="hint">En tvåa på 60 kvm tar ungefär 3 timmar vid hemstädning och 6 till 8 timmar vid storstädning.</span>
       </div>
-      <label class="toggle" data-show="hemstadning"><input type="checkbox" name="regelbunden" value="ja" /> Regelbunden städning varje eller varannan vecka (−10 %)</label>
+      <label class="toggle" data-show="hemstadning"><input type="checkbox" name="regelbunden" value="ja" /> Regelbunden städning varje eller varannan vecka (10 % rabatt)</label>
     </fieldset>
 
     <!-- Fönsterputs -->
@@ -173,18 +173,18 @@ const crews = Object.entries(PRICES.flytt.crews);
       <legend class="calc-legend">Antal fönster</legend>
       <div class="row-2">
         <div class="field">
-          <span class="lbl">2-sidiga fönster <small class="muted">(64 kr/st)</small></span>
+          <span class="lbl">Tvåsidiga fönster <small class="muted">(64 kr/st)</small></span>
           <div class="stepper">
             <button type="button" data-step="-1" aria-label="Färre fönster">−</button>
-            <input type="number" name="fp2" min="0" max="60" value="8" inputmode="numeric" aria-label="Antal 2-sidiga fönster" />
+            <input type="number" name="fp2" min="0" max="60" value="8" inputmode="numeric" aria-label="Antal tvåsidiga fönster" />
             <button type="button" data-step="1" aria-label="Fler fönster">+</button>
           </div>
         </div>
         <div class="field">
-          <span class="lbl">4-sidiga fönster <small class="muted">(99 kr/st)</small></span>
+          <span class="lbl">Fyrsidiga fönster <small class="muted">(99 kr/st)</small></span>
           <div class="stepper">
             <button type="button" data-step="-1" aria-label="Färre fönster">−</button>
-            <input type="number" name="fp4" min="0" max="60" value="0" inputmode="numeric" aria-label="Antal 4-sidiga fönster" />
+            <input type="number" name="fp4" min="0" max="60" value="0" inputmode="numeric" aria-label="Antal fyrsidiga fönster" />
             <button type="button" data-step="1" aria-label="Fler fönster">+</button>
           </div>
         </div>
@@ -210,7 +210,7 @@ const crews = Object.entries(PRICES.flytt.crews);
   <aside class="result" aria-live="polite">
     <p class="r-label" data-out="label">Ditt fasta pris</p>
     <p class="r-total"><span data-out="total">{formatKr(pre)}</span></p>
-    <p class="r-sub" data-out="sub">efter RUT-avdrag, inkl. moms</p>
+    <p class="r-sub" data-out="sub">efter rutavdrag, inkl. moms</p>
     <dl class="r-rows" data-out="rows"></dl>
     <ul class="r-promise">
       <li><Icon name="check" /> Priset gäller om uppgifterna stämmer</li>
@@ -599,7 +599,7 @@ const crews = Object.entries(PRICES.flytt.crews);
 
       let total = 0;
       let label = 'Ditt fasta pris';
-      let sub = 'efter RUT-avdrag, inkl. moms';
+      let sub = 'efter rutavdrag, inkl. moms';
       const rows: Row[] = [];
       const moveInput = () => ({
         size: val('storlek') || '2',
@@ -620,31 +620,31 @@ const crews = Object.entries(PRICES.flytt.crews);
         total = r.pay;
         rows.push([`${num('kvm')} kvm × ${PRICES.flyttstadning.perSqm} kr`, formatKr(r.base)]);
         if (r.windows) rows.push(['Fönsterputs', formatKr(r.windows)]);
-        rows.push(['Pris före RUT', formatKr(r.full)], ['RUT-avdrag (50 %)', '−' + formatKr(r.rut)]);
+        rows.push(['Pris före RUT', formatKr(r.full)], ['Rutavdrag 50 %', formatKr(r.rut)]);
         rows.push(['Fotorapport och 14 dagars besiktningsgaranti ingår.', '', 'note']);
       } else if (svc === 'flytt') {
         const r = movePrice(moveInput());
         total = r.price;
         if (r.business) sub = 'exkl. moms, företagspris';
         rows.push(['Bemanning', r.crewLabel], ['Beräknad tid', `${String(r.hours).replace('.', ',')} h`], ['Timpris', `${formatKr(r.rate)}/h`]);
-        rows.push(['Tar det längre tid betalar du ändå det fasta priset – om uppgifterna stämmer.', '', 'note']);
+        rows.push(['Tar det längre tid betalar du ändå det fasta priset, så länge uppgifterna stämmer.', '', 'note']);
       } else if (svc === 'paket') {
         const m = movePrice({ ...moveInput(), business: false });
         const c = flyttstadningPrice({ sqm: num('kvm'), windows2: num('fonster2'), windows4: num('fonster4'), discount: pkgDiscount });
         total = m.price + c.pay;
         label = 'Fast paketpris';
-        rows.push(['Flytt', formatKr(m.price)], ['Flyttstädning', formatKr(c.pay + c.discountKr)], [`Paketrabatt ${Math.round(pkgDiscount * 100)} % på städningen`, '−' + formatKr(c.discountKr)]);
+        rows.push(['Flytt', formatKr(m.price)], ['Flyttstädning', formatKr(c.pay + c.discountKr)], [`Paketrabatt ${Math.round(pkgDiscount * 100)} % på städningen`, formatKr(c.discountKr)]);
         rows.push([`${m.crewLabel}, ca ${String(m.hours).replace('.', ',')} h`, '', 'note']);
       } else if (svc === 'hemstadning' || svc === 'storstadning') {
         const r = hourlyCleaningPrice({ service: svc, hours: num('timmar'), recurring: val('regelbunden') === 'ja', recurringDiscount: recDiscount });
         total = r.pay;
         label = r.discount ? 'Pris per tillfälle' : 'Ditt fasta pris';
-        rows.push(['Pris före RUT', formatKr(r.full)], ['RUT-avdrag (50 %)', '−' + formatKr(r.rut)], ['Timpris efter RUT', `${formatKr(r.rate * (1 - r.discount))}/h`]);
+        rows.push(['Pris före RUT', formatKr(r.full)], ['Rutavdrag 50 %', formatKr(r.rut)], ['Timpris efter RUT', `${formatKr(r.rate * (1 - r.discount))}/h`]);
         if (r.discount) rows.push(['Regelbunden rabatt 10 % ingår', '', 'note']);
       } else if (svc === 'fonsterputs') {
         const r = fonsterputsPrice({ windows2: num('fp2'), windows4: num('fp4') });
         total = r.pay;
-        rows.push(['Pris före RUT', formatKr(r.full)], ['RUT-avdrag (50 %)', '−' + formatKr(r.rut)], ['Karmar och fönsterbrädor ingår', '', 'note']);
+        rows.push(['Pris före RUT', formatKr(r.full)], ['Rutavdrag 50 %', formatKr(r.rut)], ['Karmar och fönsterbrädor ingår', '', 'note']);
       } else if (svc === 'kontor') {
         const hours = num('kontorTimmar') * num('besok');
         total = hours * PRICES.kontorsstadning.perHourExVat;

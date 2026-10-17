@@ -7,26 +7,26 @@ import { moveTimeline } from '../data/checklists.js';
 
 const howTo = {
   '@type': 'HowTo',
-  name: 'Flyttchecklista – det här ska du göra inför flytten',
+  name: 'Flyttchecklista: det här ska du göra inför flytten',
   description: 'Steg för steg från två månader före flytten till dagarna efter.',
   step: moveTimeline.flatMap((p) => p.tasks.map((t) => ({ '@type': 'HowToStep', name: t.title, text: t.text }))),
 };
 ---
 <Base
-  title="Flyttchecklista – interaktiv, med datum och kalender"
-  description="Gratis interaktiv flyttchecklista. Ange flyttdag så får varje uppgift ett datum – adressändring, bredband, el och flyttstädning. Spara i kalendern."
+  title="Interaktiv flyttchecklista med datum och kalender"
+  description="Gratis interaktiv flyttchecklista. Ange flyttdag så får varje uppgift ett datum: adressändring, bredband, el och flyttstädning. Spara i kalendern."
   breadcrumbs={[{ name: 'Flyttchecklista', href: '/flyttchecklista' }]}
   jsonLd={[howTo]}
 >
   <section class="section section--tight">
     <div class="container">
       <Breadcrumbs items={[{ name: 'Flyttchecklista', href: '/flyttchecklista' }]} />
-      <h1>Flyttchecklista – med datum för just din flytt</h1>
+      <h1>Flyttchecklista med datum för just din flytt</h1>
       <p class="lead">
-        Välj flyttdag så räknar vi ut när du ska göra vad. Bocka av allt eftersom – listan sparas i din webbläsare – och ladda ner alltihop till din kalender.
+        Välj flyttdag så räknar vi ut när du ska göra vad. Bocka av allt eftersom. Listan sparas i din webbläsare och du kan ladda ner alltihop till din kalender.
       </p>
       <MoveTimeline />
     </div>
   </section>
-  <CtaBand title="Vill du slippa hälften av listan?" text="Vi sköter flytten, packningen och flyttstädningen – till fast pris." />
+  <CtaBand title="Vill du slippa hälften av listan?" text="Vi sköter flytten, packningen och flyttstädningen till fast pris." />
 </Base>

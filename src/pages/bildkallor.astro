@@ -4,23 +4,10 @@ import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import credits from '../data/image-credits.json';
 import { img } from '../lib/images.js';
-
-const licenseName: Record<string, string> = {
-  cc0: 'CC0 1.0 (fri att använda)',
-  by: 'CC BY',
-  'by-sa': 'CC BY-SA',
-  pdm: 'Public Domain Mark',
-};
-const sourceName: Record<string, string> = {
-  rawpixel: 'Rawpixel (public domain)',
-  stocksnap: 'StockSnap',
-  flickr: 'Flickr',
-  wikimedia: 'Wikimedia Commons',
-};
 ---
 <Base
   title="Bildkällor och licenser"
-  description="Alla foton på tostadflytt.se är fria att använda kommersiellt. Här listas fotograf, källa och licens för varje bild, med länk till originalet."
+  description="Alla foton på tostadflytt.se kommer från Pexels och är fria att använda kommersiellt. Här finns källa och licens för varje bild med länk till originalet."
   breadcrumbs={[{ name: 'Bildkällor', href: '/bildkallor' }]}
 >
   <section class="section section--tight">
@@ -28,8 +15,8 @@ const sourceName: Record<string, string> = {
       <Breadcrumbs items={[{ name: 'Bildkällor', href: '/bildkallor' }]} />
       <h1>Bildkällor och licenser</h1>
       <p class="lead">
-        Fotona på webbplatsen är hämtade via Openverse och är fria att använda kommersiellt. De flesta är CC0. Bilder med CC BY-licens kräver att fotografen
-        anges – det gör vi här.
+        Fotona på webbplatsen kommer från Pexels och används enligt Pexels licens, som tillåter kommersiell användning utan krav på namngivning. Vill du veta vem
+        som tog en bild hittar du fotografens namn via länken till originalet.
       </p>
       <ul class="credits">
         {
@@ -39,20 +26,14 @@ const sourceName: Record<string, string> = {
               <div>
                 <strong>{c.title}</strong>
                 <span>
-                  {c.creator ? (c.creatorUrl ? <a href={c.creatorUrl} rel="noopener">{c.creator}</a> : c.creator) : 'Okänd fotograf'} ·{' '}
-                  {sourceName[c.source] ?? c.source}
-                </span>
-                <span>
-                  Licens:{' '}
+                  Pexels ·{' '}
                   <a href={c.licenseUrl} rel="noopener license">
-                    {licenseName[c.license] ?? c.license}
-                    {c.licenseVersion && c.license !== 'cc0' ? ` ${c.licenseVersion}` : ''}
+                    Pexels licens
                   </a>{' '}
                   ·{' '}
                   <a href={c.landingUrl} rel="noopener">
-                    Original
+                    Original och fotograf
                   </a>
-                  {c.license !== 'cc0' && ' · Beskuren och komprimerad för webben'}
                 </span>
               </div>
             </li>

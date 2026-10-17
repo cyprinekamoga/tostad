@@ -8,16 +8,16 @@ import { site } from '../config/site.js';
 import { img } from '../lib/images.js';
 ---
 <Base
-  title="Om oss – lokal flytt- och städfirma i Upplands Väsby"
-  description={`TO Städ & Flytt är en lokal flytt- och städfirma i ${site.address.city} med uppdrag i hela Stockholms län. Fast pris, skrivna garantier och försäkring.`}
-  image={img('family-kitchen')}
+  title="Om oss: lokal flyttfirma och städfirma i Upplands Väsby"
+  description={`TO Städ & Flytt är en lokal flyttfirma och städfirma i ${site.address.city} med uppdrag i hela Stockholms län. Fast pris, skrivna garantier och försäkring.`}
+  image={img('couple-boxes')}
   breadcrumbs={[{ name: 'Om oss', href: '/om-oss' }]}
 >
   <PageHero
     h1="Vi skapar utrymme för det som betyder mest"
     lead="Ett rent hem och en smidig flytt handlar om mer än bärhjälp och skurborstar. Det handlar om trygghet, tid och förtroende."
-    image={img('family-kitchen')}
-    imageAlt="Familj i ett ljust kök i sitt nya hem"
+    image={img('couple-boxes')}
+    imageAlt="Två personer kramas bland flyttkartonger i sitt nya hem"
     crumbs={[{ name: 'Om oss', href: '/om-oss' }]}
     primary={{ href: '/priser', label: 'Se våra priser' }}
   />
@@ -27,16 +27,16 @@ import { img } from '../lib/images.js';
       <div class="prose">
         <h2>Vilka är vi?</h2>
         <p>
-          TO Städ & Flytt startades med en enkel idé: att erbjuda flytt och städning med en personlig touch – och med löften som håller. Vi är ett lokalt företag
+          TO Städ & Flytt startades med en enkel idé: att erbjuda flytt och städning med en personlig touch och löften som håller. Vi är ett lokalt företag
           med bas i {site.address.city} och hjälper privatpersoner och företag i hela Stockholms län.
         </p>
         <p>
-          Vi vet att varje hem är unikt. Därför kombinerar vi den stora firmans ordning – fasta priser, försäkring och tydliga villkor – med det lilla företagets
-          engagemang. Ingen uppgift är för liten och ingen utmaning för stor.
+          Vi vet att varje hem är unikt. Därför kombinerar vi den stora firmans ordning med det lilla företagets engagemang. Du får fasta priser, försäkring och tydliga
+          villkor. Ingen uppgift är för liten och ingen utmaning för stor.
         </p>
         <h2>Vårt löfte till dig</h2>
         <p>
-          När du anlitar oss kan du förvänta dig punktlighet, noggrannhet och ett bemötande som gör att du känner dig prioriterad. Vi lämnar inget åt slumpen –
+          När du anlitar oss kan du förvänta dig punktlighet, noggrannhet och ett bemötande som gör att du känner dig prioriterad. Vi lämnar inget åt slumpen,
           och om något ändå blir fel rättar vi till det. Därför har vi skrivit ner våra garantier, så att du kan hålla oss till dem.
         </p>
       </div>
@@ -47,7 +47,7 @@ import { img } from '../lib/images.js';
           <dt>Org.nr</dt><dd>{site.orgNr}</dd>
           <dt>Adress</dt><dd>{site.address.street}, {site.address.postalCode} {site.address.city}</dd>
           <dt>F-skatt</dt><dd>Godkänd</dd>
-          <dt>RUT</dt><dd>Godkänd för RUT-avdrag</dd>
+          <dt>RUT</dt><dd>Godkänd för rutavdrag</dd>
           <dt>Försäkring</dt><dd>Ansvarsförsäkring via {site.insurer}</dd>
           <dt>Villkor</dt><dd>Bohag 2010 (flytt), konsumenttjänstlagen (städning)</dd>
         </dl>
@@ -69,7 +69,7 @@ import { img } from '../lib/images.js';
         <div class="card reveal">
           <span class="icon-badge"><Icon name="check" /></span>
           <h3>Erfarenhet som märks</h3>
-          <p>Vi vet vilka detaljer som gör skillnad – från de svåråtkomliga hörnen i badrummet till hur man packar porslin säkrast.</p>
+          <p>Vi vet vilka detaljer som gör skillnad, från de svåråtkomliga hörnen i badrummet till hur man packar porslin säkrast.</p>
         </div>
         <div class="card reveal">
           <span class="icon-badge"><Icon name="users" /></span>
@@ -79,7 +79,7 @@ import { img } from '../lib/images.js';
         <div class="card reveal">
           <span class="icon-badge"><Icon name="calendar" /></span>
           <h3>Flexibilitet och enkelhet</h3>
-          <p>Pris direkt på webben, bokning på några minuter och tider som passar ditt schema – även kvällar och helger.</p>
+          <p>Pris direkt på webben, bokning på några minuter och tider som passar ditt schema. Även kvällar och helger.</p>
         </div>
       </div>
     </div>

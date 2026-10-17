@@ -15,7 +15,7 @@ const list = only ? only.map((slug) => services.find((s) => s.slug === slug)).fi
     list.map((s) => (
       <a class="svc reveal" href={`/${s.slug}`}>
         <div class="svc-img">
-          <Picture src={img(s.image)} alt="" formats={['avif', 'webp']} widths={[400, 640]} sizes="(min-width: 1000px) 30vw, (min-width: 640px) 45vw, 100vw" />
+          <Picture src={img(s.image)} alt="" formats={['avif', 'webp']} widths={[400, 640, 900]} sizes="(min-width: 1000px) 30vw, (min-width: 640px) 45vw, 100vw" />
         </div>
         <div class="svc-body">
           <h3>{s.name}</h3>

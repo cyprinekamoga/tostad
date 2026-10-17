@@ -6,7 +6,7 @@ import Icon from '../components/Icon.astro';
 import { site } from '../config/site.js';
 ---
 <Base
-  title="Skadeanmälan – anmäl skada efter flytt eller städning"
+  title="Skadeanmälan efter flytt eller städning"
   description={`Anmäl en skada efter flytt eller städning med bilder direkt på sidan. Vi svarar inom ${site.promises.damageResponseHours} timmar. Ansvarsförsäkrade via ${site.insurer}.`}
   breadcrumbs={[{ name: 'Skadeanmälan', href: '/skadeanmalan' }]}
 >
@@ -15,7 +15,7 @@ import { site } from '../config/site.js';
       <div>
         <Breadcrumbs items={[{ name: 'Skadeanmälan', href: '/skadeanmalan' }]} />
         <h1>Anmäl en skada</h1>
-        <p class="lead">Det ska inte hända – men om det gör det ska det vara enkelt att få det löst. Fyll i formuläret och bifoga bilder.</p>
+        <p class="lead">Det ska inte hända. Men om det gör det ska det vara enkelt att få det löst. Fyll i formuläret och bifoga bilder.</p>
         <ol class="steps">
           <li><span><Icon name="camera" /></span><div><strong>Fota skadan</strong> och gärna föremålet i sin helhet.</div></li>
           <li><span><Icon name="upload" /></span><div><strong>Skicka formuläret</strong> så snart du upptäcker skadan.</div></li>

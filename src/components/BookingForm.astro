@@ -90,9 +90,9 @@ const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
           <div class="field">
             <label for="bk-time">Tid</label>
             <select id="bk-time" name="tid">
-              <option>Förmiddag (start 08–10)</option>
-              <option>Eftermiddag (start 12–14)</option>
-              <option>Kväll (start 16–18)</option>
+              <option>Förmiddag (start 08 till 10)</option>
+              <option>Eftermiddag (start 12 till 14)</option>
+              <option>Kväll (start 16 till 18)</option>
               <option>Spelar ingen roll</option>
             </select>
           </div>
@@ -112,7 +112,7 @@ const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
             <input id="bk-phone" name="telefon" type="tel" autocomplete="tel" required />
           </div>
           <div class="field">
-            <label for="bk-email">E-post</label>
+            <label for="bk-email">Mejl</label>
             <input id="bk-email" name="epost" type="email" autocomplete="email" required />
           </div>
           <div class="field">
@@ -120,7 +120,7 @@ const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
             <select id="bk-contact" name="kontaktsatt">
               <option>SMS</option>
               <option>Telefon</option>
-              <option>E-post</option>
+              <option>Mejl</option>
               <option>WhatsApp</option>
             </select>
           </div>
@@ -129,7 +129,7 @@ const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
           <input type="checkbox" name="samtycke" value="ja" required />
           <span>Jag godkänner att TO Städ & Flytt sparar mina uppgifter för att hantera bokningen. <a href="/integritetspolicy">Integritetspolicy</a></span>
         </label>
-        <p class="hint">Personnummer för RUT-avdraget frågar vi efter när vi bekräftar bokningen – aldrig i ett formulär.</p>
+        <p class="hint">Personnumret för rutavdraget frågar vi efter när vi bekräftar bokningen, aldrig i ett formulär.</p>
       </fieldset>
 
       <div class="bk-nav">
@@ -146,7 +146,7 @@ const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
         <p class="small">Priset gäller om uppgifterna stämmer. Vi bekräftar inom 24 timmar.</p>
       </div>
       <ul class="check-list">
-        <li>Fast pris – inga avgifter på plats</li>
+        <li>Fast pris utan avgifter på plats</li>
         <li>Ingen förskottsbetalning</li>
         <li>RUT dras direkt på fakturan</li>
         <li>Svar {site.responseTime}</li>

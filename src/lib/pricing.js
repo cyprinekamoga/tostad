@@ -1,8 +1,8 @@
 // Prislogik som delas av priskalkylatorn, bokningsflödet och testerna.
 //
-// Alla privatpriser i PRICES är det kunden betalar EFTER RUT-avdrag, inklusive moms.
+// Alla privatpriser i PRICES är det kunden betalar EFTER rutavdrag, inklusive moms.
 // För städning är hela priset arbetskostnad, så priset före RUT är det dubbla.
-// Företagspriser anges exklusive moms och har inget RUT-avdrag.
+// Företagspriser anges exklusive moms och har inget rutavdrag.
 // BEKRÄFTA alla belopp och tidsantaganden innan lansering.
 
 export const RUT_SHARE = 0.5;
@@ -36,10 +36,10 @@ export const PRICES = {
 // Används för att räkna fram ett fast pris. BEKRÄFTA mot er erfarenhet.
 export const HOME_SIZES = {
   '1': { label: '1 rum och kök (upp till ca 40 kvm)', manHours: 6, crew: '2-1' },
-  '2': { label: '2 rum och kök (ca 40–60 kvm)', manHours: 8, crew: '2-1' },
-  '3': { label: '3 rum och kök (ca 60–85 kvm)', manHours: 12, crew: '3-2' },
-  '4': { label: '4 rum och kök (ca 85–110 kvm)', manHours: 16, crew: '3-2' },
-  villa: { label: 'Villa eller radhus (ca 110–150 kvm)', manHours: 21, crew: '3-2' },
+  '2': { label: '2 rum och kök (ca 40 till 60 kvm)', manHours: 8, crew: '2-1' },
+  '3': { label: '3 rum och kök (ca 60 till 85 kvm)', manHours: 12, crew: '3-2' },
+  '4': { label: '4 rum och kök (ca 85 till 110 kvm)', manHours: 16, crew: '3-2' },
+  villa: { label: 'Villa eller radhus (ca 110 till 150 kvm)', manHours: 21, crew: '3-2' },
 };
 
 const DRIVE_KMH = 35; // genomsnittsfart i stadstrafik inklusive lastning vid bilen
@@ -83,7 +83,7 @@ export function hourlyCleaningPrice({ service = 'hemstadning', hours = MIN_HOURS
 
 /**
  * Flytt: räknar fram ett fast pris från bostadens storlek och förutsättningar.
- * Tiden är vår uppskattning – kunden betalar det fasta priset även om det tar längre tid,
+ * Tiden är vår uppskattning. Kunden betalar det fasta priset även om det tar längre tid,
  * så länge uppgifterna stämmer.
  */
 export function movePrice({
@@ -121,7 +121,7 @@ export function packagePrice(moveInput, cleanInput, packageDiscount = 0.1) {
   return { move, clean, total: move.price + clean.pay };
 }
 
-/** RUT-avdrag för en given arbetskostnad (inkl. moms) och antal personer som delar på avdraget. */
+/** Rutavdrag för en given arbetskostnad (inkl. moms) och antal personer som delar på avdraget. */
 export function rutDeduction(labourCost, persons = 1) {
   const max = RUT_MAX_PER_PERSON * Math.max(1, persons);
   const rut = Math.min(labourCost * RUT_SHARE, max);

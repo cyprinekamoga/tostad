@@ -6,7 +6,7 @@ import Icon from '../components/Icon.astro';
 import { site } from '../config/site.js';
 ---
 <Base
-  title="Kontakt – ring, skriv på WhatsApp eller mejla"
+  title="Kontakt: ring, skriv på WhatsApp eller mejla"
   description={`Kontakta TO Städ & Flytt: ring ${site.phone}, skriv på WhatsApp eller mejla ${site.email}. Vi svarar ${site.responseTime}.`}
   breadcrumbs={[{ name: 'Kontakt', href: '/kontakt' }]}
 >
@@ -14,7 +14,7 @@ import { site } from '../config/site.js';
     <div class="container">
       <Breadcrumbs items={[{ name: 'Kontakt', href: '/kontakt' }]} />
       <h1>Kontakta oss</h1>
-      <p class="lead">Välj det som passar dig. Vi svarar {site.responseTime} – oftast mycket snabbare.</p>
+      <p class="lead">Välj det som passar dig. Vi svarar {site.responseTime}, oftast mycket snabbare.</p>
 
       <div class="ways">
         <a class="way" href={site.phoneHref}>
@@ -29,7 +29,7 @@ import { site } from '../config/site.js';
         </a>
         <a class="way" href={`mailto:${site.email}`}>
           <span class="icon-badge"><Icon name="mail" /></span>
-          <strong>E-post</strong>
+          <strong>Mejl</strong>
           <span>{site.email}</span>
         </a>
         <a class="way" href="/boka">

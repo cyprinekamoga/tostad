@@ -1,15 +1,15 @@
-// Checklista för flyttstädning – samma punkter som vi bockar av på plats.
+// Checklista för flyttstädning med samma punkter som vi bockar av på plats.
 export const cleaningChecklist = [
   {
     room: 'Kök',
     items: [
-      'Ugn och plåtar – in- och utvändigt',
-      'Spis och häll – avfettning',
+      'Ugn och plåtar invändigt och utvändigt',
+      'Avfettning av spis och häll',
       'Köksfläkt och filter',
-      'Kyl och frys – in- och utvändigt',
-      'Diskmaskin – filter, lucka och kanter',
+      'Kyl och frys invändigt och utvändigt',
+      'Diskmaskinens filter, lucka och kanter',
       'Mikrovågsugn',
-      'Skåp och lådor – in- och utvändigt',
+      'Skåp och lådor invändigt och utvändigt',
       'Bänkskivor och stänkskydd',
       'Bakom och under spis och kyl (om de går att dra ut)',
       'Golv och golvlister',
@@ -18,26 +18,26 @@ export const cleaningChecklist = [
   {
     room: 'Badrum',
     items: [
-      'Toalett – in- och utvändigt, även foten',
-      'Dusch, badkar och duschvägg – avkalkning',
+      'Toaletten invändigt och utvändigt, även foten',
+      'Avkalkning av dusch, badkar och duschvägg',
       'Handfat och blandare',
       'Spegel och badrumsskåp',
       'Kakel och fogar',
-      'Golvbrunn – rensning',
+      'Rensning av golvbrunn',
       'Handdukstork och element',
-      'Tvättmaskin – lucka, gummilist och tvättmedelsfack',
+      'Tvättmaskinens lucka, gummilist och tvättmedelsfack',
       'Golv',
     ],
   },
   {
     room: 'Alla rum',
     items: [
-      'Golv – dammsugning och våttorkning',
+      'Dammsugning och våttorkning av golv',
       'Golvlister och socklar',
-      'Element och radiatorer – även bakom',
+      'Element och radiatorer, även bakom',
       'Dörrar, dörrkarmar och handtag',
       'Eluttag och strömbrytare',
-      'Garderober – in- och utvändigt',
+      'Garderober invändigt och utvändigt',
       'Lampor och armaturer',
       'Ventiler',
     ],
@@ -45,7 +45,7 @@ export const cleaningChecklist = [
   {
     room: 'Fönster',
     items: [
-      'Fönster – in- och utsida (tillval)',
+      'Fönster på insidan och utsidan (tillval)',
       'Fönsterkarmar och fönsterbrädor',
       'Persienner',
       'Balkongdörr',
@@ -54,7 +54,7 @@ export const cleaningChecklist = [
   {
     room: 'Hall och övrigt',
     items: [
-      'Ytterdörr – in- och utsida',
+      'Ytterdörren på insidan och utsidan',
       'Hatthylla och skohylla',
       'Förråd (efter överenskommelse)',
       'Balkong eller uteplats (efter överenskommelse)',
@@ -62,7 +62,7 @@ export const cleaningChecklist = [
   },
 ];
 
-// Flyttchecklista – uppgifter räknat i dagar före (negativt) eller efter flyttdagen.
+// Flyttchecklista: uppgifter räknat i dagar före (negativt) eller efter flyttdagen.
 export const moveTimeline = [
   {
     phase: 'Två månader före',
@@ -78,7 +78,7 @@ export const moveTimeline = [
       { id: 'bredband', offset: -30, title: 'Flytta bredband', text: 'Det tar ofta omkring två veckor att flytta bredbandet. Beställ i god tid.' },
       { id: 'el', offset: -28, title: 'Teckna el till nya bostaden', text: 'Anmäl flytt till ditt elbolag så att elen följer med dig.' },
       { id: 'forsakring', offset: -28, title: 'Flytta hemförsäkringen', text: 'Försäkringen ska gälla på båda adresserna under flyttdagen.' },
-      { id: 'kartonger', offset: -21, title: 'Skaffa flyttkartonger', text: 'En tvåa behöver ofta 30–40 kartonger.' },
+      { id: 'kartonger', offset: -21, title: 'Skaffa flyttkartonger', text: 'En tvåa behöver ofta 30 till 40 kartonger.' },
     ],
   },
   {
@@ -111,7 +111,7 @@ export const moveTimeline = [
     tasks: [
       { id: 'besiktning', offset: 3, title: 'Besiktning av gamla bostaden', text: 'Spara fotorapporten från flyttstädningen. Hör av dig inom 14 dagar om något anmärks.' },
       { id: 'skada', offset: 5, title: 'Kontrollera möbler och saker', text: 'Hittar du en skada? Anmäl den med bilder via vårt skadeformulär.' },
-      { id: 'omdome', offset: 7, title: 'Lämna ett omdöme', text: 'Hjälp andra att välja rätt – och hjälp oss att bli bättre.' },
+      { id: 'omdome', offset: 7, title: 'Lämna ett omdöme', text: 'Hjälp andra att välja rätt och hjälp oss att bli bättre.' },
     ],
   },
 ];

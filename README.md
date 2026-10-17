@@ -1,6 +1,6 @@
 # tostadflytt.se
 
-Ny webbplats för **TO Städ & Flytt** – flytt och städ i Stockholms län.
+Ny webbplats för **TO Städ & Flytt**, flytt och städ i Stockholms län.
 Byggd med [Astro](https://astro.build) som statisk HTML: snabb, lätt för Google att läsa och billig att drifta.
 
 ## Kom igång
@@ -15,15 +15,15 @@ node scripts/check-site.mjs   # kontrollerar titlar, beskrivningar, h1, länkar 
 
 Kräver Node 22.12 eller senare.
 
-## Innan lansering – BEKRÄFTA
+## Bekräfta innan lansering
 
-Webbplatsen lovar saker som kunderna efterfrågar mest. Allt samlas i två filer – ändra där så uppdateras alla sidor.
+Webbplatsen lovar saker som kunderna efterfrågar mest. Allt samlas i två filer. Ändra där så uppdateras alla sidor.
 
 **`src/config/site.js`**
 
 | Värde | Nu | Vad det betyder |
 |---|---|---|
-| `whatsappHref` | 072-222 88 00 | Numret måste ha WhatsApp |
+| `whatsappHref` | 072 222 88 00 | Numret måste ha WhatsApp |
 | `address` | Hasselgatan 58, Upplands Väsby | Visas i sidfot och strukturerad data |
 | `responseTime` | inom 24 timmar | Utlovad svarstid |
 | `inspectionGuaranteeDays` | 14 | Besiktningsgaranti efter flyttstädning |
@@ -36,13 +36,13 @@ Webbplatsen lovar saker som kunderna efterfrågar mest. Allt samlas i två filer
 | `reviews.recoUrl`, `googleReviewUrl` | tomma | Lägg in länkarna när profilerna finns |
 | `social` | tomma | Ikonerna visas när länkarna fylls i |
 
-**`src/lib/pricing.js`** – alla priser och tidsantaganden för det fasta flyttpriset.
+**`src/lib/pricing.js`** innehåller alla priser och tidsantaganden för det fasta flyttpriset.
 
 - Privatpriser är vad kunden betalar **efter RUT, inkl. moms** (flytt 595/695/945 kr/h vardag, 795/895/1 145 helg, flyttstädning 45 kr/kvm, fönster 64/99 kr).
 - Hemstädning 125 kr/h och storstädning 160 kr/h efter RUT (= 250 och 320 kr/h före RUT, som på nuvarande sida).
-- `HOME_SIZES` styr hur många arbetstimmar en flytt antas ta per bostadsstorlek. Justera efter er erfarenhet – det fasta priset bygger på dem.
+- `HOME_SIZES` styr hur många arbetstimmar en flytt antas ta per bostadsstorlek. Justera efter er erfarenhet, eftersom det fasta priset bygger på dem.
 
-Kör `npm test` efter ändringar – testerna visar direkt om något räknas fel.
+Kör `npm test` efter ändringar. Testerna visar direkt om något räknas fel.
 
 Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integritetspolicy.astro`.
 
@@ -50,33 +50,33 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 
 | Adress | Innehåll |
 |---|---|
-| `/` | Startsida med berättelse, kalkylator, SMS-demo, klickbart kök, fotorapport, garantier |
+| `/` | Startsida med berättelse, kalkylator, exempel på sms, klickbart kök, fotorapport och garantier |
 | `/flyttstadning`, `/flyttfirma`, `/flytt-och-flyttstadning`, `/hemstadning`, `/storstadning`, `/fonsterputs`, `/kontorsstadning`, `/packhjalp`, `/pianoflytt` | Tjänstesidor (data i `src/data/services.js`) |
 | `/priser` | Kalkylator och full prislista |
 | `/boka` | Bokning i fyra steg (Netlify Forms) |
 | `/garantier`, `/skadeanmalan` | Garantier och skadeanmälan med bilder |
 | `/flyttchecklista` | Interaktiv checklista med datum och kalenderfil |
-| `/rut-avdrag` | Guide och RUT-räknare |
+| `/rut-avdrag` | Guide och räknare för rutavdrag |
 | `/omraden`, `/omraden/<ort>` | Områdessidor (data i `src/data/areas.js`) |
 | `/en` | Engelsk sida |
 | `/om-oss`, `/kontakt`, `/villkor`, `/integritetspolicy`, `/bildkallor` | Övrigt |
 
 ## Publicera (Netlify)
 
-1. Koppla repot till Netlify – `netlify.toml` innehåller byggkommando, cache och omdirigeringar.
-2. Lägg till `tostadflytt.se` och `www.tostadflytt.se` som domäner. **www pekar i dag på en gammal webbplats som visar "Site not found"** – det försvinner när www pekar hit.
-3. Formulären (bokning, kontakt, skadeanmälan) fungerar direkt via Netlify Forms. Slå på e-postnotiser under *Forms → Notifications*.
-4. Gamla adresser (`/kalkylator`, `/copy-of-hem`) omdirigeras med 301 så att Google-rankingen följer med.
+1. Koppla repot till Netlify. `netlify.toml` innehåller byggkommando, cache och omdirigeringar.
+2. Lägg till `tostadflytt.se` och `www.tostadflytt.se` som domäner. **www pekar i dag på en gammal webbplats som visar "Site not found"**. Det försvinner när www pekar hit.
+3. Formulären (bokning, kontakt, skadeanmälan) fungerar direkt via Netlify Forms. Slå på mejlnotiser under *Forms → Notifications*.
+4. Gamla adresser (`/kalkylator`, `/copy-of-hem`) omdirigeras med 301 så att rankingen i Google följer med.
 5. Lägg in `https://tostadflytt.se/sitemap-index.xml` i Google Search Console.
 
 ## SEO
 
-- Varje sida är färdig HTML med egen `<title>`, beskrivning, canonical och Open Graph-bild.
+- Varje sida är färdig HTML med egen `<title>`, beskrivning, canonical och en egen bild för delning i sociala medier (Open Graph).
 - Strukturerad data: `LocalBusiness`/`MovingCompany`, `Service` med pris, `FAQPage`, `BreadcrumbList`, `HowTo`.
 - Adresser utan å/ä/ö (`/flyttstadning`, `/fonsterputs`) och sitemap byggs automatiskt.
-- Typsnittet Inter ligger på egen server (ingen Google Fonts-koppling) och bilderna levereras som AVIF/WebP i rätt storlek.
+- Typsnittet Inter ligger på egen server (ingen koppling till Google Fonts) och bilderna levereras som AVIF/WebP i rätt storlek.
 
 ## Bilder
 
-Alla foton är fria att använda (främst CC0 via Openverse). Fotograf och licens för varje bild står på `/bildkallor` och i `src/data/image-credits.json`.
-Byt gärna ut mot egna bilder på personal och bilar när ni har dem – riktiga bilder bygger mest förtroende.
+Alla foton kommer från [Pexels](https://www.pexels.com) och används enligt Pexels License: fria för kommersiellt bruk utan krav på namngivning. Fotograf och länk för varje bild står ändå på `/bildkallor` och i `src/data/image-credits.json`.
+Byt gärna ut dem mot egna bilder på personal och bilar när ni har dem. Riktiga bilder bygger mest förtroende.

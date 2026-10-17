@@ -8,15 +8,15 @@ export const areas = [
     home: true,
     neighborhoods: ['Runby', 'Vilunda', 'Bredden', 'Smedby', 'Fresta', 'Grimstaby', 'Sigma', 'Väsby centrum'],
     intro:
-      'Upplands Väsby är vår hemmabas. Här har vi kortast körväg, vilket gör det lätt att hitta en tid – även med kort varsel.',
+      'Upplands Väsby är vår hemmabas. Här har vi kortast körväg, vilket gör det lätt att hitta en tid, även med kort varsel.',
     housing: 'Blandat med hyresrätter runt centrum och villor och radhus i Fresta och Runby.',
-    tip: 'Bor du i villa eller radhus? Ange bärvägen från dörren till där lastbilen kan stå – då blir det fasta priset rätt från början.',
+    tip: 'Bor du i villa eller radhus? Ange bärvägen från dörren till där lastbilen kan stå, så blir det fasta priset rätt från början.',
   },
   {
     slug: 'sollentuna',
     name: 'Sollentuna',
     neighborhoods: ['Tureberg', 'Häggvik', 'Edsberg', 'Rotebro', 'Helenelund', 'Viby', 'Vaxmora', 'Norrviken'],
-    intro: 'Sollentuna ligger precis söder om vår bas i Upplands Väsby. Kort körväg gör det lätt att hitta en tid – från lägenheter vid Sollentuna centrum till villor i Edsberg.',
+    intro: 'Sollentuna ligger precis söder om vår bas i Upplands Väsby. Kort körväg gör det lätt att hitta en tid, oavsett om du bor i lägenhet vid Sollentuna centrum eller i villa i Edsberg.',
     housing: 'Många villor och radhus, men också större hyresområden runt Tureberg och Helenelund.',
     tip: 'Flyttar du från villa? Glöm inte förråd, garage och vind när du anger storleken.',
   },
@@ -25,7 +25,7 @@ export const areas = [
     name: 'Stockholm',
     neighborhoods: ['Södermalm', 'Vasastan', 'Kungsholmen', 'Östermalm', 'Bromma', 'Hammarby sjöstad', 'Vällingby', 'Hägersten'],
     intro: 'Från sekelskiftesvåningar på Södermalm till nybyggt i Hammarby sjöstad. Vi kör till hela Stockholms stad varje dag.',
-    housing: 'Många äldre hus i innerstan saknar hiss eller har små hissar – det påverkar tiden och därmed priset.',
+    housing: 'Många äldre hus i innerstan saknar hiss eller har små hissar. Det påverkar tiden och därmed priset.',
     tip: 'Ange våning och om det finns hiss för båda adresserna. Smala trapphus i innerstan tar längre tid och vi vill att priset ska stämma.',
   },
   {
@@ -40,7 +40,7 @@ export const areas = [
     slug: 'sundbyberg',
     name: 'Sundbyberg',
     neighborhoods: ['Centrala Sundbyberg', 'Duvbo', 'Lilla Alby', 'Hallonbergen', 'Rissne', 'Ursvik', 'Brotorp'],
-    intro: 'Sverige till ytan minsta kommun men med många flyttar. Korta avstånd gör att flytten ofta går snabbt – och då blir priset lägre.',
+    intro: 'Sverige till ytan minsta kommun men med många flyttar. Korta avstånd gör att flytten ofta går snabbt, och då blir priset lägre.',
     housing: 'Tätbebyggt med flerfamiljshus, ofta med hiss, och nya kvarter i Ursvik.',
     tip: 'Korta flyttar inom Sundbyberg passar bra att kombinera med flyttstädning samma dag.',
   },
@@ -58,7 +58,7 @@ export const areas = [
     neighborhoods: ['Jakobsberg', 'Barkarby', 'Viksjö', 'Kallhäll', 'Skälby', 'Stäket'],
     intro: 'Barkarbystaden växer, och i Jakobsberg och Viksjö byts många bostäder varje år. Vi hjälper dig hela vägen från Barkarby till Viksjö.',
     housing: 'Ny stadsbebyggelse i Barkarby, hyresrätter i Jakobsberg och villor i Viksjö.',
-    tip: 'Ange gärna om lastbilen kan stå nära porten – i nya områden är det ibland långt från gatan.',
+    tip: 'Ange gärna om lastbilen kan stå nära porten. I nya områden är det ibland långt från gatan.',
   },
   {
     slug: 'sigtuna',
@@ -74,7 +74,7 @@ export const areas = [
     neighborhoods: ['Sickla', 'Finntorp', 'Saltsjöbaden', 'Fisksätra', 'Björknäs', 'Älta', 'Orminge'],
     intro: 'Från Sickla till Saltsjöbaden. Vi kör till hela Nacka och planerar med hänsyn till trafiken över Danvikstull och Skurubron.',
     housing: 'Blandat med nya flerfamiljshus i Sickla och Nacka strand och villor i Saltsjöbaden.',
-    tip: 'Boka gärna en tidig start – då slipper lastbilen rusningstrafiken.',
+    tip: 'Boka gärna en tidig start, så slipper lastbilen rusningstrafiken.',
   },
   {
     slug: 'lidingo',
@@ -88,7 +88,7 @@ export const areas = [
 
 export const areaBySlug = Object.fromEntries(areas.map((a) => [a.slug, a]));
 
-// Postnummer i Stockholms län börjar på 10–19 (plus Norrtälje 76x). Vi kör i hela länet.
+// Postnummer i Stockholms län börjar på 10 till 19 (plus Norrtälje 76x). Vi kör i hela länet.
 export function postcodeStatus(raw) {
   const digits = String(raw || '').replace(/\D/g, '');
   if (digits.length !== 5) return 'invalid';

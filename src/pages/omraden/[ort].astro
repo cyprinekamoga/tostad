@@ -19,11 +19,11 @@ const others = areas.filter((x) => x.slug !== a.slug);
 const faq = [
   {
     q: `Vad kostar flytthjälp i ${a.name}?`,
-    a: `2 flyttare och lastbil kostar 595 kr i timmen på vardagar efter RUT-avdrag. Det fasta priset för din flytt i ${a.name} beror på bostadens storlek, våning och avstånd – räkna ut det i kalkylatorn ovan.`,
+    a: `2 flyttare och lastbil kostar 595 kr i timmen på vardagar efter rutavdrag. Det fasta priset för din flytt i ${a.name} beror på bostadens storlek, våning och avstånd. Räkna ut det i kalkylatorn ovan.`,
   },
   {
     q: `Vad kostar flyttstädning i ${a.name}?`,
-    a: `Samma pris i hela länet: 45 kr per kvadratmeter efter RUT-avdrag, med fotorapport och ${site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti.`,
+    a: `Samma pris i hela länet: 45 kr per kvadratmeter efter rutavdrag, med fotorapport och ${site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti.`,
   },
   {
     q: `Kör ni till alla delar av ${a.name}?`,
@@ -42,7 +42,7 @@ const ld = [
 ].filter(Boolean);
 ---
 <Base
-  title={`Flytt & flyttstädning ${a.name} – fast pris efter RUT`}
+  title={`Flytt & flyttstädning i ${a.name}, fast pris efter RUT`}
   description={`Flytthjälp och flyttstädning i ${a.name} till fast pris efter RUT. ${a.neighborhoods.slice(0, 2).join(', ')} med flera. Fotorapport och besiktningsgaranti.`}
   image={img('stockholm')}
   imageAlt="Stockholm från vattnet"
@@ -56,7 +56,7 @@ const ld = [
     h1={`Flytt och flyttstädning i ${a.name}`}
     lead={a.intro}
     image={img('stockholm')}
-    imageAlt={`Stockholm från vattnet – vi kör till ${a.name}`}
+    imageAlt={`Stockholm från vattnet. Vi kör till ${a.name}`}
     crumbs={[
       { name: 'Områden', href: '/omraden' },
       { name: a.name, href: `/omraden/${a.slug}` },

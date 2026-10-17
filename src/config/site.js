@@ -1,6 +1,6 @@
 // Företagsuppgifter och löften som visas på hela webbplatsen.
 // Allt som är markerat BEKRÄFTA är ett löfte eller en uppgift som TO Städ & Flytt
-// måste godkänna innan sidan går live – ändra värdet här så uppdateras alla sidor.
+// måste godkänna innan sidan går live. Ändra värdet här så uppdateras alla sidor.
 
 export const site = {
   name: 'TO Städ & Flytt',
@@ -8,7 +8,7 @@ export const site = {
   url: 'https://tostadflytt.se',
   locale: 'sv-SE',
   orgNr: '559470-3398',
-  phone: '072-222 88 00',
+  phone: '072 222 88 00',
   phoneHref: 'tel:+46722228800',
   email: 'info@tostadflytt.se',
   // BEKRÄFTA: att numret används för WhatsApp.
@@ -43,7 +43,7 @@ export const site = {
     googleReviewUrl: null, // länk från Google Företagsprofil → "Be om recensioner"
   },
 
-  // Sociala medier – lämna null tills kontona finns, då döljs ikonerna.
+  // Sociala medier: lämna null tills kontona finns, då döljs ikonerna.
   social: {
     facebook: null,
     instagram: null,

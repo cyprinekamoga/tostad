@@ -11,24 +11,24 @@ const p = site.promises;
 const twoRoom = movePrice({ size: '2', distanceKm: 10 });
 const services = [
   { icon: 'truck', title: 'Moving help', text: `From ${PRICES.flytt.crews['2-1'].weekday} SEK/hour for 2 movers and a truck after the RUT deduction.`, href: '/flyttfirma' },
-  { icon: 'sparkle', title: 'Move-out cleaning', text: `${PRICES.flyttstadning.perSqm} SEK per m² after RUT, with a photo report and a ${p.inspectionGuaranteeDays}-day inspection guarantee.`, href: '/flyttstadning' },
+  { icon: 'sparkle', title: 'Move out cleaning', text: `${PRICES.flyttstadning.perSqm} SEK per m² after RUT, with a photo report and an inspection guarantee for ${p.inspectionGuaranteeDays} days.`, href: '/flyttstadning' },
   { icon: 'box', title: 'Moving + cleaning package', text: `One team, one invoice and ${Math.round(p.packageDiscount * 100)} % off the cleaning.`, href: '/flytt-och-flyttstadning' },
-  { icon: 'home', title: 'Home cleaning', text: `${PRICES.hemstadning.perHour} SEK/hour after RUT. No lock-in, same cleaner whenever possible.`, href: '/hemstadning' },
+  { icon: 'home', title: 'Home cleaning', text: `${PRICES.hemstadning.perHour} SEK/hour after RUT. No binding contract, and the same cleaner whenever possible.`, href: '/hemstadning' },
   { icon: 'window', title: 'Window cleaning', text: `${PRICES.fonsterputs.window2} SEK per window after RUT.`, href: '/fonsterputs' },
   { icon: 'building', title: 'Office cleaning & office moves', text: `${PRICES.kontorsstadning.perHourExVat} SEK/hour excl. VAT for cleaning.`, href: '/kontorsstadning' },
 ];
 const guarantees = [
   ['tag', 'A fixed price that holds', 'The price we confirm is the price you pay, as long as the details you gave are correct. No surprise fees on the day.'],
-  ['camera', 'Photo report', 'Time-stamped photos of every room after move-out cleaning – your proof if the landlord gets in touch later.'],
-  ['shield', `${p.inspectionGuaranteeDays}-day inspection guarantee`, `If the inspection finds anything, we come back and fix it free of charge within ${p.inspectionFixHours} hours.`],
-  ['sms', 'Text message when we are on our way', 'The names of your team the evening before and a text when we leave – no waiting by the window.'],
+  ['camera', 'Photo report', 'Timestamped photos of every room after the move out cleaning. Your proof if the landlord gets in touch later.'],
+  ['shield', `Inspection guarantee, ${p.inspectionGuaranteeDays} days`, `If the inspection finds anything, we come back and fix it free of charge within ${p.inspectionFixHours} hours.`],
+  ['sms', 'Text message when we are on our way', 'The names of your team the evening before and a text when we leave. No waiting by the window.'],
   ['card', 'Pay afterwards', `No prepayment. The invoice arrives when the job is done, with the RUT deduction already applied.`],
   ['alert', 'Simple damage claims', `Report with photos online. Answer within ${p.damageResponseHours} hours. Insured with ${site.insurer}.`],
 ];
 ---
 <Base
-  title="Movers & cleaners in Stockholm – fixed price | TO Städ & Flytt"
-  description="Moving help and move-out cleaning in Stockholm at a fixed price after the RUT deduction. Photo report, inspection guarantee and you pay afterwards."
+  title="Movers and cleaners in Stockholm, fixed price | TO Städ & Flytt"
+  description="Moving help and move out cleaning in Stockholm at a fixed price after the RUT deduction. Photo report, inspection guarantee and you pay afterwards."
   lang="en"
   image={img('stockholm')}
   imageAlt="Stockholm seen from the water"
@@ -42,7 +42,7 @@ const guarantees = [
     <div class="container split">
       <div>
         <p class="eyebrow"><Icon name="globe" /> English</p>
-        <h1>Moving and cleaning in Stockholm – at a fixed price</h1>
+        <h1>Moving and cleaning in Stockholm at a fixed price</h1>
         <p class="lead">
           New to Sweden or just prefer English? We move your home, clean the old one so it passes the landlord's inspection, and handle the Swedish RUT tax
           deduction for you.
@@ -73,7 +73,7 @@ const guarantees = [
               </span>
               <h3>{s.title}</h3>
               <p>{s.text}</p>
-              <span class="small muted">Details in Swedish →</span>
+              <span class="small muted">Details in Swedish</span>
             </a>
           ))
         }
@@ -89,8 +89,8 @@ const guarantees = [
         <p class="lead">All prices for private customers are what you pay after the RUT deduction, including VAT.</p>
         <ul class="check-list">
           <li>2 movers + truck: {PRICES.flytt.crews['2-1'].weekday} SEK/h weekdays, {PRICES.flytt.crews['2-1'].weekend} SEK/h weekends</li>
-          <li>Typical 2-room apartment move: about {formatKr(twoRoom.price).replace('kr', 'SEK')}</li>
-          <li>Move-out cleaning: {PRICES.flyttstadning.perSqm} SEK/m² (60 m² = {(60 * PRICES.flyttstadning.perSqm).toLocaleString('sv-SE')} SEK)</li>
+          <li>Typical two room apartment move: about {formatKr(twoRoom.price).replace('kr', 'SEK')}</li>
+          <li>Move out cleaning: {PRICES.flyttstadning.perSqm} SEK/m² (60 m² = {(60 * PRICES.flyttstadning.perSqm).toLocaleString('sv-SE')} SEK)</li>
           <li>Windows: {PRICES.fonsterputs.window2} SEK each</li>
         </ul>
         <p>
@@ -100,7 +100,7 @@ const guarantees = [
       <div class="card">
         <h3>What is RUT?</h3>
         <p>
-          RUT is a Swedish tax deduction for household services. You pay only half of the labour cost – we deduct it on the invoice and claim the rest from the
+          RUT is a Swedish tax deduction for household services. You pay only half of the labour cost. We deduct it on the invoice and claim the rest from the
           Swedish Tax Agency. The limit is 75,000 SEK per person per year. You need a Swedish personal identity number (personnummer) and to pay tax in Sweden.
         </p>
         <p class="small muted">Without RUT, the cleaning prices are doubled. Ask us for a quote.</p>

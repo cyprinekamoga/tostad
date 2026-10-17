@@ -20,7 +20,7 @@ const { image, alt, spots, caption, id } = Astro.props;
 ---
 <figure class="hotspots" data-hotspots id={id}>
   <div class="hs-frame">
-    <Picture src={img(image)} alt={alt} formats={['avif', 'webp']} widths={[640, 1024]} sizes="(min-width: 1000px) 60vw, 100vw" />
+    <Picture src={img(image)} alt={alt} formats={['avif', 'webp']} widths={[640, 960, 1280, 1600]} sizes="(min-width: 1000px) 60vw, 100vw" />
     {
       spots.map((s, i) => (
         <button

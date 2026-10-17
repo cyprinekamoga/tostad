@@ -37,7 +37,7 @@ const { eyebrow = 'Berättelse', title, intro, chapters, id = 'berattelse' } = A
           {
             chapters.map((c, i) => (
               <div class:list={['stage-img', i === 0 && 'active']} data-stage={i}>
-                <Picture src={img(c.image)} alt="" formats={['avif', 'webp']} widths={[480, 800]} sizes="(min-width: 960px) 44vw, 100vw" />
+                <Picture src={img(c.image)} alt="" formats={['avif', 'webp']} widths={[480, 800, 1200]} sizes="(min-width: 960px) 44vw, 100vw" />
               </div>
             ))
           }
@@ -53,7 +53,7 @@ const { eyebrow = 'Berättelse', title, intro, chapters, id = 'berattelse' } = A
           chapters.map((c, i) => (
             <li class="chapter" data-chapter={i} data-time={c.time}>
               <div class="mobile-img">
-                <Picture src={img(c.image)} alt={c.alt} formats={['avif', 'webp']} widths={[480, 800]} sizes="100vw" />
+                <Picture src={img(c.image)} alt={c.alt} formats={['avif', 'webp']} widths={[480, 800, 1200]} sizes="100vw" />
               </div>
               <p class="ch-time">
                 <span class="ch-num">{String(i + 1).padStart(2, '0')}</span> {c.time}

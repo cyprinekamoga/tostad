@@ -1,5 +1,5 @@
 ---
-// Interaktiv demo av SMS-aviseringen: lastbilen kör längs kartan och SMS:en dyker upp i telefonen.
+// Interaktiv demo av aviseringen via SMS: lastbilen kör längs kartan och SMS:en dyker upp i telefonen.
 import Icon from './Icon.astro';
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
 }
 const { price = '3 273 kr' } = Astro.props;
 const messages = [
-  { time: 'Kvällen före 18:00', text: `Hej Sara! Imorgon kl 08:00 kommer Ali och Jonas. Fast pris ${price} – inget tillkommer.` },
+  { time: 'Kvällen före 18:00', text: `Hej Sara! Imorgon kl 08:00 kommer Ali och Jonas. Fast pris ${price}, inget tillkommer.` },
   { time: '07:42', text: 'Vi har åkt från Upplands Väsby. Följ bilen live via länken →' },
   { time: '07:58', text: 'Vi är framme om ca 5 minuter.' },
   { time: '08:03', text: 'Vi står utanför porten. Välkommen ner när du är redo!' },
@@ -203,7 +203,7 @@ const messages = [
       const pt = route.getPointAtLength(len * p);
       truck.setAttribute('transform', `translate(${pt.x} ${pt.y})`);
       const mins = Math.max(0, Math.round(21 * (1 - p)));
-      eta.textContent = p >= 1 ? 'Framme – vi står utanför porten' : `Framme om ${mins} min`;
+      eta.textContent = p >= 1 ? 'Framme! Vi står utanför porten' : `Framme om ${mins} min`;
     }
 
     function play() {

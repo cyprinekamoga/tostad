@@ -33,7 +33,7 @@ const {
   title,
   description,
   image = defaultOg,
-  imageAlt = 'TO Städ & Flytt – flytt och städning i Stockholm',
+  imageAlt = 'TO Städ & Flytt, flytt och städning i Stockholm',
   noindex = false,
   breadcrumbs = [],
   jsonLd = [],
@@ -73,7 +73,7 @@ const graph: Record<string, unknown>[] = [
       addressCountry: site.address.country,
     },
     areaServed: [{ '@type': 'AdministrativeArea', name: 'Stockholms län' }, ...areas.map((a) => ({ '@type': 'City', name: a.name }))],
-    priceRange: '125–1 145 kr/h efter RUT',
+    priceRange: '125 till 1 145 kr/h efter RUT',
     paymentAccepted: 'Faktura, kort',
     currenciesAccepted: 'SEK',
     knowsLanguage: ['sv', 'en'],
@@ -154,7 +154,7 @@ const ld = { '@context': 'https://schema.org', '@graph': [...graph, ...jsonLd] }
     <Footer lang={lang} />
     <ContactDock lang={lang} />
     <script>
-      // Mjuka in-animationer när sektioner kommer in i bild.
+      // Mjuka animationer när sektioner kommer in i bild.
       const els = document.querySelectorAll('.reveal');
       if ('IntersectionObserver' in window) {
         const io = new IntersectionObserver(

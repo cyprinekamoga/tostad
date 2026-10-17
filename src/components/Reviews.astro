@@ -1,5 +1,5 @@
 ---
-// Visar bara riktiga omdömen. När Reco- eller Google-länken finns i site.js visas knappar dit.
+// Visar bara riktiga omdömen. När länken till Reco eller Google finns i site.js visas knappar dit.
 import Icon from './Icon.astro';
 import { site } from '../config/site.js';
 const { recoUrl, googleReviewUrl } = site.reviews;
@@ -9,7 +9,7 @@ const hasProfiles = Boolean(recoUrl || googleReviewUrl);
   <div class="container rev">
     <div>
       <p class="eyebrow"><Icon name="star" /> Omdömen</p>
-      <h2>Riktiga omdömen – från riktiga uppdrag</h2>
+      <h2>Riktiga omdömen från riktiga uppdrag</h2>
       <p class="lead">
         Många företag skriver sina egna kundcitat. Vi gör inte det. Efter varje uppdrag får du en länk till Reco eller Google, där omdömet syns för alla och inte kan
         redigeras av oss.
@@ -35,7 +35,7 @@ const hasProfiles = Boolean(recoUrl || googleReviewUrl);
     </div>
     <ul class="why">
       <li><Icon name="check" /><span><strong>Kan inte ändras av oss.</strong> Omdömen ligger hos Reco och Google, inte på vår server.</span></li>
-      <li><Icon name="check" /><span><strong>Även kritik syns.</strong> Vi svarar öppet på alla omdömen – också de dåliga.</span></li>
+      <li><Icon name="check" /><span><strong>Även kritik syns.</strong> Vi svarar öppet på alla omdömen, även de dåliga.</span></li>
       <li><Icon name="check" /><span><strong>Bara efter utfört jobb.</strong> Länken skickas när uppdraget är klart och betalt.</span></li>
     </ul>
   </div>
