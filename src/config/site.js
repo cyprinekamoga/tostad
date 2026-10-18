@@ -40,7 +40,8 @@ export const site = {
   // Verifierade omdömen. Lägg in länkarna när profilerna finns så visas de automatiskt.
   reviews: {
     recoUrl: null, // t.ex. 'https://www.reco.se/to-stad-flytt-ab'
-    googleReviewUrl: null, // länk från Google Företagsprofil → "Be om recensioner"
+    googleReviewUrl: 'https://g.page/r/CaSunu4bnf4aEBM/review', // länk från Google Företagsprofil → "Be om recensioner"
+    googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=TO%20St%C3%A4d%20%26%20Flytt&query_place_id=ChIJkdfL6YyoOS4RpK6e7hud_ho', // företagsprofilen, där omdömena syns
   },
 
   // Sociala medier: lämna null tills kontona finns, då döljs ikonerna.
@@ -58,3 +59,6 @@ export const nav = [
   { href: '/garantier', label: 'Garantier' },
   { href: '/om-oss', label: 'Om oss' },
 ];
+
+// Var omdömena finns, t.ex. ['Google'] eller ['Reco', 'Google'].
+export const reviewPlatforms = [site.reviews.recoUrl && 'Reco', site.reviews.googleReviewUrl && 'Google'].filter(Boolean);

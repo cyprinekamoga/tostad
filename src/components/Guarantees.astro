@@ -1,6 +1,6 @@
 ---
 import Icon from './Icon.astro';
-import { site } from '../config/site.js';
+import { site, reviewPlatforms } from '../config/site.js';
 
 interface Props {
   dark?: boolean;
@@ -8,7 +8,7 @@ interface Props {
 }
 const { dark = true, heading = true } = Astro.props;
 const p = site.promises;
-const hasReviews = Boolean(site.reviews.recoUrl || site.reviews.googleReviewUrl);
+const hasReviews = reviewPlatforms.length > 0;
 const allItems = [
   {
     icon: 'tag',
@@ -48,7 +48,7 @@ const allItems = [
   {
     icon: 'star',
     title: 'Bara riktiga omdömen',
-    text: 'Vi visar omdömen från Reco och Google som kunder lämnat efter ett utfört uppdrag. Inga egenskrivna citat.',
+    text: `Omdömen om oss finns på ${reviewPlatforms.join(' och ')}, skrivna av kunder efter ett utfört uppdrag. Inga egenskrivna citat.`,
   },
 ];
 const items = hasReviews ? allItems : allItems.filter((g) => g.icon !== 'star');

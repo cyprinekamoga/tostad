@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import Guarantees from '../components/Guarantees.astro';
 import CtaBand from '../components/CtaBand.astro';
-import { site } from '../config/site.js';
+import { site, reviewPlatforms } from '../config/site.js';
 const p = site.promises;
 ---
 <Base
@@ -61,10 +61,10 @@ const p = site.promises;
       </p>
 
       {
-        (site.reviews.recoUrl || site.reviews.googleReviewUrl) && (
+        reviewPlatforms.length > 0 && (
           <>
             <h3>Riktiga omdömen</h3>
-            <p>Vi publicerar inga egenskrivna kundcitat. Omdömen om oss finns hos Reco och Google, där de lämnas av kunder efter utfört uppdrag.</p>
+            <p>Vi publicerar inga egenskrivna kundcitat. Omdömen om oss finns på {reviewPlatforms.join(' och ')}, där de lämnas av kunder efter utfört uppdrag.</p>
           </>
         )
       }

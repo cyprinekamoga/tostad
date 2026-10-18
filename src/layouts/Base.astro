@@ -77,6 +77,8 @@ const graph: Record<string, unknown>[] = [
     paymentAccepted: 'Faktura, kort',
     currenciesAccepted: 'SEK',
     knowsLanguage: ['sv', 'en'],
+    ...(site.reviews.googleMapsUrl && { hasMap: site.reviews.googleMapsUrl }),
+    sameAs: [site.reviews.googleMapsUrl, site.reviews.recoUrl, site.social.facebook, site.social.instagram].filter(Boolean),
   },
   {
     '@type': 'WebSite',

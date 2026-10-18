@@ -1,9 +1,9 @@
 ---
 // Visar bara riktiga omdömen. Sektionen syns först när länken till Reco eller Google finns i site.js.
 import Icon from './Icon.astro';
-import { site } from '../config/site.js';
-const { recoUrl, googleReviewUrl } = site.reviews;
-const hasProfiles = Boolean(recoUrl || googleReviewUrl);
+import { site, reviewPlatforms } from '../config/site.js';
+const { recoUrl, googleReviewUrl, googleMapsUrl } = site.reviews;
+const hasProfiles = reviewPlatforms.length > 0;
 ---
 {hasProfiles && (
 <section class="section section--mint" id="omdomen">
@@ -12,7 +12,7 @@ const hasProfiles = Boolean(recoUrl || googleReviewUrl);
       <p class="eyebrow"><Icon name="star" /> Omdömen</p>
       <h2>Riktiga omdömen från riktiga uppdrag</h2>
       <p class="lead">
-        Många företag skriver sina egna kundcitat. Vi gör inte det. Efter varje uppdrag får du en länk till Reco eller Google, där omdömet syns för alla och inte kan
+        Många företag skriver sina egna kundcitat. Vi gör inte det. Efter varje uppdrag får du en länk till {reviewPlatforms.join(' eller ')}, där omdömet syns för alla och inte kan
         redigeras av oss.
       </p>
       <div class="btn-row">
@@ -21,15 +21,20 @@ const hasProfiles = Boolean(recoUrl || googleReviewUrl);
             Läs våra omdömen på Reco <Icon name="arrow" />
           </a>
         )}
+        {googleMapsUrl && (
+          <a class={recoUrl ? 'btn btn--ghost' : 'btn'} href={googleMapsUrl} rel="noopener">
+            Se våra omdömen på Google {!recoUrl && <Icon name="arrow" />}
+          </a>
+        )}
         {googleReviewUrl && (
           <a class="btn btn--ghost" href={googleReviewUrl} rel="noopener">
-            Omdömen på Google
+            Skriv ett omdöme
           </a>
         )}
       </div>
     </div>
     <ul class="why">
-      <li><Icon name="check" /><span><strong>Kan inte ändras av oss.</strong> Omdömen ligger hos Reco och Google, inte på vår server.</span></li>
+      <li><Icon name="check" /><span><strong>Kan inte ändras av oss.</strong> Omdömen ligger hos {reviewPlatforms.join(' och ')}, inte på vår server.</span></li>
       <li><Icon name="check" /><span><strong>Även kritik syns.</strong> Vi svarar öppet på alla omdömen, även de dåliga.</span></li>
       <li><Icon name="check" /><span><strong>Bara efter utfört jobb.</strong> Länken skickas när uppdraget är klart och betalt.</span></li>
     </ul>
