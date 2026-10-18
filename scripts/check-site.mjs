@@ -33,12 +33,12 @@ for (const f of files) {
   else {
     const t = title.replace(/&amp;/g, '&');
     if (t.length > 65 && !noindex) problems.push(`${rel}: lång title (${t.length}) ${t}`);
-    titles.set(t, [...(titles.get(t) || []), rel]);
+    if (!noindex) titles.set(t, [...(titles.get(t) || []), rel]);
   }
   if (!desc) problems.push(`${rel}: saknar meta description`);
   else {
     if ((desc.length < 110 || desc.length > 165) && !noindex) problems.push(`${rel}: description ${desc.length} tecken`);
-    descs.set(desc, [...(descs.get(desc) || []), rel]);
+    if (!noindex) descs.set(desc, [...(descs.get(desc) || []), rel]);
   }
   if (!canonical && !noindex) problems.push(`${rel}: saknar canonical`);
   if (h1s !== 1) problems.push(`${rel}: ${h1s} st h1`);

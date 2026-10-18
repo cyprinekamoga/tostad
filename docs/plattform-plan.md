@@ -1,7 +1,7 @@
 # TO Städ & Flytt platform plan
 
 Planner, employee app, quotes and invoices, careers page and customer portal, built into tostadflytt.se.
-Status: **draft for approval**. Nothing below is built yet.
+Status: approved. **Phase 1 is live** (see section 10). Phases 2 to 6 are next.
 
 ## 1. What you approved
 
@@ -132,3 +132,18 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 6. **Reminder fee:** do you want to charge one? The law allows up to 60 kr, only if your terms say so before the job. Late interest is the reference rate plus 8 percentage points.
 7. **Your accountant:** which export format they want (SIE file, Excel or PDFs).
 8. **First vacancies** you want on the careers page.
+
+## 10. Phase 1: what is live
+
+- Supabase project `tostadflytt` (ref `jrvmqilzegerihdjswzc`) in Stockholm. Schema and rules in `supabase/migrations/`, server functions in `supabase/functions/`.
+- `/logga-in`: password for everyone; admins also need a code from an authenticator app.
+- `/admin`: overview, inbox (bookings, messages and damage reports from the website, with photos), customers, staff.
+- `/app`: staff start page (schedule and jobs come in phase 3).
+- Staff are added under Personal. The person gets a one time link (valid for 1 hour) to choose a password. Only the owner can add admins (max 3) and delete accounts.
+- Website forms go to the inbox first and then to Netlify Forms as a backup copy.
+- Tested end to end: activation, two step login, every admin page, staff invites, employee access limits, form submissions with photos.
+
+**Still manual until later phases**
+- Deleting enquiries that never became jobs after 12 months (privacy policy promise). Done by hand in the inbox until the scheduled cleanup is built.
+- Password reset by email needs the Resend setup; until then an admin creates a new login link under Personal.
+

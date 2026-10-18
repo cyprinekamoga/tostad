@@ -2,7 +2,7 @@
 // Skadeanmälan med bilder (Netlify Forms, multipart).
 import Icon from './Icon.astro';
 ---
-<form name="skadeanmalan" method="POST" action="/tack?typ=skada" enctype="multipart/form-data" data-netlify="true" netlify-honeypot="bot-field" class="dmg" data-damage>
+<form name="skadeanmalan" method="POST" action="/tack?typ=skada" enctype="multipart/form-data" data-netlify="true" netlify-honeypot="bot-field" class="dmg" data-damage data-inbox>
   <input type="hidden" name="form-name" value="skadeanmalan" />
   <p class="visually-hidden"><label>Lämna tomt: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
 
@@ -140,6 +140,9 @@ import Icon from './Icon.astro';
 </style>
 
 <script>
+  import { connectForm } from '../lib/inbox.js';
+
+  document.querySelectorAll<HTMLFormElement>('form[data-inbox][name="skadeanmalan"]').forEach(connectForm);
   document.querySelectorAll<HTMLInputElement>('[data-damage] input[type="file"]').forEach((input) => {
     input.addEventListener('change', () => {
       const img = input.parentElement!.querySelector<HTMLImageElement>('.preview')!;

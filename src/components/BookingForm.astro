@@ -1,5 +1,6 @@
 ---
-// Bokningsflöde i fyra steg. Ett vanligt HTML-formulär (Netlify Forms) som fungerar även utan JavaScript;
+// Bokningsflöde i fyra steg. Ett vanligt HTML-formulär som fungerar även utan JavaScript. Med JavaScript
+// hamnar bokningen i administrationens inkorg och går dessutom till Netlify Forms som reserv;
 // med JavaScript visas ett steg i taget och uppgifter från priskalkylatorn fylls i automatiskt.
 import Icon from './Icon.astro';
 import { site } from '../config/site.js';
@@ -17,7 +18,7 @@ const services = [
 ];
 const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
 ---
-<form name="bokning" method="POST" action="/tack" data-netlify="true" netlify-honeypot="bot-field" class="booking" data-booking>
+<form name="bokning" method="POST" action="/tack" data-netlify="true" netlify-honeypot="bot-field" class="booking" data-booking data-inbox>
   <input type="hidden" name="form-name" value="bokning" />
   <p class="visually-hidden"><label>Lämna tomt: <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
   <input type="hidden" name="pris" data-bk="pris" />
@@ -305,9 +306,11 @@ const steps = ['Tjänst', 'Bostad', 'Datum', 'Kontakt'];
 
 <script>
   import { formatKr } from '../lib/pricing.js';
+  import { connectForm } from '../lib/inbox.js';
 
   const form = document.querySelector<HTMLFormElement>('[data-booking]');
   if (form) {
+    connectForm(form);
     const steps = [...form.querySelectorAll<HTMLFieldSetElement>('.bk-step')];
     const labels = [...form.querySelectorAll<HTMLElement>('[data-step-label]')];
     const nav = form.querySelector<HTMLElement>('.bk-nav')!;

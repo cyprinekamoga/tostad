@@ -1,0 +1,7 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import Login from '../app/Login.jsx';
+---
+<AppLayout title="Logga in" heading="Inloggning för personal" narrow>
+  <Login client:only="preact" />
+</AppLayout>

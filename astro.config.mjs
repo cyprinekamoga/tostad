@@ -1,7 +1,9 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import preact from '@astrojs/preact';
 
 // Statisk webbplats: varje sida byggs till ren HTML som Google kan läsa direkt.
+// Inloggade sidor (/admin, /app, /logga-in) är också statiska; data hämtas i webbläsaren.
 export default defineConfig({
   site: 'https://tostadflytt.se',
   trailingSlash: 'never',
@@ -15,8 +17,9 @@ export default defineConfig({
     defaultStrategy: 'hover',
   },
   integrations: [
+    preact(),
     sitemap({
-      filter: (page) => !/\/(tack|404)(\.html)?$/.test(page),
+      filter: (page) => !/\/(tack|404)(\.html)?$/.test(page) && !/\/(admin|app|logga-in)(\/|\.html|$)/.test(page),
       changefreq: 'monthly',
       priority: 0.7,
       serialize(item) {

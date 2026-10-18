@@ -33,6 +33,28 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Inloggade sidor: syns inte i Google, får inte bäddas in och laddar bara skript från oss och Supabase.
+[[headers]]
+  for = "/admin*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-cache"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jrvmqilzegerihdjswzc.supabase.co; font-src 'self'; connect-src 'self' https://jrvmqilzegerihdjswzc.supabase.co wss://jrvmqilzegerihdjswzc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+[[headers]]
+  for = "/app*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-cache"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jrvmqilzegerihdjswzc.supabase.co; font-src 'self'; connect-src 'self' https://jrvmqilzegerihdjswzc.supabase.co wss://jrvmqilzegerihdjswzc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+[[headers]]
+  for = "/logga-in*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-cache"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jrvmqilzegerihdjswzc.supabase.co; font-src 'self'; connect-src 'self' https://jrvmqilzegerihdjswzc.supabase.co wss://jrvmqilzegerihdjswzc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
 [[headers]]
   for = "/*"
   [headers.values]

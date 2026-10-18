@@ -10,7 +10,7 @@ const t =
     ? { name: 'Name', contact: 'Phone or email', msg: 'Message', consent: 'I agree that my details are stored so you can answer my message.', policy: 'Privacy policy (Swedish)', send: 'Send', hp: 'Leave empty:' }
     : { name: 'Namn', contact: 'Telefon eller mejl', msg: 'Meddelande', consent: 'Jag godkänner att uppgifterna sparas för att svara på mitt meddelande.', policy: 'Integritetspolicy', send: 'Skicka', hp: 'Lämna tomt:' };
 ---
-<form name="kontakt" method="POST" action="/tack" data-netlify="true" netlify-honeypot="bot-field" class="cf">
+<form name="kontakt" method="POST" action="/tack" data-netlify="true" netlify-honeypot="bot-field" class="cf" data-inbox>
   <input type="hidden" name="form-name" value="kontakt" />
   <p class="visually-hidden"><label>{t.hp} <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
   <div class="form-grid form-grid--2">
@@ -57,3 +57,9 @@ const t =
     justify-self: start;
   }
 </style>
+
+<script>
+  import { connectForm } from '../lib/inbox.js';
+
+  document.querySelectorAll<HTMLFormElement>('form[data-inbox][name="kontakt"]').forEach(connectForm);
+</script>

@@ -1,0 +1,7 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import Activate from '../../app/Activate.jsx';
+---
+<AppLayout title="Aktivera konto" heading="Aktivera ditt konto" narrow>
+  <Activate client:only="preact" />
+</AppLayout>

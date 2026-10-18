@@ -1,0 +1,7 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import AdminApp from '../../app/AdminApp.jsx';
+---
+<AppLayout title="Översikt" heading="Administration: Översikt">
+  <AdminApp client:only="preact" page="oversikt" />
+</AppLayout>

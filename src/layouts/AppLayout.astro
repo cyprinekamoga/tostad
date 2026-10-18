@@ -1,0 +1,42 @@
+---
+// Layout för inloggade sidor (administration och personalapp). Visas inte i Google.
+import '@fontsource-variable/inter/wght.css';
+import '../styles/global.css';
+import '../styles/app.css';
+import { Image } from 'astro:assets';
+import logo from '../assets/brand/logo.png';
+import { site } from '../config/site.js';
+
+interface Props {
+  title: string;
+  heading?: string;
+  description?: string;
+  narrow?: boolean;
+}
+const { title, heading = title, description = `${site.name}: inloggning för personal och administratörer.`, narrow = false } = Astro.props;
+---
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title} | {site.name}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0b3d24" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body class="app-body">
+    <header class="app-top">
+      <a class="app-brand" href="/" aria-label={`${site.name}, till webbplatsen`}>
+        <Image src={logo} alt="" width={36} height={36} loading="eager" />
+        <span>TO Städ &amp; Flytt</span>
+      </a>
+      <h1 class="app-title">{heading}</h1>
+    </header>
+    <main class:list={['app-main', { 'app-main--narrow': narrow }]}>
+      <slot />
+    </main>
+  </body>
+</html>
