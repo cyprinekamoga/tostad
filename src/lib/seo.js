@@ -1,4 +1,5 @@
 import { site } from '../config/site.js';
+import { counties } from '../data/areas.js';
 
 const orgRef = { '@id': `${site.url}/#foretag` };
 
@@ -25,7 +26,7 @@ export function serviceJsonLd({ name, description, slug, price, unit, areaNames 
     description,
     url: `${site.url}/${slug}`,
     provider: orgRef,
-    areaServed: [{ '@type': 'AdministrativeArea', name: 'Stockholms län' }, ...areaNames.map((n) => ({ '@type': 'City', name: n }))],
+    areaServed: [...counties.map((c) => ({ '@type': 'AdministrativeArea', name: c.name })), ...areaNames.map((n) => ({ '@type': 'City', name: n }))],
   };
   if (price) {
     ld.offers = {

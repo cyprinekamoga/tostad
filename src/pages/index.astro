@@ -15,7 +15,7 @@ import PostcodeCheck from '../components/PostcodeCheck.astro';
 import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
 import { site } from '../config/site.js';
-import { areas } from '../data/areas.js';
+import { areasByCounty } from '../data/areas.js';
 import { homeFaq } from '../data/faq.js';
 import { kitchenSpots } from '../data/hotspots.js';
 import { movePrice, flyttstadningPrice, formatKr } from '../lib/pricing.js';
@@ -97,7 +97,7 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
   <section class="hero">
     <div class="container hero-grid">
       <div class="hero-copy">
-        <p class="eyebrow"><Icon name="leaf" /> Flytt & städ i Stockholms län</p>
+        <p class="eyebrow"><Icon name="leaf" /> Flytt & städ i Stockholm, Uppsala och Södermanland</p>
         <h1>Flytt och flyttstädning till ett fast pris som gäller</h1>
         <p class="lead">
           Se priset direkt, få SMS när vi är på väg och en fotorapport när vi städat klart. RUT dras på fakturan, och den kommer först när jobbet är godkänt.
@@ -218,11 +218,18 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
     <div class="container split">
       <div>
         <p class="eyebrow">Områden</p>
-        <h2>Från Upplands Väsby till hela Stockholms län</h2>
-        <p class="lead">Vår bas ligger i Upplands Väsby. Vi flyttar och städar i hela länet, och kortare körväg innebär ofta snabbare tider.</p>
-        <ul class="area-links">
-          {areas.map((a) => <li><a href={`/omraden/${a.slug}`}>{a.name}</a></li>)}
-        </ul>
+        <h2>Från Upplands Väsby till tre län</h2>
+        <p class="lead">Vår bas ligger i Upplands Väsby. Vi flyttar och städar i alla kommuner i Stockholms län, Uppsala län och Södermanlands län.</p>
+        {
+          areasByCounty.map((c) => (
+            <>
+              <h3 class="county">{c.name}</h3>
+              <ul class="area-links">
+                {c.areas.map((a) => <li><a href={`/omraden/${a.slug}`}>{a.name}</a></li>)}
+              </ul>
+            </>
+          ))
+        }
       </div>
       <PostcodeCheck />
     </div>
@@ -399,6 +406,11 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
   .center {
     text-align: center;
     margin-top: 32px;
+  }
+  .county {
+    font-size: 1rem;
+    margin: 22px 0 10px;
+    color: var(--ink-2);
   }
   .area-links {
     list-style: none;

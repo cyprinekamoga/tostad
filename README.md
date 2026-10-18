@@ -57,7 +57,7 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 | `/garantier`, `/skadeanmalan` | Garantier och skadeanmälan med bilder |
 | `/flyttchecklista` | Interaktiv checklista med datum och kalenderfil |
 | `/rut-avdrag` | Guide och räknare för rutavdrag |
-| `/omraden`, `/omraden/<ort>` | Områdessidor (data i `src/data/areas.js`) |
+| `/omraden`, `/omraden/<ort>` | Områdessidor för alla kommuner i Stockholms, Uppsala och Södermanlands län (data och postnummer i `src/data/areas.js`) |
 | `/en` | Engelsk sida |
 | `/om-oss`, `/kontakt`, `/villkor`, `/integritetspolicy`, `/bildkallor` | Övrigt |
 

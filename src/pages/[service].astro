@@ -13,7 +13,7 @@ import Faq from '../components/Faq.astro';
 import CtaBand from '../components/CtaBand.astro';
 import Icon from '../components/Icon.astro';
 import { services } from '../data/services.js';
-import { areas } from '../data/areas.js';
+import { areas, areasByCounty } from '../data/areas.js';
 import { kitchenSpots, bathroomSpots, livingSpots } from '../data/hotspots.js';
 import { site } from '../config/site.js';
 import { img } from '../lib/images.js';
@@ -259,9 +259,13 @@ const isClean = s.group === 'stad';
         <h2>Andra tjänster</h2>
       </div>
       <ServiceGrid only={s.related} />
-      <p class="areas-line">
-        {s.name} i: {areas.map((a, i) => <><a href={`/omraden/${a.slug}`}>{a.name}</a>{i < areas.length - 1 ? ', ' : ''}</>)}
-      </p>
+      {
+        areasByCounty.map((c) => (
+          <p class="areas-line">
+            {s.name} i {c.name}: {c.areas.map((a, i) => <><a href={`/omraden/${a.slug}`}>{a.name}</a>{i < c.areas.length - 1 ? ', ' : ''}</>)}
+          </p>
+        ))
+      }
     </div>
   </section>
 
@@ -280,8 +284,11 @@ const isClean = s.group === 'stad';
     border-color: #fde7a6;
   }
   .areas-line {
-    margin-top: 28px;
+    margin: 12px 0 0;
     color: var(--ink-3);
     font-size: 0.95rem;
+  }
+  .areas-line:first-of-type {
+    margin-top: 28px;
   }
 </style>

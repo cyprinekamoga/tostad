@@ -8,7 +8,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ContactDock from '../components/ContactDock.astro';
 import { site } from '../config/site.js';
-import { areas } from '../data/areas.js';
+import { areas, counties } from '../data/areas.js';
 import logo from '../assets/brand/logo.png';
 import defaultOg from '../assets/images/hero-livingroom.jpg';
 
@@ -72,7 +72,7 @@ const graph: Record<string, unknown>[] = [
       addressRegion: site.address.region,
       addressCountry: site.address.country,
     },
-    areaServed: [{ '@type': 'AdministrativeArea', name: 'Stockholms län' }, ...areas.map((a) => ({ '@type': 'City', name: a.name }))],
+    areaServed: [...counties.map((c) => ({ '@type': 'AdministrativeArea', name: c.name })), ...areas.map((a) => ({ '@type': 'City', name: a.name }))],
     priceRange: '125 till 1 145 kr/h efter RUT',
     paymentAccepted: 'Faktura, kort',
     currenciesAccepted: 'SEK',

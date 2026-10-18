@@ -208,5 +208,15 @@
     "landingUrl": "https://www.pexels.com/photo/3768910/",
     "width": 2000,
     "height": 1333
+  },
+  {
+    "file": "uppsala.jpg",
+    "title": "Höstfärger vid Fyrisån i Uppsala",
+    "source": "pexels",
+    "license": "pexels",
+    "licenseUrl": "https://www.pexels.com/license/",
+    "landingUrl": "https://www.pexels.com/photo/29116361/",
+    "width": 2000,
+    "height": 1500
   }
 ]

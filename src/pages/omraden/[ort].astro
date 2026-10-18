@@ -6,7 +6,7 @@ import PriceCalculator from '../../components/PriceCalculator.astro';
 import Faq from '../../components/Faq.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Icon from '../../components/Icon.astro';
-import { areas } from '../../data/areas.js';
+import { areas, countyByKey } from '../../data/areas.js';
 import { site } from '../../config/site.js';
 import { img } from '../../lib/images.js';
 import { faqJsonLd } from '../../lib/seo.js';
@@ -15,7 +15,8 @@ export function getStaticPaths() {
   return areas.map((a) => ({ params: { ort: a.slug }, props: { a } }));
 }
 const { a } = Astro.props;
-const others = areas.filter((x) => x.slug !== a.slug);
+const county = countyByKey[a.county];
+const others = areas.filter((x) => x.county === a.county && x.slug !== a.slug);
 const faq = [
   {
     q: `Vad kostar flytthjälp i ${a.name}?`,
@@ -23,7 +24,7 @@ const faq = [
   },
   {
     q: `Vad kostar flyttstädning i ${a.name}?`,
-    a: `Samma pris i hela länet: 45 kr per kvadratmeter efter rutavdrag, med fotorapport och ${site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti.`,
+    a: `45 kr per kvadratmeter efter rutavdrag, med fotorapport och ${site.promises.inspectionGuaranteeDays} dagars besiktningsgaranti. Fönsterputs kan läggas till.`,
   },
   {
     q: `Kör ni till alla delar av ${a.name}?`,
@@ -35,7 +36,7 @@ const ld = [
     '@type': 'Service',
     name: `Flytt och flyttstädning i ${a.name}`,
     provider: { '@id': `${site.url}/#foretag` },
-    areaServed: { '@type': 'City', name: a.name },
+    areaServed: { '@type': 'City', name: a.name, containedInPlace: { '@type': 'AdministrativeArea', name: county.name } },
     url: `${site.url}/omraden/${a.slug}`,
   },
   faqJsonLd(faq),
@@ -44,8 +45,8 @@ const ld = [
 <Base
   title={`Flytt & flyttstädning i ${a.name}, fast pris efter RUT`}
   description={`Flytthjälp och flyttstädning i ${a.name} till fast pris efter RUT. ${a.neighborhoods.slice(0, 2).join(', ')} med flera. Fotorapport och besiktningsgaranti.`}
-  image={img('stockholm')}
-  imageAlt="Stockholm från vattnet"
+  image={img(county.image)}
+  imageAlt={county.imageAlt}
   breadcrumbs={[
     { name: 'Områden', href: '/omraden' },
     { name: a.name, href: `/omraden/${a.slug}` },
@@ -55,8 +56,8 @@ const ld = [
   <PageHero
     h1={`Flytt och flyttstädning i ${a.name}`}
     lead={a.intro}
-    image={img('stockholm')}
-    imageAlt={`Stockholm från vattnet. Vi kör till ${a.name}`}
+    image={img(county.image)}
+    imageAlt={county.imageAlt}
     crumbs={[
       { name: 'Områden', href: '/omraden' },
       { name: a.name, href: `/omraden/${a.slug}` },
@@ -112,7 +113,8 @@ const ld = [
   <section class="section section--tight">
     <div class="container">
       <p class="muted">
-        Andra områden: {others.map((o, i) => <><a href={`/omraden/${o.slug}`}>{o.name}</a>{i < others.length - 1 ? ', ' : ''}</>)}
+        Fler orter i {county.name}: {others.map((o, i) => <><a href={`/omraden/${o.slug}`}>{o.name}</a>{i < others.length - 1 ? ', ' : ''}</>)}.{' '}
+        <a href="/omraden">Alla områden</a>
       </p>
     </div>
   </section>

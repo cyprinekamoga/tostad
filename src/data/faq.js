@@ -27,7 +27,7 @@ export const homeFaq = [
   },
   {
     q: 'Vilka områden kör ni till?',
-    a: 'Hela Stockholms län, från Upplands Väsby, Sollentuna och Täby till Stockholm, Solna, Nacka och Lidingö. Skriv ditt postnummer i rutan ovan så ser du direkt.',
+    a: 'Alla kommuner i Stockholms län, Uppsala län och Södermanlands län. Till exempel Stockholm, Solna, Täby, Uppsala, Knivsta, Enköping, Eskilstuna, Strängnäs och Nyköping. Skriv ditt postnummer i rutan ovan så ser du direkt.',
   },
   {
     q: 'Do you speak English?',

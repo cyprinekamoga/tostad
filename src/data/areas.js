@@ -5,6 +5,7 @@ export const areas = [
   {
     slug: 'upplands-vasby',
     name: 'Upplands Väsby',
+    county: 'stockholm',
     home: true,
     neighborhoods: ['Runby', 'Vilunda', 'Bredden', 'Smedby', 'Fresta', 'Grimstaby', 'Sigma', 'Väsby centrum'],
     intro:
@@ -15,6 +16,7 @@ export const areas = [
   {
     slug: 'sollentuna',
     name: 'Sollentuna',
+    county: 'stockholm',
     neighborhoods: ['Tureberg', 'Häggvik', 'Edsberg', 'Rotebro', 'Helenelund', 'Viby', 'Vaxmora', 'Norrviken'],
     intro: 'Sollentuna ligger precis söder om vår bas i Upplands Väsby. Kort körväg gör det lätt att hitta en tid, oavsett om du bor i lägenhet vid Sollentuna centrum eller i villa i Edsberg.',
     housing: 'Många villor och radhus, men också större hyresområden runt Tureberg och Helenelund.',
@@ -23,6 +25,7 @@ export const areas = [
   {
     slug: 'stockholm',
     name: 'Stockholm',
+    county: 'stockholm',
     neighborhoods: ['Södermalm', 'Vasastan', 'Kungsholmen', 'Östermalm', 'Bromma', 'Hammarby sjöstad', 'Vällingby', 'Hägersten'],
     intro: 'Från sekelskiftesvåningar på Södermalm till nybyggt i Hammarby sjöstad. Vi kör till hela Stockholms stad varje dag.',
     housing: 'Många äldre hus i innerstan saknar hiss eller har små hissar. Det påverkar tiden och därmed priset.',
@@ -31,6 +34,7 @@ export const areas = [
   {
     slug: 'solna',
     name: 'Solna',
+    county: 'stockholm',
     neighborhoods: ['Råsunda', 'Huvudsta', 'Hagalund', 'Bergshamra', 'Frösunda', 'Arenastaden', 'Ulriksdal'],
     intro: 'Solna växer snabbt, och många flyttar in i nyproduktion i Arenastaden och Hagastaden. Vi hjälper både dig som flyttar in och dig som flyttar ut.',
     housing: 'Mycket nyproduktion med hiss, men också äldre funkishus i Råsunda.',
@@ -39,6 +43,7 @@ export const areas = [
   {
     slug: 'sundbyberg',
     name: 'Sundbyberg',
+    county: 'stockholm',
     neighborhoods: ['Centrala Sundbyberg', 'Duvbo', 'Lilla Alby', 'Hallonbergen', 'Rissne', 'Ursvik', 'Brotorp'],
     intro: 'Sverige till ytan minsta kommun men med många flyttar. Korta avstånd gör att flytten ofta går snabbt, och då blir priset lägre.',
     housing: 'Tätbebyggt med flerfamiljshus, ofta med hiss, och nya kvarter i Ursvik.',
@@ -47,6 +52,7 @@ export const areas = [
   {
     slug: 'taby',
     name: 'Täby',
+    county: 'stockholm',
     neighborhoods: ['Täby centrum', 'Näsby park', 'Gribbylund', 'Viggbyholm', 'Arninge', 'Ensta', 'Hägernäs'],
     intro: 'I Täby flyttar många mellan villor och radhus. Vi hjälper till med tunga möbler, trädgårdsmöbler och flyttstädning av hela huset.',
     housing: 'Mestadels villor och radhus med förråd och garage.',
@@ -55,6 +61,7 @@ export const areas = [
   {
     slug: 'jarfalla',
     name: 'Järfälla',
+    county: 'stockholm',
     neighborhoods: ['Jakobsberg', 'Barkarby', 'Viksjö', 'Kallhäll', 'Skälby', 'Stäket'],
     intro: 'Barkarbystaden växer, och i Jakobsberg och Viksjö byts många bostäder varje år. Vi hjälper dig hela vägen från Barkarby till Viksjö.',
     housing: 'Ny stadsbebyggelse i Barkarby, hyresrätter i Jakobsberg och villor i Viksjö.',
@@ -63,6 +70,7 @@ export const areas = [
   {
     slug: 'sigtuna',
     name: 'Sigtuna och Märsta',
+    county: 'stockholm',
     neighborhoods: ['Märsta', 'Sigtuna stad', 'Rosersberg', 'Steninge', 'Valsta', 'Skepptuna'],
     intro: 'Norr om Upplands Väsby, nära Arlanda. Kort körväg från vår bas gör det enkelt att hitta en tid i Märsta och Sigtuna.',
     housing: 'Villor och radhus i Sigtuna och Rosersberg, lägenheter i Märsta och Valsta.',
@@ -71,6 +79,7 @@ export const areas = [
   {
     slug: 'nacka',
     name: 'Nacka',
+    county: 'stockholm',
     neighborhoods: ['Sickla', 'Finntorp', 'Saltsjöbaden', 'Fisksätra', 'Björknäs', 'Älta', 'Orminge'],
     intro: 'Från Sickla till Saltsjöbaden. Vi kör till hela Nacka och planerar med hänsyn till trafiken över Danvikstull och Skurubron.',
     housing: 'Blandat med nya flerfamiljshus i Sickla och Nacka strand och villor i Saltsjöbaden.',
@@ -79,21 +88,338 @@ export const areas = [
   {
     slug: 'lidingo',
     name: 'Lidingö',
+    county: 'stockholm',
     neighborhoods: ['Lidingö centrum', 'Larsberg', 'Torsvik', 'Käppala', 'Brevik', 'Gåshaga', 'Bodal'],
     intro: 'Villor, sjötomter och lägenheter vid Lidingö centrum. Vi planerar för långa uppfarter och branta tomter redan i offerten.',
     housing: 'Många villor, ofta med branta tomter och längre bärväg.',
     tip: 'Kryssa i "Lång bärväg" i kalkylatorn om lastbilen inte kan stå nära dörren.',
   },
+  // Övriga kommuner i Stockholms län
+  {
+    slug: 'botkyrka',
+    name: 'Botkyrka',
+    county: 'stockholm',
+    neighborhoods: ['Tumba', 'Tullinge', 'Hallunda', 'Norsborg', 'Alby', 'Fittja', 'Vårsta', 'Grödinge'],
+    intro: 'Från villakvarteren i Tullinge till lägenheterna i Hallunda och Alby. Vi kör till hela Botkyrka, både norra och södra delen av kommunen.',
+    housing: 'Stora hyresområden i norra Botkyrka och mest villor och radhus i Tullinge, Tumba och Grödinge.',
+    tip: 'Bor du i ett större hyreshus? Kolla om hissen kan bokas på flyttdagen, så går det fortare.',
+  },
+  {
+    slug: 'danderyd',
+    name: 'Danderyd',
+    county: 'stockholm',
+    neighborhoods: ['Djursholm', 'Stocksund', 'Enebyberg', 'Mörby', 'Svalnäs'],
+    intro: 'Villor, stora hus och sjönära tomter i Djursholm och Stocksund. Vi är vana vid stora bohag, antikviteter och tunga möbler.',
+    housing: 'Mest villor, ofta med flera våningar, källare och förråd. Lägenheter finns främst kring Mörby centrum.',
+    tip: 'Har du konst, antikviteter eller piano? Nämn det när du bokar så packar vi extra noga och tar med rätt utrustning.',
+  },
+  {
+    slug: 'ekero',
+    name: 'Ekerö',
+    county: 'stockholm',
+    neighborhoods: ['Ekerö centrum', 'Stenhamra', 'Drottningholm', 'Färentuna', 'Skå', 'Munsö', 'Adelsö'],
+    intro: 'Öarna i Mälaren, från Drottningholm till Stenhamra. Vi planerar körvägen över broarna och räknar med färjan när det behövs.',
+    housing: 'Mest villor och fritidshus, ofta med längre bärväg och grusade uppfarter.',
+    tip: 'Ska flytten till eller från Adelsö? Säg till när du bokar, så räknar vi in färjan i tiden.',
+  },
+  {
+    slug: 'haninge',
+    name: 'Haninge',
+    county: 'stockholm',
+    neighborhoods: ['Handen', 'Vega', 'Jordbro', 'Brandbergen', 'Vendelsö', 'Västerhaninge', 'Tungelsta', 'Dalarö'],
+    intro: 'Från Handen och Vega till Dalarö vid havet. Vi flyttar och städar i hela Haninge, både lägenheter nära pendeltåget och villor längre ut.',
+    housing: 'Lägenheter i Handen, Brandbergen och Jordbro, nya kvarter i Vega och villor och fritidshus i Västerhaninge, Tungelsta och Dalarö.',
+    tip: 'Flyttar du från ett fritidshus eller en villa på landet? Ange om vägen fram är smal eller grusad, så väljer vi rätt bil.',
+  },
+  {
+    slug: 'huddinge',
+    name: 'Huddinge',
+    county: 'stockholm',
+    neighborhoods: ['Huddinge centrum', 'Flemingsberg', 'Skogås', 'Trångsund', 'Stuvsta', 'Segeltorp', 'Vårby', 'Sjödalen'],
+    intro: 'Från studentlägenheterna i Flemingsberg till villorna i Stuvsta och Segeltorp. Vi kör till hela Huddinge.',
+    housing: 'Hyresrätter och studentbostäder i Flemingsberg och Vårby, villor och radhus i Stuvsta, Segeltorp och Sjödalen.',
+    tip: 'Flyttar du från ett studentrum eller en liten etta? Välj "1 rum och kök" i kalkylatorn, så blir priset rätt för ett mindre bohag.',
+  },
+  {
+    slug: 'norrtalje',
+    name: 'Norrtälje',
+    county: 'stockholm',
+    neighborhoods: ['Norrtälje stad', 'Rimbo', 'Hallstavik', 'Älmsta', 'Grisslehamn', 'Edsbro', 'Spillersboda'],
+    intro: 'Länets till ytan största kommun, från Rimbo till Grisslehamn. Vi hjälper till med flytt av både villor och fritidshus i Roslagen.',
+    housing: 'Villor, gårdar och många fritidshus, ofta med lång väg mellan adresserna.',
+    tip: 'Långa avstånd påverkar priset. Ange avståndet mellan adresserna i kalkylatorn så räknas körtiden in direkt.',
+  },
+  {
+    slug: 'nykvarn',
+    name: 'Nykvarn',
+    county: 'stockholm',
+    neighborhoods: ['Nykvarn centrum', 'Turinge', 'Taxinge'],
+    intro: 'En mindre kommun mellan Södertälje och Strängnäs. Vi hjälper dig från Nykvarn centrum till Taxinge vid Mälaren.',
+    housing: 'Mest villor och radhus, men också nyare lägenheter nära centrum.',
+    tip: 'Flyttar du vidare mot Strängnäs eller Södertälje? Fyll i avståndet i kalkylatorn så får du ett fast pris med körtiden inräknad.',
+  },
+  {
+    slug: 'nynashamn',
+    name: 'Nynäshamn',
+    county: 'stockholm',
+    neighborhoods: ['Nynäshamn centrum', 'Ösmo', 'Sorunda', 'Stora Vika', 'Torö', 'Segersäng', 'Grödby'],
+    intro: 'Längst söderut i länet, med havet runt hörnet. Vi kör till Nynäshamn, Ösmo och Sorunda och planerar körtiden från start.',
+    housing: 'Lägenheter i centrala Nynäshamn och villor och fritidshus i Ösmo, Sorunda och på Torö.',
+    tip: 'Längre körväg gör en tidig start extra bra. Boka gärna förmiddag så hinner vi både flytt och städning samma dag.',
+  },
+  {
+    slug: 'salem',
+    name: 'Salem',
+    county: 'stockholm',
+    neighborhoods: ['Salems centrum', 'Rönninge'],
+    intro: 'En lugn kommun mellan Södertälje och Botkyrka, med Rönninge och Salems centrum nära pendeltåget.',
+    housing: 'Villor och radhus dominerar, med lägenheter kring Salems centrum och Rönninge.',
+    tip: 'Radhus har ofta förråd och vind som är lätta att glömma. Räkna med dem när du väljer storlek i kalkylatorn.',
+  },
+  {
+    slug: 'sodertalje',
+    name: 'Södertälje',
+    county: 'stockholm',
+    neighborhoods: ['Södertälje centrum', 'Östertälje', 'Pershagen', 'Ronna', 'Hovsjö', 'Järna', 'Hölö', 'Mölnbo'],
+    intro: 'Från centrala Södertälje till Järna, Hölö och Mölnbo. Vi kör till hela kommunen, både stad och landsbygd.',
+    housing: 'Hyresrätter i Ronna och Hovsjö, villor i Pershagen och Östertälje och hus och gårdar på landsbygden kring Järna.',
+    tip: 'Har du förråd eller garage på en annan adress? Skriv det i bokningen så räknar vi med det i det fasta priset.',
+  },
+  {
+    slug: 'tyreso',
+    name: 'Tyresö',
+    county: 'stockholm',
+    neighborhoods: ['Tyresö centrum', 'Bollmora', 'Trollbäcken', 'Krusboda', 'Öringe', 'Lindalen', 'Raksta', 'Brevik'],
+    intro: 'Från Bollmora och Tyresö centrum till villorna i Trollbäcken och Brevik. Vi kör till hela Tyresö.',
+    housing: 'Lägenheter i Bollmora och kring centrum, mest villor och radhus i övriga Tyresö.',
+    tip: 'Villor med branta tomter och trappor tar längre tid. Kryssa i "Lång bärväg" om lastbilen inte kan stå nära dörren.',
+  },
+  {
+    slug: 'upplands-bro',
+    name: 'Upplands-Bro',
+    county: 'stockholm',
+    neighborhoods: ['Kungsängen', 'Bro', 'Brunna', 'Tibble', 'Låssa', 'Härnevi'],
+    intro: 'Kort körväg från vår bas i Upplands Väsby. Vi flyttar och städar i Kungsängen, Bro och på landsbygden runt omkring.',
+    housing: 'Mest villor och radhus, med lägenheter nära pendeltågsstationerna i Kungsängen och Bro.',
+    tip: 'Den korta körvägen gör att vi ofta kan hitta en tid med kort varsel. Ring om det är bråttom.',
+  },
+  {
+    slug: 'vallentuna',
+    name: 'Vallentuna',
+    county: 'stockholm',
+    neighborhoods: ['Vallentuna centrum', 'Lindholmen', 'Karby', 'Brottby', 'Kårsta', 'Ormsta', 'Bällsta', 'Okvista'],
+    intro: 'Granne med Upplands Väsby i öster. Kort körväg gör att vi ofta kan hjälpa till med kort varsel, från Vallentuna centrum till Kårsta.',
+    housing: 'Villor och radhus i centralorten, lägenheter kring stationen och gårdar och hus på landsbygden.',
+    tip: 'Bor du på landet i Brottby eller Kårsta? Ange om lastbilen kan köra ända fram, så blir priset rätt.',
+  },
+  {
+    slug: 'vaxholm',
+    name: 'Vaxholm',
+    county: 'stockholm',
+    neighborhoods: ['Vaxön', 'Resarö', 'Kullö', 'Rindö', 'Skarpö', 'Bogesund'],
+    intro: 'Skärgårdsstaden med öar som Resarö, Rindö och Skarpö. Vi planerar för broar, färjor och smala gator redan i offerten.',
+    housing: 'Trähus och äldre hus på Vaxön, villor och fritidshus på öarna.',
+    tip: 'Ska flytten till Rindö eller en annan ö utan bro? Säg till när du bokar, så räknar vi in färjan och tiden det tar.',
+  },
+  {
+    slug: 'varmdo',
+    name: 'Värmdö',
+    county: 'stockholm',
+    neighborhoods: ['Gustavsberg', 'Hemmesta', 'Mölnvik', 'Brunn', 'Ingarö', 'Djurö', 'Stavsnäs'],
+    intro: 'Från Gustavsbergs hamn till Stavsnäs och Djurö. Vi kör till hela Värmdö och hjälper till med både permanentboende och fritidshus.',
+    housing: 'Lägenheter i Gustavsberg, villor på Ingarö och i Hemmesta och många fritidshus i skärgården.',
+    tip: 'Trafiken över Skurubron kan vara tät. Boka gärna en tidig start.',
+  },
+  {
+    slug: 'osteraker',
+    name: 'Österåker',
+    county: 'stockholm',
+    neighborhoods: ['Åkersberga', 'Österskär', 'Svinninge', 'Täljö', 'Margretelund', 'Runö', 'Ljusterö'],
+    intro: 'Från Åkersberga centrum till Ljusterö i skärgården. Vi flyttar och städar i hela Österåker.',
+    housing: 'Lägenheter i Åkersberga, villor i Österskär och Svinninge och fritidshus på Ljusterö.',
+    tip: 'Ljusterö nås med färja. Säg till när du bokar, så planerar vi tiden efter färjans turer.',
+  },
+
+  // Uppsala län
+  {
+    slug: 'uppsala',
+    name: 'Uppsala',
+    county: 'uppsala',
+    neighborhoods: ['Luthagen', 'Fålhagen', 'Svartbäcken', 'Kåbo', 'Flogsta', 'Gottsunda', 'Sävja', 'Storvreta'],
+    intro: 'Sveriges fjärde största stad, med många flyttar när terminerna börjar. Vi hjälper studenter, familjer och företag i hela Uppsala kommun.',
+    housing: 'Studentbostäder i Flogsta och Rackarberget, äldre hus i Luthagen och Fålhagen och villor i Sunnersta och Storvreta.',
+    tip: 'Augusti och januari är högsäsong när terminerna börjar. Boka i god tid om du flyttar då.',
+  },
+  {
+    slug: 'enkoping',
+    name: 'Enköping',
+    county: 'uppsala',
+    neighborhoods: ['Enköping centrum', 'Örsundsbro', 'Grillby', 'Fjärdhundra', 'Bredsand', 'Lillkyrka'],
+    intro: 'Parkernas stad vid Mälaren. Vi flyttar och städar i Enköping och i orterna runt omkring, som Örsundsbro, Grillby och Fjärdhundra.',
+    housing: 'Villor och radhus i och runt staden, lägenheter i centrum och gårdar på landsbygden.',
+    tip: 'Flyttar du mellan Enköping och Stockholm? Ange avståndet i kalkylatorn så räknas körtiden in i det fasta priset.',
+  },
+  {
+    slug: 'balsta',
+    name: 'Bålsta och Håbo',
+    county: 'uppsala',
+    neighborhoods: ['Bålsta centrum', 'Väppeby', 'Skokloster', 'Häggeby', 'Övergran'],
+    intro: 'Bålsta ligger vid Mälaren mellan Stockholm och Enköping, med pendeltåg till Stockholm. Vi hjälper dig i hela Håbo, från Bålsta centrum till Skokloster.',
+    housing: 'Mest villor och radhus, och lägenheter nära stationen i Bålsta.',
+    tip: 'Skokloster ligger en bit från Bålsta. Ange rätt avstånd mellan adresserna så stämmer priset.',
+  },
+  {
+    slug: 'knivsta',
+    name: 'Knivsta',
+    county: 'uppsala',
+    neighborhoods: ['Knivsta centrum', 'Alsike', 'Särsta', 'Vassunda', 'Lagga'],
+    intro: 'Mellan Arlanda och Uppsala, inte långt från vår bas i Upplands Väsby. Knivsta och Alsike växer snabbt och vi hjälper många som flyttar in i nya hus.',
+    housing: 'Villor och radhus, och nyare lägenheter kring Knivsta centrum och i Alsike.',
+    tip: 'Flyttar du in i nyproduktion? Fråga om hissen kan bokas och om porten kan hållas öppen på flyttdagen.',
+  },
+  {
+    slug: 'tierp',
+    name: 'Tierp',
+    county: 'uppsala',
+    neighborhoods: ['Tierp', 'Örbyhus', 'Söderfors', 'Månkarbo', 'Mehedeby', 'Karlholmsbruk', 'Skärplinge'],
+    intro: 'Norra Uppland, från Tierp och Örbyhus till Söderfors och Karlholmsbruk vid kusten.',
+    housing: 'Mest villor och gårdar, och lägenheter i centrala Tierp.',
+    tip: 'Långa flyttar kräver mer körtid. Fyll i avståndet mellan adresserna så ser du ett fast pris där körtiden redan är med.',
+  },
+  {
+    slug: 'osthammar',
+    name: 'Östhammar',
+    county: 'uppsala',
+    neighborhoods: ['Östhammar', 'Öregrund', 'Gimo', 'Alunda', 'Österbybruk', 'Hargshamn', 'Gräsö'],
+    intro: 'Roslagskusten, från Alunda och Gimo till Öregrund och Gräsö. Vi flyttar både villor och sommarhus i hela kommunen.',
+    housing: 'Villor och radhus i Gimo, Alunda och Östhammar, trähus i Öregrund och många fritidshus vid kusten.',
+    tip: 'Gräsö nås med färja från Öregrund. Säg till när du bokar så planerar vi efter turerna.',
+  },
+  {
+    slug: 'heby',
+    name: 'Heby',
+    county: 'uppsala',
+    neighborhoods: ['Heby', 'Morgongåva', 'Östervåla', 'Tärnsjö', 'Harbo', 'Vittinge'],
+    intro: 'Västra delen av Uppsala län, med orter som Heby, Morgongåva, Östervåla och Tärnsjö.',
+    housing: 'Mest villor, gårdar och hus på landsbygden.',
+    tip: 'Gårdar har ofta lador, verkstäder och uthus. Berätta vad som ska med, så blir det fasta priset rätt.',
+  },
+  {
+    slug: 'alvkarleby',
+    name: 'Älvkarleby',
+    county: 'uppsala',
+    neighborhoods: ['Skutskär', 'Älvkarleby', 'Marma', 'Gårdskär'],
+    intro: 'Länets nordligaste kommun, vid Dalälvens mynning. Vi hjälper till med flytt och städning i Skutskär och Älvkarleby.',
+    housing: 'Villor och radhus, och lägenheter i Skutskär.',
+    tip: 'Flyttar du till eller från Gävle? Ange avståndet i kalkylatorn så får du priset direkt.',
+  },
+
+  // Södermanlands län
+  {
+    slug: 'eskilstuna',
+    name: 'Eskilstuna',
+    county: 'sodermanland',
+    neighborhoods: ['Eskilstuna centrum', 'Fröslunda', 'Lagersberg', 'Skiftinge', 'Årby', 'Torshälla', 'Skogstorp', 'Hällbybrunn'],
+    intro: 'Länets största stad. Vi flyttar och städar i hela Eskilstuna kommun, från centrum och Torshälla till Skogstorp och Hällbybrunn.',
+    housing: 'Hyresrätter i Fröslunda, Lagersberg och Årby, villor och radhus i Skogstorp, Hällbybrunn och Torshälla.',
+    tip: 'Flyttar du mellan Eskilstuna och Stockholm? Fyll i avståndet i kalkylatorn så ser du det fasta priset med körtiden inräknad.',
+  },
+  {
+    slug: 'nykoping',
+    name: 'Nyköping',
+    county: 'sodermanland',
+    neighborhoods: ['Nyköping centrum', 'Brandkärr', 'Arnö', 'Oppeby', 'Harg', 'Stigtomta', 'Jönåker', 'Svalsta'],
+    intro: 'Residensstaden vid kusten, med Stigtomta, Jönåker och Svalsta runt omkring. Vi flyttar och städar i hela Nyköpings kommun.',
+    housing: 'Lägenheter i centrum och Brandkärr, villor i Oppeby och Arnö och hus på landsbygden.',
+    tip: 'Har du båthus, sjöbod eller förråd vid sidan av bostaden? Berätta vad som ska med, så stämmer det fasta priset.',
+  },
+  {
+    slug: 'katrineholm',
+    name: 'Katrineholm',
+    county: 'sodermanland',
+    neighborhoods: ['Katrineholm centrum', 'Valla', 'Björkvik', 'Forssjö', 'Julita', 'Sköldinge'],
+    intro: 'Järnvägsknuten mitt i Södermanland. Vi hjälper dig i Katrineholm och i orterna runt omkring, som Valla, Björkvik och Julita.',
+    housing: 'Villor och radhus i staden, lägenheter i centrum och gårdar på landsbygden.',
+    tip: 'Bor du på landet? Berätta om uthus och förråd som ska tömmas, så blir priset rätt från början.',
+  },
+  {
+    slug: 'strangnas',
+    name: 'Strängnäs',
+    county: 'sodermanland',
+    neighborhoods: ['Strängnäs centrum', 'Mariefred', 'Åkers styckebruk', 'Stallarholmen', 'Läggesta', 'Härad'],
+    intro: 'Domkyrkostaden vid Mälaren, och Mariefred med Gripsholms slott. Vi flyttar och städar i hela Strängnäs kommun.',
+    housing: 'Villor och radhus i Strängnäs och Åkers styckebruk, äldre trähus i Mariefred och lägenheter i centrum.',
+    tip: 'I Mariefreds gamla kvarter får lastbilen ibland stå en bit bort. Kryssa i "Lång bärväg" om det gäller dig.',
+  },
+  {
+    slug: 'flen',
+    name: 'Flen',
+    county: 'sodermanland',
+    neighborhoods: ['Flen', 'Malmköping', 'Hälleforsnäs', 'Sparreholm', 'Mellösa', 'Bettna'],
+    intro: 'Flen, Malmköping, Hälleforsnäs och Sparreholm. Vi flyttar och städar i hela Flens kommun, både i orterna och på landsbygden.',
+    housing: 'Mest villor, gårdar och sommarhus vid sjöarna.',
+    tip: 'Sommarhus har ofta smala vägar fram. Ange om lastbilen kan köra ända fram till huset.',
+  },
+  {
+    slug: 'oxelosund',
+    name: 'Oxelösund',
+    county: 'sodermanland',
+    neighborhoods: ['Oxelösund centrum', 'Frösäng', 'Ramdalen'],
+    intro: 'Hamnstaden söder om Nyköping. Korta avstånd i staden gör att flytten ofta går fort.',
+    housing: 'Lägenheter i centrala Oxelösund och villor och radhus i områdena runt omkring.',
+    tip: 'Bor du i ett hus utan hiss? Ange våning för båda adresserna, så stämmer det fasta priset.',
+  },
+  {
+    slug: 'trosa',
+    name: 'Trosa',
+    county: 'sodermanland',
+    neighborhoods: ['Trosa stad', 'Vagnhärad', 'Västerljung', 'Trosa skärgård'],
+    intro: 'Trosa stad vid havet och Vagnhärad längs E4. Vi flyttar och städar i hela kommunen, även i skärgården där det går att köra fram.',
+    housing: 'Trähus och villor i Trosa, villor och radhus i Vagnhärad och sommarhus i skärgården.',
+    tip: 'Ska flytten till ett sommarhus? Berätta om det finns bilväg ända fram, så planerar vi rätt.',
+  },
+  {
+    slug: 'gnesta',
+    name: 'Gnesta',
+    county: 'sodermanland',
+    neighborhoods: ['Gnesta', 'Björnlunda', 'Stjärnhov', 'Laxne', 'Frustuna'],
+    intro: 'Gnesta med pendeltåg mot Stockholm, och byarna Björnlunda, Stjärnhov och Laxne.',
+    housing: 'Villor och gårdar, och lägenheter nära stationen i Gnesta.',
+    tip: 'Många hus här har källare och uthus. Ta med dem när du väljer storlek i kalkylatorn.',
+  },
+  {
+    slug: 'vingaker',
+    name: 'Vingåker',
+    county: 'sodermanland',
+    neighborhoods: ['Vingåker', 'Högsjö', 'Marmorbyn', 'Baggetorp'],
+    intro: 'Vingåker i västra Södermanland, med Högsjö, Marmorbyn och Baggetorp.',
+    housing: 'Mest villor och gårdar, och lägenheter i centrala Vingåker.',
+    tip: 'Flyttar du till eller från Katrineholm eller Örebro? Ange avståndet i kalkylatorn så räknas körtiden in.',
+  },
 ];
 
 export const areaBySlug = Object.fromEntries(areas.map((a) => [a.slug, a]));
 
+// De tre län vi kör i. Bilden visas överst på områdessidorna i länet.
+export const counties = [
+  { key: 'stockholm', name: 'Stockholms län', image: 'stockholm', imageAlt: 'Stockholm sett från vattnet' },
+  { key: 'uppsala', name: 'Uppsala län', image: 'uppsala', imageAlt: 'Höstfärger vid Fyrisån i Uppsala' },
+  { key: 'sodermanland', name: 'Södermanlands län', image: 'movers-couch', imageAlt: 'Två flyttare bär en soffa genom en ljus lägenhet' },
+];
+export const countyByKey = Object.fromEntries(counties.map((c) => [c.key, c]));
+export const areasByCounty = counties.map((c) => ({ ...c, areas: areas.filter((a) => a.county === c.key) }));
+
 // Postnummer i Stockholms län börjar på 10 till 19 (plus Norrtälje 76x). Vi kör i hela länet.
+// Postnummer i Stockholms län (10 till 19, Norrtälje 760 till 764), Uppsala län (740 till 759, Älvkarleby 814, Tierp 815)
+// och Södermanlands län (Nyköping 611, Oxelösund 613, Trosa 619 samt Eskilstuna, Katrineholm, Flen, Strängnäs med flera 630 till 649).
+// Gränsfall som 610 och 612 delas med Östergötland och får svaret "fråga oss".
 export function postcodeStatus(raw) {
   const digits = String(raw || '').replace(/\D/g, '');
   if (digits.length !== 5) return 'invalid';
   const two = Number(digits.slice(0, 2));
   const three = Number(digits.slice(0, 3));
-  if ((two >= 10 && two <= 19) || (three >= 760 && three <= 764)) return 'yes';
-  return 'ask';
+  const stockholm = (two >= 10 && two <= 19) || (three >= 760 && three <= 764);
+  const uppsala = (three >= 740 && three <= 759) || three === 814 || three === 815;
+  const sodermanland = [611, 613, 619].includes(three) || (three >= 630 && three <= 649);
+  return stockholm || uppsala || sodermanland ? 'yes' : 'ask';
 }

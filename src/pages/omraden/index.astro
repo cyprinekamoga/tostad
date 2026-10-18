@@ -4,31 +4,33 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import PostcodeCheck from '../../components/PostcodeCheck.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Icon from '../../components/Icon.astro';
-import { areas } from '../../data/areas.js';
+import { areasByCounty } from '../../data/areas.js';
 import { site } from '../../config/site.js';
 ---
 <Base
-  title="Områden: flytt och städning i hela Stockholms län"
-  description="Vi flyttar och städar i hela Stockholms län från vår bas i Upplands Väsby: Stockholm, Solna, Sundbyberg, Sollentuna, Täby, Järfälla, Sigtuna, Nacka och Lidingö."
+  title="Flytt och städning i Stockholms, Uppsala och Södermanlands län"
+  description="Vi flyttar och städar i alla kommuner i Stockholms, Uppsala och Södermanlands län, från Norrtälje till Nyköping. Välj din ort eller kolla ditt postnummer."
   breadcrumbs={[{ name: 'Områden', href: '/omraden' }]}
 >
   <section class="section section--tight">
     <div class="container split">
       <div>
         <Breadcrumbs items={[{ name: 'Områden', href: '/omraden' }]} />
-        <h1>Flytt och städning i hela Stockholms län</h1>
+        <h1>Flytt och städning i tre län</h1>
         <p class="lead">
-          Vi utgår från {site.address.city} och kör i hela länet. Välj ditt område för lokala tips, eller skriv ditt postnummer för att kolla direkt.
+          Vi utgår från {site.address.city} och kör i alla kommuner i Stockholms län, Uppsala län och Södermanlands län. Välj din ort för lokala tips, eller skriv ditt postnummer för att kolla direkt.
         </p>
       </div>
       <PostcodeCheck />
     </div>
   </section>
-  <section class="section section--white">
+  {areasByCounty.map((c, ci) => (
+  <section class:list={['section', ci % 2 === 0 ? 'section--white' : '']} id={c.key}>
     <div class="container">
+      <h2 class="county">{c.name}</h2>
       <ul class="areas">
         {
-          areas.map((a) => (
+          c.areas.map((a) => (
             <li>
               <a href={`/omraden/${a.slug}`} class="card">
                 <h2 class="h3">
@@ -45,10 +47,14 @@ import { site } from '../../config/site.js';
       </ul>
     </div>
   </section>
+  ))}
   <CtaBand />
 </Base>
 
 <style>
+  .county {
+    margin: 0 0 20px;
+  }
   .areas {
     list-style: none;
     padding: 0;

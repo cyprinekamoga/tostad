@@ -98,6 +98,14 @@ test('postnummerkontroll: Stockholms län ja, övriga frågar vi om', () => {
   assert.equal(postcodeStatus('194 37'), 'yes');
   assert.equal(postcodeStatus('11122'), 'yes');
   assert.equal(postcodeStatus('76150'), 'yes');
-  assert.equal(postcodeStatus('41101'), 'ask');
+  assert.equal(postcodeStatus('753 20'), 'yes'); // Uppsala
+  assert.equal(postcodeStatus('746 30'), 'yes'); // Bålsta
+  assert.equal(postcodeStatus('815 38'), 'yes'); // Tierp
+  assert.equal(postcodeStatus('632 20'), 'yes'); // Eskilstuna
+  assert.equal(postcodeStatus('611 30'), 'yes'); // Nyköping
+  assert.equal(postcodeStatus('645 30'), 'yes'); // Strängnäs
+  assert.equal(postcodeStatus('41101'), 'ask'); // Göteborg
+  assert.equal(postcodeStatus('614 30'), 'ask'); // Söderköping, Östergötland
+  assert.equal(postcodeStatus('722 11'), 'ask'); // Västerås
   assert.equal(postcodeStatus('123'), 'invalid');
 });
