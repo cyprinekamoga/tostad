@@ -24,36 +24,36 @@ export default function Overview({ me }) {
 
   return (
     <>
-      <div class="ad-head">
+      <div class="cp-head">
         <h2>Hej {me.profile.full_name.split(' ')[0]}!</h2>
       </div>
-      <div class="ad-stats">
-        <a class="ad-panel ad-stat" href="/admin/inkorg">
+      <div class="cp-stats">
+        <a class="cp-panel cp-stat" href="/admin/inkorg">
           <strong>{stats ? stats.fresh : '…'}</strong>
           <span>Nya ärenden i inkorgen</span>
         </a>
-        <a class="ad-panel ad-stat" href="/admin/kunder">
+        <a class="cp-panel cp-stat" href="/admin/kunder">
           <strong>{stats ? stats.customers : '…'}</strong>
           <span>Kunder</span>
         </a>
-        <a class="ad-panel ad-stat" href="/admin/personal">
+        <a class="cp-panel cp-stat" href="/admin/personal">
           <strong>{stats ? stats.staff : '…'}</strong>
           <span>Aktiv personal</span>
         </a>
       </div>
-      <div class="ad-panel">
-        <div class="ad-head">
+      <div class="cp-panel">
+        <div class="cp-head">
           <h2 style="font-size:1.15rem">Senaste nya ärenden</h2>
           <a href="/admin/inkorg">Visa inkorgen</a>
         </div>
         {latest.length === 0 ? (
-          <p class="ad-empty">Inga nya ärenden just nu.</p>
+          <p class="cp-empty">Inga nya ärenden just nu.</p>
         ) : (
-          <ul class="ad-list">
+          <ul class="cp-list">
             {latest.map((s) => (
               <li>
-                <a class="ad-row" href={`/admin/inkorg#${s.id}`} style="text-decoration:none">
-                  <span class="ad-row-top">
+                <a class="cp-row" href={`/admin/inkorg#${s.id}`} style="text-decoration:none">
+                  <span class="cp-row-top">
                     <strong>{s.name || 'Utan namn'}</strong>
                     <span class={`badge badge--${s.kind}`}>{KIND[s.kind]}</span>
                   </span>

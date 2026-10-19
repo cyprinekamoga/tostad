@@ -13,7 +13,7 @@ export function Modal({ open, onClose, children, label }) {
   return (
     <dialog
       ref={ref}
-      class="ad-modal"
+      class="cp-modal"
       aria-label={label}
       onClose={onClose}
       onClick={(e) => {

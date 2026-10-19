@@ -134,31 +134,31 @@ input[type='search'] {
 }
 
 /* Administrationens ram */
-.ad-shell {
+.cp-shell {
   display: grid;
   gap: 20px;
 }
 @media (min-width: 960px) {
-  .ad-shell {
+  .cp-shell {
     grid-template-columns: 220px minmax(0, 1fr);
     align-items: start;
   }
 }
-.ad-nav {
+.cp-nav {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   padding-bottom: 4px;
 }
 @media (min-width: 960px) {
-  .ad-nav {
+  .cp-nav {
     flex-direction: column;
     position: sticky;
     top: 16px;
   }
 }
-.ad-nav a,
-.ad-nav button {
+.cp-nav a,
+.cp-nav button {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -175,23 +175,23 @@ input[type='search'] {
   cursor: pointer;
   text-align: left;
 }
-.ad-nav a:hover,
-.ad-nav button:hover {
+.cp-nav a:hover,
+.cp-nav button:hover {
   background: var(--green-50);
   color: var(--green-900);
 }
-.ad-nav a[aria-current='page'] {
+.cp-nav a[aria-current='page'] {
   background: var(--green-900);
   color: #fff;
 }
-.ad-nav .ad-me {
+.cp-nav .cp-me {
   font-size: 0.85rem;
   color: var(--ink-3);
   padding: 14px 14px 4px;
   font-weight: 500;
 }
 @media (max-width: 959px) {
-  .ad-nav .ad-me {
+  .cp-nav .cp-me {
     display: none;
   }
 }
@@ -206,7 +206,7 @@ input[type='search'] {
   text-align: center;
 }
 
-.ad-head {
+.cp-head {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -214,43 +214,43 @@ input[type='search'] {
   gap: 12px;
   margin-bottom: 16px;
 }
-.ad-head h2 {
+.cp-head h2 {
   margin: 0;
   font-size: 1.5rem;
 }
-.ad-panel {
+.cp-panel {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 18px;
 }
-.ad-stats {
+.cp-stats {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   margin-bottom: 20px;
 }
-.ad-stat {
+.cp-stat {
   display: grid;
   gap: 4px;
   text-decoration: none;
   color: inherit;
 }
-.ad-stat strong {
+.cp-stat strong {
   font-size: 2rem;
   color: var(--green-900);
   line-height: 1.1;
 }
-.ad-stat span {
+.cp-stat span {
   color: var(--ink-3);
 }
 
-.ad-tabs {
+.cp-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
-.ad-tabs button {
+.cp-tabs button {
   padding: 7px 14px;
   border-radius: 999px;
   border: 1.5px solid var(--line);
@@ -261,20 +261,20 @@ input[type='search'] {
   color: var(--ink-2);
   cursor: pointer;
 }
-.ad-tabs button[aria-pressed='true'] {
+.cp-tabs button[aria-pressed='true'] {
   background: var(--green-900);
   border-color: var(--green-900);
   color: #fff;
 }
 
-.ad-list {
+.cp-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: 8px;
 }
-.ad-row {
+.cp-row {
   display: grid;
   gap: 4px;
   width: 100%;
@@ -287,22 +287,22 @@ input[type='search'] {
   color: inherit;
   cursor: pointer;
 }
-.ad-row:hover,
-.ad-row[aria-current='true'] {
+.cp-row:hover,
+.cp-row[aria-current='true'] {
   border-color: var(--green-600);
   box-shadow: 0 0 0 3px rgb(34 197 94 / 0.15);
 }
-.ad-row-top {
+.cp-row-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
 }
-.ad-row small {
+.cp-row small {
   color: var(--ink-3);
 }
-.ad-row p {
+.cp-row p {
   margin: 0;
   color: var(--ink-2);
   font-size: 0.92rem;
@@ -345,49 +345,49 @@ input[type='search'] {
   display: inline-block;
 }
 
-.ad-split {
+.cp-split {
   display: grid;
   gap: 16px;
 }
 @media (min-width: 1100px) {
-  .ad-split {
+  .cp-split {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     align-items: start;
   }
-  .ad-split .ad-detail {
+  .cp-split .cp-detail {
     position: sticky;
     top: 16px;
   }
 }
-.ad-detail {
+.cp-detail {
   display: grid;
   gap: 14px;
 }
-.ad-detail h3 {
+.cp-detail h3 {
   margin: 0;
   font-size: 1.25rem;
 }
-.ad-dl {
+.cp-dl {
   display: grid;
   grid-template-columns: minmax(110px, auto) minmax(0, 1fr);
   gap: 6px 14px;
   margin: 0;
 }
-.ad-dl dt {
+.cp-dl dt {
   color: var(--ink-3);
   font-size: 0.9rem;
 }
-.ad-dl dd {
+.cp-dl dd {
   margin: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.ad-files {
+.cp-files {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
-.ad-files a {
+.cp-files a {
   display: block;
   width: 120px;
   border: 1px solid var(--line);
@@ -398,13 +398,13 @@ input[type='search'] {
   color: var(--ink-2);
   background: #fff;
 }
-.ad-files img {
+.cp-files img {
   width: 120px;
   height: 90px;
   object-fit: cover;
   display: block;
 }
-.ad-actions {
+.cp-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -419,57 +419,57 @@ input[type='search'] {
   --bg: #fdecea;
   --fg: var(--danger);
 }
-.ad-empty {
+.cp-empty {
   padding: 28px;
   text-align: center;
   color: var(--ink-3);
 }
 
-.ad-table {
+.cp-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
 }
-.ad-table th,
-.ad-table td {
+.cp-table th,
+.cp-table td {
   text-align: left;
   padding: 10px 8px;
   border-bottom: 1px solid var(--line);
   vertical-align: middle;
 }
-.ad-table th {
+.cp-table th {
   color: var(--ink-3);
   font-weight: 600;
   font-size: 0.85rem;
 }
-.ad-table td .ad-actions {
+.cp-table td .cp-actions {
   justify-content: flex-end;
 }
-.ad-scroll {
+.cp-scroll {
   overflow-x: auto;
 }
 @media (max-width: 720px) {
-  .ad-table thead {
+  .cp-table thead {
     display: none;
   }
-  .ad-table tr {
+  .cp-table tr {
     display: grid;
     gap: 4px;
     padding: 12px 0;
     border-bottom: 1px solid var(--line);
   }
-  .ad-table td {
+  .cp-table td {
     border: 0;
     padding: 0;
   }
-  .ad-table td .ad-actions {
+  .cp-table td .cp-actions {
     justify-content: flex-start;
     margin-top: 6px;
   }
 }
 
 /* Dialog */
-.ad-modal {
+.cp-modal {
   border: 0;
   border-radius: var(--radius-lg);
   padding: 0;
@@ -477,19 +477,19 @@ input[type='search'] {
   max-height: calc(100dvh - 24px);
   box-shadow: var(--shadow-lg);
 }
-.ad-modal::backdrop {
+.cp-modal::backdrop {
   background: rgb(6 42 25 / 0.45);
 }
-.ad-modal form,
-.ad-modal .ad-modal-body {
+.cp-modal form,
+.cp-modal .cp-modal-body {
   display: grid;
   gap: 14px;
   padding: 22px;
 }
-.ad-modal h3 {
+.cp-modal h3 {
   margin: 0;
 }
-.ad-link-box {
+.cp-link-box {
   display: grid;
   gap: 8px;
   padding: 12px;

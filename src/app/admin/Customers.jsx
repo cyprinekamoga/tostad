@@ -30,19 +30,19 @@ export default function Customers() {
 
   return (
     <>
-      <div class="ad-head">
+      <div class="cp-head">
         <h2>Kunder</h2>
         <button class="btn btn--sm" type="button" onClick={() => setEditing({ ...EMPTY })}>Ny kund</button>
       </div>
       <ErrorMsg error={error} />
-      <div class="ad-panel">
+      <div class="cp-panel">
         <label class="visually-hidden" for="cust-search">Sök kund</label>
         <input id="cust-search" type="search" placeholder="Sök på namn, telefon, mejl eller ort" value={search} onInput={(e) => setSearch(e.currentTarget.value)} />
         {rows === null && <p class="muted">Laddar …</p>}
-        {rows?.length === 0 && <p class="ad-empty">Inga kunder ännu. Skapa en här eller från ett ärende i inkorgen.</p>}
+        {rows?.length === 0 && <p class="cp-empty">Inga kunder ännu. Skapa en här eller från ett ärende i inkorgen.</p>}
         {shown.length > 0 && (
-          <div class="ad-scroll">
-            <table class="ad-table">
+          <div class="cp-scroll">
+            <table class="cp-table">
               <thead>
                 <tr>
                   <th>Namn</th>
@@ -62,7 +62,7 @@ export default function Customers() {
                     <td><Email value={c.email} /></td>
                     <td>{c.city}</td>
                     <td>
-                      <div class="ad-actions">
+                      <div class="cp-actions">
                         <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(c)}>Öppna</button>
                       </div>
                     </td>
@@ -72,7 +72,7 @@ export default function Customers() {
             </table>
           </div>
         )}
-        {rows?.length > 0 && shown.length === 0 && <p class="ad-empty">Ingen kund matchar sökningen.</p>}
+        {rows?.length > 0 && shown.length === 0 && <p class="cp-empty">Ingen kund matchar sökningen.</p>}
       </div>
       <Modal open={!!editing} label="Kund" onClose={() => { setEditing(null); window.history.replaceState(null, '', window.location.pathname); }}>
         {editing && <CustomerForm customer={editing} onDone={() => { setEditing(null); window.history.replaceState(null, '', window.location.pathname); load(); }} />}
@@ -115,7 +115,7 @@ function CustomerForm({ customer, onDone }) {
     <form onSubmit={save}>
       <h3>{isNew ? 'Ny kund' : customer.name}</h3>
       {!isNew && <p class="muted">Skapad {formatDateTime(customer.created_at)}</p>}
-      <div class="ad-tabs" role="group" aria-label="Kundtyp">
+      <div class="cp-tabs" role="group" aria-label="Kundtyp">
         <button type="button" aria-pressed={form.kind === 'private'} onClick={() => setForm({ ...form, kind: 'private' })}>Privatperson</button>
         <button type="button" aria-pressed={form.kind === 'company'} onClick={() => setForm({ ...form, kind: 'company' })}>Företag</button>
       </div>
@@ -158,7 +158,7 @@ function CustomerForm({ customer, onDone }) {
         <textarea id="c-notes" maxLength={5000} value={form.notes} onInput={set('notes')} />
       </div>
       <ErrorMsg error={error} />
-      <div class="ad-actions">
+      <div class="cp-actions">
         <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara'}</button>
         <button class="btn btn--ghost" type="button" onClick={onDone}>Avbryt</button>
         {!isNew && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Ta bort</button>}

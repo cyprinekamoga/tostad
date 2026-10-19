@@ -60,9 +60,9 @@ export default function Inbox({ onInboxChange }) {
 
   return (
     <>
-      <div class="ad-head">
+      <div class="cp-head">
         <h2>Inkorg</h2>
-        <div class="ad-tabs" role="group" aria-label="Filter">
+        <div class="cp-tabs" role="group" aria-label="Filter">
           {FILTERS.map(([key, label]) => (
             <button type="button" aria-pressed={filter === key} onClick={() => setFilter(key)}>
               {label}
@@ -71,16 +71,16 @@ export default function Inbox({ onInboxChange }) {
         </div>
       </div>
       <ErrorMsg error={error} />
-      <div class="ad-split">
+      <div class="cp-split">
         <div>
           {items === null && <p class="muted">Laddar …</p>}
-          {items?.length === 0 && <p class="ad-panel ad-empty">Inget här just nu.</p>}
+          {items?.length === 0 && <p class="cp-panel cp-empty">Inget här just nu.</p>}
           {items?.length > 0 && (
-            <ul class="ad-list">
+            <ul class="cp-list">
               {items.map((s) => (
                 <li>
-                  <button type="button" class="ad-row" aria-current={selected?.id === s.id ? 'true' : undefined} onClick={() => open(s)}>
-                    <span class="ad-row-top">
+                  <button type="button" class="cp-row" aria-current={selected?.id === s.id ? 'true' : undefined} onClick={() => open(s)}>
+                    <span class="cp-row-top">
                       <strong>{s.name || 'Utan namn'}</strong>
                       <span>
                         {s.status === 'ny' && <span class="badge badge--ny">Ny</span>}{' '}
@@ -98,7 +98,7 @@ export default function Inbox({ onInboxChange }) {
         {selected ? (
           <Detail key={selected.id} item={selected} names={names} onChanged={changed} onDeleted={() => { setSelected(null); window.history.replaceState(null, '', window.location.pathname); changed(); }} />
         ) : (
-          items?.length > 0 && <p class="ad-panel ad-empty">Välj ett ärende i listan.</p>
+          items?.length > 0 && <p class="cp-panel cp-empty">Välj ett ärende i listan.</p>
         )}
       </div>
     </>
@@ -198,8 +198,8 @@ function Detail({ item, names, onChanged, onDeleted }) {
   };
 
   return (
-    <article class="ad-panel ad-detail" aria-label="Ärende">
-      <div class="ad-row-top">
+    <article class="cp-panel cp-detail" aria-label="Ärende">
+      <div class="cp-row-top">
         <h3>{item.name || 'Utan namn'}</h3>
         <span>
           <span class={`badge badge--${item.kind}`}>{KIND[item.kind]}</span>{' '}
@@ -213,7 +213,7 @@ function Detail({ item, names, onChanged, onDeleted }) {
       <p>
         <Phone value={item.phone} /> {item.phone && item.email && ' · '} <Email value={item.email} />
       </p>
-      <dl class="ad-dl">
+      <dl class="cp-dl">
         {FIELDS.filter(([key]) => data[key] && !['namn', 'telefon', 'epost', 'kontakt'].includes(key)).map(([key, label]) => (
           <>
             <dt>{label}</dt>
@@ -222,7 +222,7 @@ function Detail({ item, names, onChanged, onDeleted }) {
         ))}
       </dl>
       {item.files?.length > 0 && (
-        <div class="ad-files">
+        <div class="cp-files">
           {item.files.map((path) => {
             const url = urls[path];
             const isImage = /\.(jpe?g|png|webp)$/i.test(path);
@@ -247,7 +247,7 @@ function Detail({ item, names, onChanged, onDeleted }) {
       </div>
       <ErrorMsg error={error} />
       {info && <p class="msg msg--ok">{info}</p>}
-      <div class="ad-actions">
+      <div class="cp-actions">
         {item.status !== 'hanterad' && (
           <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('hanterad')}>Markera som hanterad</button>
         )}

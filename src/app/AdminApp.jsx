@@ -43,15 +43,15 @@ export default function AdminApp({ page }) {
   const { Page } = PAGES[page] ?? PAGES.oversikt;
 
   return (
-    <div class="ad-shell">
-      <nav class="ad-nav" aria-label="Administration">
+    <div class="cp-shell">
+      <nav class="cp-nav" aria-label="Administration">
         {Object.entries(PAGES).map(([key, p]) => (
           <a href={p.href} aria-current={key === page ? 'page' : undefined}>
             {p.label}
             {key === 'inkorg' && newCount > 0 && <span class="count">{newCount}</span>}
           </a>
         ))}
-        <span class="ad-me">{me.profile.full_name}</span>
+        <span class="cp-me">{me.profile.full_name}</span>
         <button type="button" onClick={signOut}>Logga ut</button>
       </nav>
       <section style="min-width:0">

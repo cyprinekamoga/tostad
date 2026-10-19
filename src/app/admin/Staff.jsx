@@ -45,16 +45,16 @@ export default function Staff({ me }) {
 
   return (
     <>
-      <div class="ad-head">
+      <div class="cp-head">
         <h2>Personal</h2>
         <button class="btn btn--sm" type="button" onClick={() => setAdding(true)}>Lägg till person</button>
       </div>
       <ErrorMsg error={error} />
-      <div class="ad-panel">
+      <div class="cp-panel">
         {rows === null && <p class="muted">Laddar …</p>}
         {rows?.length > 0 && (
-          <div class="ad-scroll">
-            <table class="ad-table">
+          <div class="cp-scroll">
+            <table class="cp-table">
               <thead>
                 <tr>
                   <th>Namn</th>
@@ -76,7 +76,7 @@ export default function Staff({ me }) {
                     <td><Email value={p.email} /></td>
                     <td>
                       {canManage(p) && (
-                        <div class="ad-actions">
+                        <div class="cp-actions">
                           {p.active && (
                             <button class="btn btn--ghost btn--sm" type="button" disabled={busyId === p.id} onClick={() => act(p, { action: 'link' }, (r) => setLink({ person: p, url: r.link }))}>
                               Inloggningslänk
@@ -193,7 +193,7 @@ function AddForm({ canAddAdmin, onCancel, onCreated }) {
         </div>
       </div>
       <ErrorMsg error={error} />
-      <div class="ad-actions">
+      <div class="cp-actions">
         <button class="btn" type="submit" disabled={busy}>{busy ? 'Skapar …' : 'Skapa och få länk'}</button>
         <button class="btn btn--ghost" type="button" onClick={onCancel}>Avbryt</button>
       </div>
@@ -248,7 +248,7 @@ function EditForm({ person, canDelete, onDone }) {
       </div>
       <p class="muted">Mejladressen används för inloggning och kan inte ändras här.</p>
       <ErrorMsg error={error} />
-      <div class="ad-actions">
+      <div class="cp-actions">
         <button class="btn" type="submit" disabled={busy}>Spara</button>
         <button class="btn btn--ghost" type="button" onClick={onDone}>Avbryt</button>
         {canDelete && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Ta bort kontot</button>}
@@ -264,11 +264,11 @@ function LinkBox({ person, url, isNew, onClose }) {
     : `Hej ${person.full_name.split(' ')[0]}! Här är en ny inloggningslänk till TO Städ & Flytt: ${url}`;
   const phone = (person.phone ?? '').replace(/[^\d+]/g, '');
   return (
-    <div class="ad-modal-body">
+    <div class="cp-modal-body">
       <h3>{isNew ? `${person.full_name} är tillagd` : 'Ny inloggningslänk'}</h3>
       <p>Skicka länken till {person.full_name}. Den gäller i en timme och kan bara användas en gång.</p>
-      <div class="ad-link-box">{url}</div>
-      <div class="ad-actions">
+      <div class="cp-link-box">{url}</div>
+      <div class="cp-actions">
         <button class="btn btn--sm" type="button" onClick={async () => setCopied(await copyText(url))}>{copied ? 'Kopierad' : 'Kopiera länken'}</button>
         {phone && <a class="btn btn--ghost btn--sm" href={`sms:${phone}?body=${encodeURIComponent(text)}`}>Skicka som SMS</a>}
         {person.email && (
