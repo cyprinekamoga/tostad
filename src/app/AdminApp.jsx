@@ -1,5 +1,5 @@
 // Ramen för administrationen: kontrollerar inloggning och behörighet, visar menyn och sidan.
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState, useErrorBoundary } from 'preact/hooks';
 import { supabase, loadMe, isAdminRole, go } from '../lib/supabase.js';
 import Overview from './admin/Overview.jsx';
 import Inbox from './admin/Inbox.jsx';
@@ -54,9 +54,18 @@ export default function AdminApp({ page }) {
         <span class="ad-me">{me.profile.full_name}</span>
         <button type="button" onClick={signOut}>Logga ut</button>
       </nav>
-      <section>
-        <Page me={me} onInboxChange={refreshCount} />
+      <section style="min-width:0">
+        <PageBoundary>
+          <Page me={me} onInboxChange={refreshCount} />
+        </PageBoundary>
       </section>
     </div>
   );
+}
+
+// Visar felet på skärmen i stället för en tom sida om en sida kraschar.
+function PageBoundary({ children }) {
+  const [error] = useErrorBoundary((e) => console.error(e));
+  if (error) return <p class="msg msg--error" role="alert">Sidan kunde inte visas: {String(error.message || error)}. Ladda om sidan.</p>;
+  return children;
 }
