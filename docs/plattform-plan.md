@@ -24,7 +24,7 @@ Status: approved. **Phase 1 is live** (see section 10). Phases 2 to 6 are next.
 |---|---|---|
 | Public website | Same Astro site on Netlify | Marketing pages stay static and fast. |
 | App pages | `/admin`, `/app` (staff), `/kund` (customers), `/jobb` (careers) on the same domain | One site, one login system, no app store. |
-| Database, login, files | Supabase, new project in **Stockholm (eu-north-1)** | Postgres with row level security, built in login with two step verification, private file storage, daily backups on Pro. Data stays in Sweden. |
+| Database, login, files | Supabase, new project in **Stockholm (eu-north-1)** | Postgres with row level security, built in login, private file storage, daily backups on Pro. Data stays in Sweden. |
 | Server logic | Netlify Functions (Astro server routes) | Sending SMS and email, making PDFs, invoice numbering. |
 | Timed jobs | Netlify Scheduled Functions | Evening SMS, payment reminders, review requests, deleting old applications. |
 | SMS | 46elks (Swedish SMS API) | Sender name "TOStadFlytt", pay per SMS, no monthly fee. |
@@ -36,7 +36,7 @@ Status: approved. **Phase 1 is live** (see section 10). Phases 2 to 6 are next.
 
 | Role | How they log in | Can see and do |
 |---|---|---|
-| Owner and admins (max 3) | Email and password plus a code from an authenticator app | Everything: planner, customers, quotes, invoices, applications, settings. Only admins see personal identity numbers and CVs. |
+| Owner and admins (max 3) | Email and password | Everything: planner, customers, quotes, invoices, applications, settings. Only admins see personal identity numbers and CVs. |
 | Employees | Login link or code by SMS or email, stays logged in on the phone | Only their own jobs, shifts, hours and requests. Customer address and phone only for jobs they are on, and only around the job date. |
 | Customers | Login link by email | Only their own bookings, quotes, invoices and photo reports. |
 | Applicants | No login | Send an application. |
@@ -103,7 +103,7 @@ Each phase goes live and is tested before the next one starts.
 
 | Phase | What you get |
 |---|---|
-| 1. Foundation | Supabase project in Stockholm, login for admins (with two step) and staff, staff and customer registers, inbox where website bookings, contact messages and damage reports arrive. |
+| 1. Foundation | Supabase project in Stockholm, login for admins and staff, staff and customer registers, inbox where website bookings, contact messages and damage reports arrive. |
 | 2. Planner | Calendar (week, day, month), drag and drop, recurring jobs, conflict and rest rule warnings, map and route of the day. |
 | 3. Employee app | My jobs, checklist, photos, done button, clock in and out, hours, availability, leave, swaps, calendar sync. |
 | 4. Quotes and invoices | Quotes accepted online, invoices from jobs, numbering, OCR, RUT, PDF, email, credit notes, reminders, money overview, export for the accountant, hours report for payroll. |
@@ -136,12 +136,12 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 ## 10. Phase 1: what is live
 
 - Supabase project `tostadflytt` (ref `jrvmqilzegerihdjswzc`) in Stockholm. Schema and rules in `supabase/migrations/`, server functions in `supabase/functions/`.
-- `/logga-in`: password for everyone; admins also need a code from an authenticator app.
+- `/logga-in`: email and password for everyone. Two step verification was removed at your request.
 - `/admin`: overview, inbox (bookings, messages and damage reports from the website, with photos), customers, staff.
 - `/app`: staff start page (schedule and jobs come in phase 3).
 - Staff are added under Personal. The person gets a one time link (valid for 1 hour) to choose a password. Only the owner can add admins (max 3) and delete accounts.
 - Website forms go to the inbox first and then to Netlify Forms as a backup copy.
-- Tested end to end: activation, two step login, every admin page, staff invites, employee access limits, form submissions with photos.
+- Tested end to end: activation, login, every admin page, staff invites, employee access limits, form submissions with photos.
 
 **Still manual until later phases**
 - Deleting enquiries that never became jobs after 12 months (privacy policy promise). Done by hand in the inbox until the scheduled cleanup is built.
