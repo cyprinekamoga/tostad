@@ -26,7 +26,7 @@ export async function callFunction(name, body) {
 
 export const isAdminRole = (role) => role === 'owner' || role === 'admin';
 
-/** Inloggad person, profil och säkerhetsnivå (aal1 = lösenord, aal2 = med tvåstegsverifiering). */
+/** Inloggad person och profil. nextAal är aal2 bara om ett konto har en gammal kod från en autentiseringsapp kvar. */
 export async function loadMe() {
   const sb = supabase();
   const { data } = await sb.auth.getSession();

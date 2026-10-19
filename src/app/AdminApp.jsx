@@ -28,7 +28,6 @@ export default function AdminApp({ page }) {
       const back = `/logga-in?next=${encodeURIComponent(window.location.pathname)}`;
       if (!current || !current.profile?.active) return go(back);
       if (!isAdminRole(current.profile.role)) return go('/app');
-      if (current.aal !== 'aal2') return go(back);
       setMe(current);
       refreshCount();
     })();

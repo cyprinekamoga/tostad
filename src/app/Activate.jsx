@@ -1,7 +1,7 @@
 // Aktiveringslänken från en administratör: bekräftar länken och låter personen välja lösenord.
 // Samma sida används när någon behöver ett nytt lösenord (typ=recovery).
 import { useEffect, useState } from 'preact/hooks';
-import { supabase, go } from '../lib/supabase.js';
+import { supabase, go, callFunction } from '../lib/supabase.js';
 
 const MIN_LENGTH = 10;
 
@@ -12,20 +12,14 @@ export default function Activate() {
   const [busy, setBusy] = useState(false);
   const [pw1, setPw1] = useState('');
   const [pw2, setPw2] = useState('');
-  const [code, setCode] = useState('');
-  const [factorId, setFactorId] = useState('');
   const [isNew, setIsNew] = useState(true);
 
-  // Har kontot redan tvåstegsverifiering måste koden anges innan lösenordet kan bytas.
+  // Tvåstegsverifiering används inte. Koder som registrerades tidigare tas bort innan lösenordet byts.
   async function afterSession() {
     const { data: aal } = await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
-      const { data } = await sb.auth.mfa.listFactors();
-      const verified = data?.totp?.find((f) => f.status === 'verified');
-      if (verified) {
-        setFactorId(verified.id);
-        return setStep('mfa');
-      }
+    if (aal?.nextLevel === 'aal2') {
+      await callFunction('staff-admin', { action: 'remove_mfa' }).catch(() => {});
+      await sb.auth.refreshSession();
     }
     setStep('password');
   }
@@ -48,16 +42,6 @@ export default function Activate() {
     })();
   }, []);
 
-  async function verifyCode(e) {
-    e.preventDefault();
-    setBusy(true);
-    setError('');
-    const { error: verifyError } = await sb.auth.mfa.challengeAndVerify({ factorId, code: code.replace(/\s/g, '') });
-    setBusy(false);
-    if (verifyError) return setError('Fel kod. Försök igen.');
-    setStep('password');
-  }
-
   async function savePassword(e) {
     e.preventDefault();
     setError('');
@@ -71,7 +55,7 @@ export default function Activate() {
       if (/same|different/i.test(updateError.message)) return setError('Välj ett annat lösenord än det gamla.');
       return setError('Kunde inte spara lösenordet. Försök igen.');
     }
-    // Inloggningssidan tar det sista steget: personal till appen, administratörer till tvåstegsverifiering.
+    // Inloggningssidan skickar personal till appen och administratörer till administrationen.
     go('/logga-in');
   }
 
@@ -89,17 +73,6 @@ export default function Activate() {
   return (
     <div class="auth-card">
       {error && <p class="msg msg--error" role="alert">{error}</p>}
-      {step === 'mfa' && (
-        <form class="form-grid" onSubmit={verifyCode}>
-          <h2>Bekräfta med kod</h2>
-          <p>Skriv in koden från din autentiseringsapp för att kunna byta lösenord.</p>
-          <div class="field">
-            <label for="ac-code">Kod</label>
-            <input id="ac-code" class="code-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength={7} required value={code} onInput={(e) => setCode(e.currentTarget.value)} />
-          </div>
-          <button class="btn btn--block" type="submit" disabled={busy}>Fortsätt</button>
-        </form>
-      )}
       {step === 'password' && (
         <form class="form-grid" onSubmit={savePassword}>
           <h2>{isNew ? 'Välkommen! Välj ett lösenord' : 'Välj ett nytt lösenord'}</h2>

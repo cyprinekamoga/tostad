@@ -1,5 +1,5 @@
 // Personal: bjud in, skapa ny inloggningslänk, ändra roll, stäng av eller aktivera och ta bort.
-// Bara inloggade administratörer med tvåstegsverifiering (aal2) får anropa funktionen.
+// Bara inloggade administratörer får anropa funktionen.
 // Länkarna skickas inte här; administratören kopierar dem och skickar via SMS eller mejl.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -36,15 +36,6 @@ function reply(req: Request, status: number, body: Record<string, unknown>) {
 async function sha256(text: string) {
   const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-function jwtClaims(token: string) {
-  try {
-    const part = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(part.padEnd(part.length + ((4 - (part.length % 4)) % 4), '=')));
-  } catch {
-    return {};
-  }
 }
 
 const clean = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -115,12 +106,17 @@ Deno.serve(async (req) => {
     return createStaff(req, { full_name, email, phone: '', color: '#14532d', role: 'owner' });
   }
 
-  // Alla andra åtgärder kräver inloggad administratör med tvåstegsverifiering.
+  // Alla andra åtgärder kräver inloggad administratör.
   const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
   if (!token) return reply(req, 401, { error: 'Logga in' });
   const { data: auth, error: authError } = await db.auth.getUser(token);
   if (authError || !auth.user) return reply(req, 401, { error: 'Logga in igen' });
-  if (jwtClaims(token).aal !== 'aal2') return reply(req, 403, { error: 'Tvåstegsverifiering krävs' });
+  // Tvåstegsverifiering används inte längre. Gamla registrerade koder tas bort vid inloggning.
+  if (action === 'remove_mfa') {
+    const { data: factors } = await db.auth.admin.mfa.listFactors({ userId: auth.user.id });
+    for (const f of factors?.factors ?? []) await db.auth.admin.mfa.deleteFactor({ id: f.id, userId: auth.user.id });
+    return reply(req, 200, { ok: true });
+  }
   const { data: me } = await db.from('profiles').select('id, role, active').eq('id', auth.user.id).maybeSingle();
   if (!me || !me.active || !['owner', 'admin'].includes(me.role)) return reply(req, 403, { error: 'Bara administratörer' });
 

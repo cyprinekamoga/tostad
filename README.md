@@ -63,7 +63,7 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 
 ## Administration och personal
 
-- **Logga in:** `https://tostadflytt.se/logga-in`. Administratörer använder lösenord och en kod från en autentiseringsapp. Personal kommer till `/app`.
+- **Logga in:** `https://tostadflytt.se/logga-in`. Alla loggar in med e-post och lösenord. Administratörer kommer till `/admin` och personal till `/app`.
 - **Lägg till personal:** Administration, Personal, Lägg till person. Skicka länken via SMS eller mejl. Den gäller i en timme.
 - **Inkorgen** (`/admin/inkorg`) samlar bokningar, kontaktmeddelanden och skadeanmälningar från webbplatsen. Netlify Forms får en reservkopia.
 - Databasen ligger i Supabase (Stockholm). Tabeller och behörigheter finns i `supabase/migrations/`, serverfunktionerna i `supabase/functions/`.
