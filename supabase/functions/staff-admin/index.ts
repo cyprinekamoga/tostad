@@ -89,15 +89,26 @@ Deno.serve(async (req) => {
   }
   const action = String(body.action ?? '');
 
-  // Engångsflöde för ägarkontot. Fungerar bara så länge ingen riktig ägare finns.
+  // Engångsflöde för ägarkontot: skapar ägaren när ingen finns, eller ger ägaren en ny länk
+  // så länge ägaren aldrig har loggat in (om den första länken hann gå ut).
   // Testkonton på den reserverade domänen test.invalid tas bort när den riktiga ägaren skapas.
   if (action === 'bootstrap') {
     const token = clean(body.token, 200);
     if (!token || (await sha256(token)) !== BOOTSTRAP_HASH) return reply(req, 403, { error: 'Nekad' });
     const { data: owners } = await db.from('profiles').select('id, email').eq('role', 'owner');
-    if ((owners ?? []).some((o) => !o.email.endsWith('@test.invalid'))) return reply(req, 403, { error: 'Ägaren finns redan' });
     const email = clean(body.email, 254).toLowerCase();
     const full_name = clean(body.full_name, 120);
+    const realOwner = (owners ?? []).find((o) => !o.email.endsWith('@test.invalid'));
+    if (realOwner) {
+      // Ny länk till ägaren går bara att få innan ägaren har loggat in första gången.
+      const { data: user } = await db.auth.admin.getUserById(realOwner.id);
+      if (realOwner.email !== email || user?.user?.last_sign_in_at) return reply(req, 403, { error: 'Ägaren finns redan' });
+      let result = await db.auth.admin.generateLink({ type: 'invite', email });
+      if (result.error) result = await db.auth.admin.generateLink({ type: 'recovery', email });
+      if (result.error) return reply(req, 400, { error: 'Kunde inte skapa länken' });
+      const used = result.data.properties.verification_type === 'invite' ? 'invite' : 'recovery';
+      return reply(req, 200, { ok: true, user_id: realOwner.id, link: activationLink(req, result.data.properties.hashed_token, used) });
+    }
     if (!isEmail(email) || !full_name) return reply(req, 400, { error: 'Namn och e-post krävs' });
     const { data: testAccounts } = await db.from('profiles').select('id').like('email', '%@test.invalid');
     for (const t of testAccounts ?? []) await db.auth.admin.deleteUser(t.id);
