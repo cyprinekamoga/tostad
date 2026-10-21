@@ -4,6 +4,20 @@ import { toInstant, zoned, addDays, seriesDates } from '../../lib/planner.js';
 import { SERVICES } from './submission.js';
 
 export const SERVICE_LABELS = { ...SERVICES, annat: 'Annat' };
+// En egen färg per tjänst så att jobben syns tydligt isär i planeringen.
+export const SERVICE_COLORS = {
+  hemstadning: '#16a34a',
+  storstadning: '#ea580c',
+  flyttstadning: '#0d9488',
+  flytt: '#2563eb',
+  paket: '#7c3aed',
+  fonsterputs: '#0891b2',
+  kontor: '#475569',
+  pianoflytt: '#db2777',
+  annat: '#a16207',
+};
+export const serviceColor = (service) => SERVICE_COLORS[service] ?? SERVICE_COLORS.annat;
+
 export const JOB_STATUS = { planerad: 'Planerad', klar: 'Klar', avbokad: 'Avbokad' };
 
 // Ungefärlig längd i timmar när ett nytt jobb skapas. Går att ändra i formuläret.

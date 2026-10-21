@@ -5,7 +5,8 @@ import { Modal, ErrorMsg, Phone, Email, copyText } from '../ui.jsx';
 
 const ROLE = { owner: 'Ägare', admin: 'Administratör', employee: 'Personal' };
 const ORDER = { owner: 0, admin: 1, employee: 2 };
-const COLORS = ['#1f8a4c', '#2563eb', '#d97706', '#9333ea', '#dc2626', '#0d9488', '#4b5563'];
+// Tydligt olika färger för personalen. En ny person får den första som ingen annan har.
+const COLORS = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#ea580c', '#0891b2', '#db2777', '#ca8a04', '#4b5563', '#0d9488'];
 
 export default function Staff({ me }) {
   const sb = supabase();
@@ -123,6 +124,7 @@ export default function Staff({ me }) {
 
       <Modal open={adding} label="Lägg till person" onClose={() => setAdding(false)}>
         <AddForm
+          usedColors={(rows ?? []).filter((p) => p.active).map((p) => p.color.toLowerCase())}
           canAddAdmin={isOwner && admins < 3}
           onCancel={() => setAdding(false)}
           onCreated={(person, url) => {
@@ -142,8 +144,8 @@ export default function Staff({ me }) {
   );
 }
 
-function AddForm({ canAddAdmin, onCancel, onCreated }) {
-  const [form, setForm] = useState({ full_name: '', email: '', phone: '', role: 'employee', color: COLORS[0] });
+function AddForm({ usedColors, canAddAdmin, onCancel, onCreated }) {
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '', role: 'employee', color: COLORS.find((c) => !usedColors.includes(c)) ?? COLORS[0] });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (key) => (e) => setForm({ ...form, [key]: e.currentTarget.value });

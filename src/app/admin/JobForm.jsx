@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { ErrorMsg } from '../ui.jsx';
 import { addDays, toInstant, overlaps } from '../../lib/planner.js';
-import { SERVICE_LABELS, JOB_STATUS, DEFAULT_HOURS, createJobs, updateJobs, deleteJobs, jobLabel } from './jobs.js';
+import { serviceColor, SERVICE_LABELS, JOB_STATUS, DEFAULT_HOURS, createJobs, updateJobs, deleteJobs, jobLabel } from './jobs.js';
 
 const MOVES = ['flytt', 'paket', 'pianoflytt'];
 const REPEAT = [
@@ -142,7 +142,7 @@ export default function JobForm({ job, prefill, people, customers, jobs, onSaved
 
       <div class="form-2">
         <div class="field">
-          <label for="j-service">Tjänst</label>
+          <label for="j-service"><span class="dot" style={`background:${serviceColor(form.service)}`} /> Tjänst</label>
           <select id="j-service" value={form.service} onChange={set('service')}>
             {Object.entries(SERVICE_LABELS).map(([k, v]) => <option value={k}>{v}</option>)}
           </select>

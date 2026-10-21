@@ -3,7 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { supabase, formatDateTime } from '../../lib/supabase.js';
 import { KIND, summary } from './submission.js';
 import { today } from '../../lib/planner.js';
-import { loadJobs, jobLabel, jobAddress, SERVICE_LABELS } from './jobs.js';
+import { loadJobs, jobLabel, jobAddress, SERVICE_LABELS, serviceColor } from './jobs.js';
 
 export default function Overview({ me }) {
   const [stats, setStats] = useState(null);
@@ -66,10 +66,10 @@ export default function Overview({ me }) {
           <ul class="cp-list">
             {todays.map((j) => (
               <li>
-                <a class="cp-row" href={`/admin/planering?jobb=${j.id}`} style="text-decoration:none">
+                <a class="cp-row" href={`/admin/planering?jobb=${j.id}`} style={`text-decoration:none;border-left:6px solid ${serviceColor(j.service)}`}>
                   <span class="cp-row-top">
                     <strong>{j.startTime} till {j.endTime} · {jobLabel(j)}</strong>
-                    <span class="badge">{SERVICE_LABELS[j.service]}</span>
+                    <span class="badge" style={`background:${serviceColor(j.service)};color:#fff`}>{SERVICE_LABELS[j.service]}</span>
                   </span>
                   <p>{jobAddress(j) || 'Adress saknas'}</p>
                   <small>{j.staff.length ? j.staff.map((id) => names[id] ?? '').filter(Boolean).join(', ') : 'Ingen personal bokad'}</small>
