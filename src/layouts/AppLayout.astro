@@ -12,8 +12,9 @@ interface Props {
   heading?: string;
   description?: string;
   narrow?: boolean;
+  staff?: boolean;
 }
-const { title, heading = title, description = `${site.name}: inloggning för personal och administratörer.`, narrow = false } = Astro.props;
+const { title, heading = title, description = `${site.name}: inloggning för personal och administratörer.`, narrow = false, staff = false } = Astro.props;
 ---
 <!doctype html>
 <html lang="sv">
@@ -26,8 +27,17 @@ const { title, heading = title, description = `${site.name}: inloggning för per
     <meta name="theme-color" content="#0b3d24" />
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    {staff && (
+      <>
+        <link rel="manifest" href="/app.webmanifest" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="TO Personal" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      </>
+    )}
   </head>
-  <body class="app-body">
+  <body class:list={['app-body', { 'app-body--staff': staff }]}>
     <header class="app-top">
       <a class="app-brand" href="/" aria-label={`${site.name}, till webbplatsen`}>
         <Image src={logo} alt="" width={36} height={36} loading="eager" />
@@ -35,7 +45,7 @@ const { title, heading = title, description = `${site.name}: inloggning för per
       </a>
       <h1 class="app-title">{heading}</h1>
     </header>
-    <main class:list={['app-main', { 'app-main--narrow': narrow }]}>
+    <main class:list={['app-main', { 'app-main--narrow': narrow, 'app-main--staff': staff }]}>
       <slot />
     </main>
   </body>

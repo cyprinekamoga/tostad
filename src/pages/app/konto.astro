@@ -1,0 +1,7 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import StaffApp from '../../app/StaffApp.jsx';
+---
+<AppLayout title="Konto" heading="Konto" staff>
+  <StaffApp client:only="preact" page="konto" />
+</AppLayout>

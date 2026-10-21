@@ -1226,3 +1226,454 @@ input[type='search'] {
     height: 22px;
   }
 }
+
+/* Personalens app */
+.app-main--staff {
+  max-width: 620px;
+  padding-top: 14px;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+.st-shell {
+  display: block;
+}
+.st-page {
+  display: grid;
+  gap: 14px;
+}
+.st-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: #fff;
+  border-top: 1px solid var(--line);
+  padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 16px rgb(0 0 0 / 0.06);
+}
+.st-tabs a {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 6px 0 4px;
+  border-radius: 12px;
+  color: var(--ink-3);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.st-tabs svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+.st-tabs a[aria-current='page'] {
+  color: var(--green-900);
+  background: var(--green-50);
+}
+@media (min-width: 700px) {
+  .st-tabs {
+    left: 50%;
+    right: auto;
+    bottom: 12px;
+    width: 600px;
+    transform: translateX(-50%);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+  }
+}
+.st-hello h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+.st-hello p {
+  margin: 2px 0 0;
+  color: var(--ink-3);
+}
+.st-section {
+  display: grid;
+  gap: 8px;
+}
+.st-section h3,
+.st-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.st-day {
+  margin: 6px 0 0;
+  font-size: 0.98rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.st-empty {
+  margin: 0;
+  padding: 16px;
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  color: var(--ink-3);
+  text-align: center;
+}
+.st-empty--sm {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 0.9rem;
+}
+.st-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+.st-card p {
+  margin: 0;
+}
+.st-note {
+  background: var(--sun-soft);
+  border-color: #f3dfa6;
+}
+.st-job {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 16px;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 12px 14px 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--c);
+  border-radius: 16px;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+.st-job:active {
+  background: color-mix(in srgb, var(--c) 8%, #fff);
+}
+.st-job.is-cancelled {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+.st-job.is-done {
+  opacity: 0.75;
+}
+.st-job-time {
+  display: grid;
+  justify-items: center;
+}
+.st-job-time strong {
+  font-size: 1.1rem;
+}
+.st-job-time small {
+  color: var(--ink-3);
+}
+.st-job-body {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.st-job-body > strong {
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+.st-job-body > small {
+  color: var(--ink-2);
+}
+.st-chev {
+  font-size: 1.6rem;
+  color: var(--ink-3);
+}
+.st-tag {
+  justify-self: start;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 12%, #fff);
+}
+.st-team {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.st-jobwrap {
+  display: grid;
+  gap: 6px;
+}
+.st-quick,
+.st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.st-actions--stack {
+  display: grid;
+}
+.st-big {
+  min-height: 54px;
+  font-size: 1.05rem;
+}
+.st-clock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 14px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+}
+.st-clock > div {
+  display: grid;
+  gap: 2px;
+}
+.st-clock small {
+  color: var(--ink-3);
+}
+.st-clock.is-in {
+  background: var(--green-900);
+  border-color: var(--green-900);
+  color: #fff;
+}
+.st-clock.is-in small,
+.st-clock.is-in .st-fine {
+  color: #cfe9da;
+}
+.st-clock.is-in .btn {
+  --bg: #fff;
+  --fg: var(--green-900);
+}
+.st-clock .msg,
+.st-clock .st-fine {
+  grid-column: 1 / -1;
+}
+.st-fine {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.st-banner {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--sun-soft);
+  border: 1px solid #f3dfa6;
+  color: #6b4500;
+  font-weight: 600;
+  text-decoration: none;
+}
+.st-weekbar {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+.st-weekbar > div {
+  display: grid;
+}
+.st-weekbar small {
+  color: var(--ink-3);
+}
+.st-weekbar .btn {
+  min-height: 44px;
+  font-size: 1.3rem;
+  padding: 0;
+}
+.pl-strip a {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 6px 0 4px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-decoration: none;
+  min-height: 60px;
+}
+.pl-strip a small {
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  text-transform: capitalize;
+}
+.pl-strip a strong {
+  font-size: 1.1rem;
+  line-height: 1.1;
+}
+.pl-strip a.is-today {
+  border-color: var(--green-600);
+  background: var(--green-50);
+}
+.st-section[id] {
+  scroll-margin-top: 90px;
+}
+.st-back {
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--green-900);
+}
+.st-jobhead {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 6px solid var(--c);
+}
+.st-jobhead h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  overflow-wrap: anywhere;
+}
+.st-jobhead p {
+  margin: 0;
+}
+.st-people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.st-people li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.st-people a {
+  font-weight: 600;
+}
+.st-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.st-checklist li + li {
+  border-top: 1px solid var(--line);
+}
+.st-checklist label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  cursor: pointer;
+}
+.st-checklist input {
+  width: 26px;
+  height: 26px;
+  min-height: 0;
+  flex: none;
+  accent-color: var(--green-700, #15803d);
+}
+.st-checklist input:checked + span {
+  color: var(--ink-3);
+  text-decoration: line-through;
+}
+.st-photos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.st-photos figure {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+.st-photos img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+.st-photos figcaption {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+.st-photos figcaption button,
+.st-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--danger);
+  font-weight: 600;
+  cursor: pointer;
+  justify-self: start;
+}
+.st-actions label.btn {
+  cursor: pointer;
+}
+.st-sum,
+.st-entries,
+.st-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.st-sum li {
+  display: flex;
+  justify-content: space-between;
+}
+.st-entries li,
+.st-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.st-entries li small,
+.st-list li small {
+  flex-basis: 100%;
+}
+.st-list li > div {
+  display: grid;
+}
+.st-entries li.is-open {
+  border-color: var(--green-600);
+  background: var(--green-50);
+}
+.st-kinds {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.st-kinds button {
+  min-height: 44px;
+  padding: 6px 4px;
+}
+.st-swap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 6px solid var(--c);
+  border-radius: 14px;
+}
+.st-swap > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.st-swap-act {
+  justify-items: end;
+}
