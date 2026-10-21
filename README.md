@@ -67,6 +67,9 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 - **Lägg till personal:** Administration, Personal, Lägg till person. Skicka länken via SMS eller mejl. Den gäller i en timme.
 - **Planering** (`/admin/planering`): vecka med en rad per person, dag med tidslinje och månad. Dra jobb mellan personer, dagar och klockslag. Återkommande jobb (varje, varannan, var tredje eller var fjärde vecka). Varningar för dubbelbokning, under 11 timmars dygnsvila och under 36 timmars veckovila. En bokning i inkorgen blir ett jobb med knappen *Skapa jobb*.
 - **Karta** (`/admin/karta`): dagens jobb på kartan per person, i tidsordning, med en rutt i Google Maps som börjar på kontoret. Adresserna slås upp hos OpenStreetMap och sparas på jobbet.
+- **Personalens app** (`/app`): byggd för mobilen och kan läggas på hemskärmen. Dagens jobb med adress, navigering och kundens telefon, jobbsida med checklista, foton före och efter, "Vi är på väg" och "Klart", stämpling in och ut (tiden sätts av systemet, platsen sparas bara vid stämplingen), mina tider per månad, ledighet, sjukanmälan, dagar man inte kan jobba, passbyten och en kalenderlänk till telefonens kalender.
+- **Ledighet** (`/admin/ledighet`): godkänn eller neka ledighet och passbyten, se kommande frånvaro och lägg in frånvaro åt någon. Frånvaron syns i planeringen.
+- **Tider** (`/admin/tider`): stämplade timmar per person och månad, rätta tider och exportera till Excel (CSV) för lönen.
 - **Inkorgen** (`/admin/inkorg`) samlar bokningar, kontaktmeddelanden och skadeanmälningar från webbplatsen. Netlify Forms får en reservkopia.
 - Databasen ligger i Supabase (Stockholm). Tabeller och behörigheter finns i `supabase/migrations/`, serverfunktionerna i `supabase/functions/`.
 - Planen för kommande faser finns i `docs/plattform-plan.md`.

@@ -161,3 +161,26 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 - Tested end to end against the live database: 38 checks covering booking to job, drag and drop in week and day view, recurring changes, warnings, map, mobile and access rules.
 
 **Comes in phase 3:** employees see their own jobs, leave and availability (shown in the planner), clock in and out.
+
+## 12. Phase 3: what is live
+
+**Employee app (`/app`), built for phones and installable on the home screen**
+- Today: clock in and out, today's jobs with Navigate, Call customer and "On our way", and the coming week.
+- Schedule: one week at a time with a day strip.
+- Job page: address, team mates with call buttons, information from the office, checklist (a standard list per service unless the office writes its own), photos before, after and of damage, mark the job done.
+- Hours: own clock entries per month with totals per week.
+- Leave: apply for leave (needs approval), report sick or days you cannot work (apply directly), see and take shifts colleagues offer.
+- Account: calendar link for the phone's calendar (iPhone, Google), instructions for the home screen, log out.
+
+**Rules**
+- Employees only reach their own jobs, through a database function. Prices and internal notes are never sent to them. The street address shows from a week before the job, the customer's phone from two days before, both until the day after.
+- Clock times are set by the database, not the phone. Location is saved only at the moment of clocking, if the phone allows it.
+- Only the office can change times, approve leave and approve shift swaps. Corrected times are marked for the employee.
+- The calendar link has a secret key per person that the employee can replace. It shows no customer phone, price or internal notes.
+
+**Admin**
+- `/admin/ledighet`: approve or deny leave and swaps, upcoming absence, add absence for someone. Number of items waiting shows in the menu and on the overview.
+- `/admin/tider`: hours per person and month, correct or add times, export to Excel (CSV) for payroll.
+- Planner: absences show in the week view, and a job booked on an absence day gives a warning. The job form shows who is away, the checklist, and what staff did (on the way, done, photos).
+
+Tested end to end against the live database with an admin and two employees on phones: 48 checks, including the access rules.

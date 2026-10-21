@@ -1,5 +1,5 @@
 // Ett jobb: adress, kund, kollegor, information, checklista, foton, stämpling och klart.
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { ErrorMsg } from '../ui.jsx';
 import { SERVICE_LABELS, serviceColor } from '../admin/jobs.js';
 import { checklistFor } from '../../lib/worktime.js';
@@ -17,6 +17,9 @@ export default function JobPage({ me }) {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
+  // Bockar sparas i tur och ordning, alltid med den senaste listan, så att snabba tryck inte skriver över varandra.
+  const latest = useRef(null);
+  const saving = useRef(Promise.resolve());
 
   async function load() {
     try {
@@ -67,12 +70,17 @@ export default function JobPage({ me }) {
   const others = job.team.filter((p) => p.id !== me.profile.id);
 
   function toggle(index) {
-    const next = list.map((item, i) => (i === index ? { ...item, done: !item.done } : item));
-    setJob({ ...job, checklist: next });
-    jobAction(job.id, 'checklist', next).catch((e) => {
-      setError(e.message);
-      load();
-    });
+    const current = latest.current ?? list;
+    const next = current.map((item, i) => (i === index ? { ...item, done: !item.done } : item));
+    latest.current = next;
+    setJob((j) => ({ ...j, checklist: next }));
+    saving.current = saving.current.then(() =>
+      jobAction(job.id, 'checklist', latest.current).catch((e) => {
+        setError(e.message);
+        latest.current = null;
+        load();
+      }),
+    );
   }
 
   async function addPhotos(e, kind) {
