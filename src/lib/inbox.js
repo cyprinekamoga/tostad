@@ -7,7 +7,7 @@ const RESIZABLE = /^image\/(jpeg|png|webp)$/;
 const MAX_SIDE = 1600;
 
 // Mobilbilder är ofta flera megabyte. De skalas ner till högst 1600 pixlar innan de skickas.
-async function shrink(file) {
+export async function shrink(file) {
   if (!RESIZABLE.test(file.type) || file.size < 400_000) return file;
   try {
     const bitmap = await createImageBitmap(file);
