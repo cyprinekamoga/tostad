@@ -1,6 +1,9 @@
 // Formulär för ett jobb: kund, tjänst, tid, personal, adresser, pris och återkommande tillfällen.
-import { useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 import { ErrorMsg } from '../ui.jsx';
+import { ABSENCE_KIND, photos as loadPhotos } from '../staff/api.js';
+import { CHECKLISTS } from '../../lib/worktime.js';
+import { formatDateTime } from '../../lib/supabase.js';
 import { addDays, toInstant, overlaps } from '../../lib/planner.js';
 import { serviceColor, SERVICE_LABELS, JOB_STATUS, DEFAULT_HOURS, createJobs, updateJobs, deleteJobs, jobLabel } from './jobs.js';
 
@@ -32,6 +35,8 @@ function initialForm(job, prefill) {
       price: job.price ?? '',
       staff_note: job.staff_note ?? '',
       internal_note: job.internal_note ?? '',
+      checklist_text: (job.checklist ?? []).map((i) => i.label).join('\n'),
+      checklist_prev: job.checklist ?? [],
       staff: [...job.staff],
     };
   const service = prefill.service ?? 'hemstadning';
@@ -56,6 +61,7 @@ function initialForm(job, prefill) {
     price: '',
     staff_note: '',
     internal_note: '',
+    checklist_text: '',
     staff: [],
     repeat: '0',
     until: addDays(prefill.date, 7 * 12),
@@ -63,7 +69,7 @@ function initialForm(job, prefill) {
   };
 }
 
-export default function JobForm({ job, prefill, people, customers, jobs, onSaved, onClose, beforeCreate }) {
+export default function JobForm({ job, prefill, people, customers, jobs, absentOn = () => null, onSaved, onClose, beforeCreate }) {
   const [form, setForm] = useState(() => initialForm(job, prefill ?? {}));
   const [scope, setScope] = useState('one');
   const [busy, setBusy] = useState(false);
@@ -189,6 +195,7 @@ export default function JobForm({ job, prefill, people, customers, jobs, onSaved
               <input type="checkbox" checked={form.staff.includes(p.id)} onChange={() => toggleStaff(p.id)} />
               <span class="dot" style={`background:${p.color}`} /> {p.full_name}
               {busyPeople[p.id] && <small class="cp-warn-text"> upptagen: {jobLabel(busyPeople[p.id])} {busyPeople[p.id].startTime}</small>}
+              {absentOn(p.id, form.date) && <small class="cp-warn-text"> {ABSENCE_KIND[absentOn(p.id, form.date).kind].toLowerCase()}{absentOn(p.id, form.date).status === 'begard' ? ' (ansökt)' : ''}</small>}
             </label>
           ))}
         </div>
@@ -246,9 +253,16 @@ export default function JobForm({ job, prefill, people, customers, jobs, onSaved
         <textarea id="j-staffnote" maxLength={5000} rows={3} placeholder="Portkod, nyckel, parkering, vad som ska göras" value={form.staff_note} onInput={set('staff_note')} />
       </div>
       <div class="field">
+        <label for="j-check">Checklista för personalen (en punkt per rad)</label>
+        <textarea id="j-check" rows={4} maxLength={8000} placeholder={`Lämna tom för standardlistan:\n${(CHECKLISTS[form.service] ?? CHECKLISTS.annat).slice(0, 3).join('\n')} …`} value={form.checklist_text} onInput={set('checklist_text')} />
+        {job?.checklist?.length > 0 && <small class="muted">{job.checklist.filter((i) => i.done).length} av {job.checklist.length} avbockade av personalen.</small>}
+      </div>
+      <div class="field">
         <label for="j-note">Intern anteckning (bara administratörer)</label>
         <textarea id="j-note" maxLength={5000} rows={2} value={form.internal_note} onInput={set('internal_note')} />
       </div>
+
+      {job && <JobProgress job={job} people={people} />}
 
       {!job && (
         <div class="form-2">
@@ -282,5 +296,33 @@ export default function JobForm({ job, prefill, people, customers, jobs, onSaved
         {job && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Ta bort</button>}
       </div>
     </form>
+  );
+}
+
+// Vad personalen har gjort: på väg, klart och foton.
+function JobProgress({ job, people }) {
+  const [pics, setPics] = useState(null);
+  useEffect(() => {
+    loadPhotos(job.id).then(setPics, () => setPics([]));
+  }, [job.id]);
+  const name = (id) => people.find((p) => p.id === id)?.full_name ?? '';
+  const kinds = { fore: 'Före', efter: 'Efter', skada: 'Skada' };
+  if (!job.on_way_at && !job.done_at && !pics?.length) return null;
+  return (
+    <fieldset class="cp-fieldset">
+      <legend>Från personalen</legend>
+      {job.on_way_at && <p class="muted" style="margin:0">På väg {formatDateTime(job.on_way_at)}</p>}
+      {job.done_at && <p class="muted" style="margin:0">Klart {formatDateTime(job.done_at)}{job.done_by ? ` av ${name(job.done_by)}` : ''}</p>}
+      {pics?.length > 0 && (
+        <div class="cp-files">
+          {pics.map((p) => (
+            <a href={p.url} target="_blank" rel="noopener">
+              <img src={p.url} alt={`Foto ${kinds[p.kind].toLowerCase()}`} loading="lazy" />
+              {kinds[p.kind]}
+            </a>
+          ))}
+        </div>
+      )}
+    </fieldset>
   );
 }

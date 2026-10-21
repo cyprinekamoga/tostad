@@ -9,6 +9,7 @@ export default function Overview({ me }) {
   const [stats, setStats] = useState(null);
   const [latest, setLatest] = useState([]);
   const [todays, setTodays] = useState(null);
+  const [pending, setPending] = useState(0);
   const [names, setNames] = useState({});
 
   useEffect(() => {
@@ -19,6 +20,10 @@ export default function Overview({ me }) {
         .then((list) => setTodays(list.filter((j) => j.status !== 'avbokad')))
         .catch(() => setTodays([]));
       sb.from('profiles').select('id, full_name').then(({ data }) => setNames(Object.fromEntries((data ?? []).map((p) => [p.id, p.full_name]))));
+      Promise.all([
+        sb.from('absences').select('id', { count: 'exact', head: true }).eq('status', 'begard'),
+        sb.from('swap_requests').select('id', { count: 'exact', head: true }).eq('status', 'vantar'),
+      ]).then(([a, b]) => setPending((a.count ?? 0) + (b.count ?? 0)));
       const [fresh, customers, staff, rows] = await Promise.all([
         sb.from('submissions').select('id', head).eq('status', 'ny'),
         sb.from('customers').select('id', head),
@@ -44,6 +49,12 @@ export default function Overview({ me }) {
           <strong>{stats ? stats.fresh : '…'}</strong>
           <span>Nya ärenden i inkorgen</span>
         </a>
+        {pending > 0 && (
+          <a class="cp-panel cp-stat" href="/admin/ledighet">
+            <strong>{pending}</strong>
+            <span>Ledighet och passbyten väntar på beslut</span>
+          </a>
+        )}
         <a class="cp-panel cp-stat" href="/admin/kunder">
           <strong>{stats ? stats.customers : '…'}</strong>
           <span>Kunder</span>

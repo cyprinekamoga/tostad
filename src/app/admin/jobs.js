@@ -31,7 +31,7 @@ export function startFromWish(wish = '') {
 }
 
 const COLUMNS =
-  'id, customer_id, submission_id, series_id, service, title, status, starts_at, ends_at, street, postal_code, city, to_street, to_postal_code, to_city, lat, lng, price, staff_note, internal_note, customers(name, phone), job_staff(profile_id)';
+  'id, customer_id, submission_id, series_id, service, title, status, starts_at, ends_at, street, postal_code, city, to_street, to_postal_code, to_city, lat, lng, price, staff_note, internal_note, checklist, on_way_at, done_at, done_by, customers(name, phone), job_staff(profile_id)';
 
 function shape(row) {
   const start = Date.parse(row.starts_at);
@@ -74,6 +74,17 @@ export function jobAddress(job, to = false) {
   return [street, place].filter(Boolean).join(', ');
 }
 
+// Checklistan skrivs som en punkt per rad. Punkter som redan är avbockade behåller sin bock.
+export function parseChecklist(textValue, previous = []) {
+  const done = new Set((previous ?? []).filter((i) => i.done).map((i) => i.label));
+  return String(textValue ?? '')
+    .split('\n')
+    .map((l) => l.trim().slice(0, 200))
+    .filter(Boolean)
+    .slice(0, 60)
+    .map((label) => ({ label, done: done.has(label) }));
+}
+
 const text = (v, max) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
 
 // Fälten i databasen för ett tillfälle på datumet date.
@@ -95,6 +106,7 @@ function row(form, date) {
     price: price ? Math.min(Number(price), 10000000) : null,
     staff_note: text(form.staff_note, 5000),
     internal_note: text(form.internal_note, 5000),
+    ...(form.checklist_text !== undefined ? { checklist: parseChecklist(form.checklist_text, form.checklist_prev) } : {}),
   };
 }
 
@@ -139,7 +151,10 @@ export async function updateJobs(job, form, scope = 'one') {
   for (const t of targets) {
     const values = { ...row(form, t.date), ...coords };
     // Status ändras bara på det valda tillfället.
-    if (t.id !== job.id) delete values.status;
+    if (t.id !== job.id) {
+      delete values.status;
+      if (values.checklist) values.checklist = values.checklist.map((i) => ({ ...i, done: false }));
+    }
     const { error } = await sb.from('jobs').update(values).eq('id', t.id);
     if (error) throw new Error('Kunde inte spara jobbet.');
   }

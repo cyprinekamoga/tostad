@@ -1691,3 +1691,21 @@ input[type='search'] {
 .cp-row--static p {
   white-space: normal;
 }
+.pl-absent {
+  display: block;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #7a4d00;
+  background: repeating-linear-gradient(135deg, #fff3d6, #fff3d6 6px, #ffe9b3 6px, #ffe9b3 12px);
+}
+.pl-absent.is-pending {
+  background: #fff;
+  border: 1.5px dashed #e0a92e;
+}
+.pl-away {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7a4d00;
+}

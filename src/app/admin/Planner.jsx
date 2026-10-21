@@ -20,6 +20,7 @@ import { loadJobs, loadJob, moveJob, jobLabel, jobAddress, startFromWish, locate
 import { ensureCustomer } from './submission.js';
 import { Modal, ErrorMsg } from '../ui.jsx';
 import JobForm from './JobForm.jsx';
+import { ABSENCE_KIND } from '../staff/api.js';
 
 const VIEWS = [
   ['vecka', 'Vecka'],
@@ -71,6 +72,7 @@ export default function Planner() {
   const [jobs, setJobs] = useState(null);
   const [people, setPeople] = useState([]);
   const [ready, setReady] = useState(false);
+  const [absences, setAbsences] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [editing, setEditing] = useState(null);
   const [over, setOver] = useState('');
@@ -83,7 +85,12 @@ export default function Planner() {
   async function reload() {
     try {
       // Hela veckor hämtas så att vilan kan räknas även i dagsvyn.
-      setJobs(await loadJobs(addDays(startOfWeek(from), -1), addDays(startOfWeek(to), 7)));
+      const [list, away] = await Promise.all([
+        loadJobs(addDays(startOfWeek(from), -1), addDays(startOfWeek(to), 7)),
+        sb.from('absences').select('id, profile_id, kind, status, starts_on, ends_on').neq('status', 'nekad').lte('starts_on', addDays(startOfWeek(to), 7)).gte('ends_on', addDays(startOfWeek(from), -1)),
+      ]);
+      setJobs(list);
+      setAbsences(away.data ?? []);
     } catch (e) {
       setError(e.message);
     }
@@ -173,6 +180,9 @@ export default function Planner() {
 
   const active = (jobs ?? []).filter((j) => j.status !== 'avbokad');
 
+  // Frånvaro för en person ett visst datum (ledighet, sjuk eller kan inte jobba).
+  const absentOn = (personId, day) => absences.find((a) => a.profile_id === personId && a.starts_on <= day && a.ends_on >= day);
+
   const warnings = useMemo(() => {
     const list = [];
     const cells = new Set();
@@ -183,9 +193,16 @@ export default function Planner() {
         if (w.kind === 'dubbel') for (const id of w.jobs) cells.add(`${p.id}|${mine.find((j) => j.id === id)?.date}`);
         if (w.kind === 'dygnsvila') cells.add(`${p.id}|${w.date}`);
       }
+      for (const j of active.filter((x) => x.staff.includes(p.id) && days.includes(x.date))) {
+        const a = absentOn(p.id, j.date);
+        if (a) {
+          list.push({ kind: 'franvaro', person: p, date: j.date, job: j.id, absence: a });
+          cells.add(`${p.id}|${j.date}`);
+        }
+      }
     }
     return { list, cells };
-  }, [jobs, people, from, to]);
+  }, [jobs, people, absences, from, to]);
 
   // Dra och släpp
   function dragStart(e, job, person, grabMinutes = 0) {
@@ -311,6 +328,7 @@ export default function Planner() {
           onPick={(d) => { setDate(d); setView('dag'); }}
           onOpen={(job) => setEditing({ job })}
           onNew={(d) => newJob({ date: d })}
+          away={(d) => people.map((p) => ({ p, a: absentOn(p.id, d) })).filter((x) => x.a)}
         />
       ) : view === 'vecka' ? (
         <div class="pl-scroll">
@@ -339,6 +357,11 @@ export default function Planner() {
                       onDragLeave={() => over === key && setOver('')}
                       onDrop={(e) => drop(e, { date: d, person: p.id })}
                     >
+                      {p.id && absentOn(p.id, d) && (
+                        <span class={`pl-absent${absentOn(p.id, d).status === 'begard' ? ' is-pending' : ''}`}>
+                          {ABSENCE_KIND[absentOn(p.id, d).kind]}{absentOn(p.id, d).status === 'begard' ? ' (ansökt)' : ''}
+                        </span>
+                      )}
                       {jobsFor(p.id, d).map((j) => card(j, p.id))}
                       <button class="pl-add" type="button" aria-label={`Nytt jobb ${d}${p.id ? ` för ${p.full_name}` : ''}`} onClick={() => newJob({ date: d, staff: p.id ? [p.id] : [] })}>+</button>
                     </div>
@@ -410,6 +433,8 @@ export default function Planner() {
                 {w.kind === 'dubbel' &&
                   `dubbelbokad ${fmt(shortDate, jobs.find((j) => j.id === w.jobs[0])?.date ?? from)} (${w.jobs.map((id) => jobLabel(jobs.find((j) => j.id === id) ?? {})).join(' och ')})`}
                 {w.kind === 'dygnsvila' && `mindre än ${DAILY_REST_H} timmars dygnsvila ${fmt(shortDate, w.date)} (bara ${hoursText(w.restHours)} h)`}
+                {w.kind === 'franvaro' &&
+                  `bokad ${fmt(shortDate, w.date)} men ${w.absence.status === 'begard' ? 'har ansökt om' : 'har'} ${ABSENCE_KIND[w.absence.kind].toLowerCase()} (${jobLabel(jobs.find((j) => j.id === w.job) ?? {})})`}
                 {w.kind === 'veckovila' && `mindre än ${WEEKLY_REST_H} timmars sammanhängande ledighet vecka ${weekNumber(w.date)} (längsta ${hoursText(w.restHours)} h)`}
               </li>
             ))}
@@ -429,6 +454,7 @@ export default function Planner() {
             people={people}
             customers={customers}
             jobs={jobs ?? []}
+            absentOn={absentOn}
             onClose={() => setEditing(null)}
             onSaved={saved}
             beforeCreate={
@@ -515,7 +541,7 @@ function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave
 }
 
 // Mobil: en rad med veckans dagar och jobben som kort i tidsordning.
-function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, onPick, onOpen, onNew }) {
+function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, onPick, onOpen, onNew, away }) {
   const dayLabel = new Intl.DateTimeFormat('sv-SE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
   return (
     <div class="pl-agenda">
@@ -536,11 +562,14 @@ function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, on
         return (
           <section class="pl-aday">
             <h3>{fmt(dayLabel, d)}{d === now && <span class="badge">Idag</span>}</h3>
+            {away(d).length > 0 && (
+              <p class="pl-away">Borta: {away(d).map(({ p, a }) => `${p.full_name.split(' ')[0]} (${ABSENCE_KIND[a.kind].toLowerCase()}${a.status === 'begard' ? ', ansökt' : ''})`).join(', ')}</p>
+            )}
             {list.length === 0 && (
               <button type="button" class="pl-aempty" onClick={() => onNew(d)}>Inga jobb · lägg till</button>
             )}
             {list.map((j) => {
-              const warn = warnings.filter((w) => (w.kind === 'dubbel' && w.jobs.includes(j.id)) || (w.kind === 'dygnsvila' && w.date === d && j.staff.includes(w.person.id)));
+              const warn = warnings.filter((w) => (w.kind === 'dubbel' && w.jobs.includes(j.id)) || (w.kind === 'franvaro' && w.job === j.id) || (w.kind === 'dygnsvila' && w.date === d && j.staff.includes(w.person.id)));
               const hours = (j.end - j.start) / 3600000;
               return (
                 <button type="button" class={`pl-acard${j.status === 'avbokad' ? ' is-cancelled' : ''}${j.status === 'klar' ? ' is-done' : ''}`} style={`--c:${serviceColor(j.service)}`} onClick={() => onOpen(j)}>
@@ -564,7 +593,7 @@ function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, on
                     </span>
                     {warn.length > 0 && (
                       <small class="cp-warn-text">
-                        {[...new Set(warn.map((w) => `${w.person.full_name.split(' ')[0]}: ${w.kind === 'dubbel' ? 'dubbelbokad' : 'kort dygnsvila'}`))].join(', ')}
+                        {[...new Set(warn.map((w) => `${w.person.full_name.split(' ')[0]}: ${w.kind === 'dubbel' ? 'dubbelbokad' : w.kind === 'franvaro' ? 'frånvarande' : 'kort dygnsvila'}`))].join(', ')}
                       </small>
                     )}
                   </span>
