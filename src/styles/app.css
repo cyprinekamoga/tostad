@@ -578,9 +578,12 @@ input[type='search'] {
   background: #fff;
 }
 .pl-title {
+  display: inline-block;
   font-size: 1.05rem;
-  text-transform: capitalize;
   margin: 0 0 10px;
+}
+.pl-title::first-letter {
+  text-transform: uppercase;
 }
 .pl-toolbar .pl-title {
   margin: 0;
@@ -766,8 +769,7 @@ input[type='search'] {
 }
 .pl-block {
   position: absolute;
-  top: 6px;
-  bottom: 6px;
+  padding: 3px 0;
 }
 .pl-block .pl-job {
   height: 100%;

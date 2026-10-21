@@ -424,6 +424,16 @@ function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave
         {rows.map((p) => {
           const key = `${p.id}|${date}`;
           const list = jobsFor(p.id, date);
+          // Jobb som överlappar läggs på egna rader i stället för ovanpå varandra.
+          const tracks = [];
+          const trackOf = new Map();
+          for (const j of [...list].sort((a, b) => a.start - b.start)) {
+            let t = tracks.findIndex((end) => end <= j.start);
+            if (t === -1) t = tracks.push(0) - 1;
+            tracks[t] = j.end;
+            trackOf.set(j.id, t);
+          }
+          const rowsIn = Math.max(1, tracks.length);
           return (
             <>
               <div class="pl-person">
@@ -432,6 +442,7 @@ function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave
               </div>
               <div
                 class={`pl-lane${over === key ? ' is-over' : ''}${warnCells.has(key) ? ' is-warn' : ''}`}
+                style={`min-height:${rowsIn * 64 + 6}px`}
                 onDragOver={(e) => onDragOver(e, key)}
                 onDragLeave={() => onDragLeave(key)}
                 onDrop={(e) => onDrop(e, { date, person: p.id, lane: true })}
@@ -449,7 +460,7 @@ function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave
                   const left = ((start - DAY_START) / span) * 100;
                   const width = Math.max(3, ((end - start) / span) * 100);
                   return (
-                    <div class="pl-block" style={`left:${left}%;width:${width}%`}>
+                    <div class="pl-block" style={`left:${left}%;width:${width}%;top:calc(3px + ${trackOf.get(j.id)} * (100% - 6px) / ${rowsIn});height:calc((100% - 6px) / ${rowsIn})`}>
                       {card(j, p.id, grabFrom)}
                     </div>
                   );

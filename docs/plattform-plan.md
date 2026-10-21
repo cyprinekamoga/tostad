@@ -147,3 +147,17 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 - Deleting enquiries that never became jobs after 12 months (privacy policy promise). Done by hand in the inbox until the scheduled cleanup is built.
 - Password reset by email needs the Resend setup; until then an admin creates a new login link under Personal.
 
+
+## 11. Phase 2: what is live
+
+- `/admin/planering`: week view with one row per person and a row for jobs without staff, day view with a timeline from 06 to 22, month view. Drag a job to another person, day or time. On a phone, tap a job and change it in the form.
+- Jobs have a customer, service, time, staff, address (and a destination address for moves), price, a note for staff and an internal note.
+- Recurring jobs: every 1, 2, 3 or 4 weeks, up to one year ahead. Change or delete one visit, or this visit and all later ones.
+- Warnings: double bookings, less than 11 hours of daily rest (a working day with short breaks may not span more than 13 hours), and less than 36 hours of rest in a week (Monday to Sunday). The job form also shows who is already busy at that time.
+- Inbox: a booking becomes a job with one click. Service, date, start time, address, price and notes come from the booking, the customer is created or linked, and the booking is marked handled.
+- `/admin/karta`: the day's jobs on an OpenStreetMap map, numbered per person in time order, with a Google Maps route from the office.
+- Overview: today's jobs.
+- Login is email and password only. Codes from an authenticator app registered earlier are removed at the next login.
+- Tested end to end against the live database: 38 checks covering booking to job, drag and drop in week and day view, recurring changes, warnings, map, mobile and access rules.
+
+**Comes in phase 3:** employees see their own jobs, leave and availability (shown in the planner), clock in and out.

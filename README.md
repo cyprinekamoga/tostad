@@ -65,6 +65,8 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 
 - **Logga in:** `https://tostadflytt.se/logga-in`. Alla loggar in med e-post och lösenord. Administratörer kommer till `/admin` och personal till `/app`.
 - **Lägg till personal:** Administration, Personal, Lägg till person. Skicka länken via SMS eller mejl. Den gäller i en timme.
+- **Planering** (`/admin/planering`): vecka med en rad per person, dag med tidslinje och månad. Dra jobb mellan personer, dagar och klockslag. Återkommande jobb (varje, varannan, var tredje eller var fjärde vecka). Varningar för dubbelbokning, under 11 timmars dygnsvila och under 36 timmars veckovila. En bokning i inkorgen blir ett jobb med knappen *Skapa jobb*.
+- **Karta** (`/admin/karta`): dagens jobb på kartan per person, i tidsordning, med en rutt i Google Maps som börjar på kontoret. Adresserna slås upp hos OpenStreetMap och sparas på jobbet.
 - **Inkorgen** (`/admin/inkorg`) samlar bokningar, kontaktmeddelanden och skadeanmälningar från webbplatsen. Netlify Forms får en reservkopia.
 - Databasen ligger i Supabase (Stockholm). Tabeller och behörigheter finns i `supabase/migrations/`, serverfunktionerna i `supabase/functions/`.
 - Planen för kommande faser finns i `docs/plattform-plan.md`.
