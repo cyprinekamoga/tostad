@@ -5,9 +5,13 @@ import Overview from './admin/Overview.jsx';
 import Inbox from './admin/Inbox.jsx';
 import Customers from './admin/Customers.jsx';
 import Staff from './admin/Staff.jsx';
+import Planner from './admin/Planner.jsx';
+import MapPage from './admin/MapPage.jsx';
 
 const PAGES = {
   oversikt: { href: '/admin', label: 'Översikt', Page: Overview },
+  planering: { href: '/admin/planering', label: 'Planering', Page: Planner },
+  karta: { href: '/admin/karta', label: 'Karta', Page: MapPage },
   inkorg: { href: '/admin/inkorg', label: 'Inkorg', Page: Inbox },
   kunder: { href: '/admin/kunder', label: 'Kunder', Page: Customers },
   personal: { href: '/admin/personal', label: 'Personal', Page: Staff },

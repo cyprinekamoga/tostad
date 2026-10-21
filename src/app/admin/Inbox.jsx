@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, formatDateTime } from '../../lib/supabase.js';
 import { ErrorMsg, Phone, Email } from '../ui.jsx';
-import { KIND, STATUS, FIELDS, fieldValue, summary } from './submission.js';
+import { KIND, STATUS, FIELDS, fieldValue, summary, ensureCustomer } from './submission.js';
 
 const FILTERS = [
   ['ny', 'Nya'],
@@ -112,7 +112,13 @@ function Detail({ item, names, onChanged, onDeleted }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
+  const [jobId, setJobId] = useState(undefined);
   const data = item.data ?? {};
+
+  useEffect(() => {
+    if (item.kind !== 'bokning') return;
+    sb.from('jobs').select('id').eq('submission_id', item.id).maybeSingle().then(({ data: job }) => setJobId(job?.id ?? null));
+  }, [item.id]);
 
   useEffect(() => {
     (async () => {
@@ -152,38 +158,8 @@ function Detail({ item, names, onChanged, onDeleted }) {
   // Skapar en kund av ärendet, eller kopplar till en befintlig kund med samma mejl eller telefon.
   const toCustomer = () =>
     run(async () => {
-      let customerId = null;
-      // Värdena kommer från kunden, så de citeras för att inte kunna ändra filtret.
-      const quote = (v) => `"${String(v).replace(/[\\"]/g, (c) => `\\${c}`)}"`;
-      const matchers = [item.email && `email.eq.${quote(item.email)}`, item.phone && `phone.eq.${quote(item.phone)}`].filter(Boolean);
-      if (matchers.length) {
-        const { data: found } = await sb.from('customers').select('id, name').or(matchers.join(',')).limit(1);
-        if (found?.length) {
-          customerId = found[0].id;
-          setInfo(`Kopplat till befintlig kund: ${found[0].name}.`);
-        }
-      }
-      if (!customerId) {
-        const digits = (data.postnummer ?? '').replace(/\D/g, '');
-        const { data: created, error: e } = await sb
-          .from('customers')
-          .insert({
-            kind: data.storlek === 'annat' || data.tjanst === 'kontor' ? 'company' : 'private',
-            name: item.name || 'Utan namn',
-            email: item.email,
-            phone: item.phone,
-            street: data.adress ?? null,
-            postal_code: digits.length === 5 ? `${digits.slice(0, 3)} ${digits.slice(3)}` : null,
-            notes: `Från ${KIND[item.kind].toLowerCase()} ${formatDateTime(item.created_at)}`,
-          })
-          .select('id')
-          .single();
-        if (e) throw new Error('Kunde inte skapa kunden.');
-        customerId = created.id;
-        setInfo('Kunden är skapad.');
-      }
-      const { error: e } = await sb.from('submissions').update({ customer_id: customerId }).eq('id', item.id);
-      if (e) throw new Error('Kunde inte koppla kunden.');
+      const customer = await ensureCustomer(sb, item);
+      setInfo(customer.existed ? `Kopplat till befintlig kund: ${customer.name}.` : 'Kunden är skapad.');
       await onChanged(item.id);
     });
 
@@ -248,6 +224,8 @@ function Detail({ item, names, onChanged, onDeleted }) {
       <ErrorMsg error={error} />
       {info && <p class="msg msg--ok">{info}</p>}
       <div class="cp-actions">
+        {jobId && <a class="btn btn--sm" href={`/admin/planering?jobb=${jobId}`}>Visa jobbet</a>}
+        {jobId === null && <a class="btn btn--sm" href={`/admin/planering?fran=${item.id}`}>Skapa jobb</a>}
         {item.status !== 'hanterad' && (
           <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('hanterad')}>Markera som hanterad</button>
         )}

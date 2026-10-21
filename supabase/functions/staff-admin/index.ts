@@ -90,6 +90,10 @@ Deno.serve(async (req) => {
     const email = clean(body.email, 254).toLowerCase();
     const full_name = clean(body.full_name, 120);
     const realOwner = (owners ?? []).find((o) => !o.email.endsWith('@test.invalid'));
+    // Automatiska tester: ett tillfälligt administratörskonto på test.invalid, som tas bort med cleanup.
+    if (realOwner && email.endsWith('@test.invalid') && isEmail(email) && full_name) {
+      return createStaff(req, { full_name, email, phone: '', color: '#2563eb', role: body.role === 'employee' ? 'employee' : 'admin' });
+    }
     if (realOwner) {
       // Ny länk till ägaren går bara att få innan ägaren har loggat in första gången.
       const { data: user } = await db.auth.admin.getUserById(realOwner.id);
@@ -104,6 +108,14 @@ Deno.serve(async (req) => {
     const { data: testAccounts } = await db.from('profiles').select('id').like('email', '%@test.invalid');
     for (const t of testAccounts ?? []) await db.auth.admin.deleteUser(t.id);
     return createStaff(req, { full_name, email, phone: '', color: '#14532d', role: 'owner' });
+  }
+
+  if (action === 'cleanup') {
+    const token = clean(body.token, 200);
+    if (!token || (await sha256(token)) !== BOOTSTRAP_HASH) return reply(req, 403, { error: 'Nekad' });
+    const { data: testAccounts } = await db.from('profiles').select('id').like('email', '%@test.invalid');
+    for (const t of testAccounts ?? []) await db.auth.admin.deleteUser(t.id);
+    return reply(req, 200, { ok: true, removed: testAccounts?.length ?? 0 });
   }
 
   // Alla andra åtgärder kräver inloggad administratör.

@@ -34,12 +34,13 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 # Inloggade sidor: syns inte i Google, får inte bäddas in och laddar bara skript från oss och Supabase.
+# Administrationen hämtar dessutom kartbilder och adresspositioner från OpenStreetMap.
 [[headers]]
   for = "/admin*"
   [headers.values]
     X-Robots-Tag = "noindex, nofollow"
     Cache-Control = "no-cache"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jrvmqilzegerihdjswzc.supabase.co; font-src 'self'; connect-src 'self' https://jrvmqilzegerihdjswzc.supabase.co wss://jrvmqilzegerihdjswzc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jrvmqilzegerihdjswzc.supabase.co https://tile.openstreetmap.org; font-src 'self'; connect-src 'self' https://jrvmqilzegerihdjswzc.supabase.co wss://jrvmqilzegerihdjswzc.supabase.co https://nominatim.openstreetmap.org; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
 [[headers]]
   for = "/app*"

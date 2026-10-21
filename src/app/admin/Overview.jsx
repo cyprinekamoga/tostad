@@ -2,15 +2,23 @@
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, formatDateTime } from '../../lib/supabase.js';
 import { KIND, summary } from './submission.js';
+import { today } from '../../lib/planner.js';
+import { loadJobs, jobLabel, jobAddress, SERVICE_LABELS } from './jobs.js';
 
 export default function Overview({ me }) {
   const [stats, setStats] = useState(null);
   const [latest, setLatest] = useState([]);
+  const [todays, setTodays] = useState(null);
+  const [names, setNames] = useState({});
 
   useEffect(() => {
     (async () => {
       const sb = supabase();
       const head = { count: 'exact', head: true };
+      loadJobs(today(), today())
+        .then((list) => setTodays(list.filter((j) => j.status !== 'avbokad')))
+        .catch(() => setTodays([]));
+      sb.from('profiles').select('id, full_name').then(({ data }) => setNames(Object.fromEntries((data ?? []).map((p) => [p.id, p.full_name]))));
       const [fresh, customers, staff, rows] = await Promise.all([
         sb.from('submissions').select('id', head).eq('status', 'ny'),
         sb.from('customers').select('id', head),
@@ -28,6 +36,10 @@ export default function Overview({ me }) {
         <h2>Hej {me.profile.full_name.split(' ')[0]}!</h2>
       </div>
       <div class="cp-stats">
+        <a class="cp-panel cp-stat" href="/admin/planering?vy=dag">
+          <strong>{todays ? todays.length : '…'}</strong>
+          <span>Jobb idag</span>
+        </a>
         <a class="cp-panel cp-stat" href="/admin/inkorg">
           <strong>{stats ? stats.fresh : '…'}</strong>
           <span>Nya ärenden i inkorgen</span>
@@ -40,6 +52,32 @@ export default function Overview({ me }) {
           <strong>{stats ? stats.staff : '…'}</strong>
           <span>Aktiv personal</span>
         </a>
+      </div>
+      <div class="cp-panel" style="margin-bottom:20px">
+        <div class="cp-head">
+          <h2 style="font-size:1.15rem">Dagens jobb</h2>
+          <span class="cp-actions">
+            <a href="/admin/planering">Planering</a>
+            <a href="/admin/karta">Karta</a>
+          </span>
+        </div>
+        {todays?.length === 0 && <p class="cp-empty">Inga jobb idag.</p>}
+        {todays?.length > 0 && (
+          <ul class="cp-list">
+            {todays.map((j) => (
+              <li>
+                <a class="cp-row" href={`/admin/planering?jobb=${j.id}`} style="text-decoration:none">
+                  <span class="cp-row-top">
+                    <strong>{j.startTime} till {j.endTime} · {jobLabel(j)}</strong>
+                    <span class="badge">{SERVICE_LABELS[j.service]}</span>
+                  </span>
+                  <p>{jobAddress(j) || 'Adress saknas'}</p>
+                  <small>{j.staff.length ? j.staff.map((id) => names[id] ?? '').filter(Boolean).join(', ') : 'Ingen personal bokad'}</small>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
       <div class="cp-panel">
         <div class="cp-head">
