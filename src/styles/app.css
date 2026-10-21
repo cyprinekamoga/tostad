@@ -1677,3 +1677,17 @@ input[type='search'] {
 .st-swap-act {
   justify-items: end;
 }
+.cp-subhead {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+}
+.cp-row--static {
+  cursor: default;
+}
+.cp-row--static:hover {
+  border-color: var(--line);
+  box-shadow: none;
+}
+.cp-row--static p {
+  white-space: normal;
+}

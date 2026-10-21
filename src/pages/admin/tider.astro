@@ -1,0 +1,7 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import AdminApp from '../../app/AdminApp.jsx';
+---
+<AppLayout title="Tider" heading="Administration: Tider">
+  <AdminApp client:only="preact" page="tider" />
+</AppLayout>

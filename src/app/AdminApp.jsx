@@ -7,6 +7,8 @@ import Customers from './admin/Customers.jsx';
 import Staff from './admin/Staff.jsx';
 import Planner from './admin/Planner.jsx';
 import MapPage from './admin/MapPage.jsx';
+import Absences from './admin/Absences.jsx';
+import TimeReport from './admin/TimeReport.jsx';
 
 const PAGES = {
   oversikt: { href: '/admin', label: 'Översikt', Page: Overview },
@@ -14,16 +16,27 @@ const PAGES = {
   karta: { href: '/admin/karta', label: 'Karta', Page: MapPage },
   inkorg: { href: '/admin/inkorg', label: 'Inkorg', Page: Inbox },
   kunder: { href: '/admin/kunder', label: 'Kunder', Page: Customers },
+  ledighet: { href: '/admin/ledighet', label: 'Ledighet', Page: Absences },
+  tider: { href: '/admin/tider', label: 'Tider', Page: TimeReport },
   personal: { href: '/admin/personal', label: 'Personal', Page: Staff },
 };
 
 export default function AdminApp({ page }) {
   const [me, setMe] = useState(null);
   const [newCount, setNewCount] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
 
+  // Siffror i menyn: nya ärenden i inkorgen och ledighet eller passbyten som väntar på beslut.
   async function refreshCount() {
-    const { count } = await supabase().from('submissions').select('id', { count: 'exact', head: true }).eq('status', 'ny');
-    setNewCount(count ?? 0);
+    const sb = supabase();
+    const head = { count: 'exact', head: true };
+    const [inbox, leave, swaps] = await Promise.all([
+      sb.from('submissions').select('id', head).eq('status', 'ny'),
+      sb.from('absences').select('id', head).eq('status', 'begard'),
+      sb.from('swap_requests').select('id', head).eq('status', 'vantar'),
+    ]);
+    setNewCount(inbox.count ?? 0);
+    setPendingCount((leave.count ?? 0) + (swaps.count ?? 0));
   }
 
   useEffect(() => {
@@ -52,9 +65,11 @@ export default function AdminApp({ page }) {
           <a href={p.href} aria-current={key === page ? 'page' : undefined}>
             {p.label}
             {key === 'inkorg' && newCount > 0 && <span class="count">{newCount}</span>}
+            {key === 'ledighet' && pendingCount > 0 && <span class="count">{pendingCount}</span>}
           </a>
         ))}
         <span class="cp-me">{me.profile.full_name}</span>
+        <a href="/app">Mina jobb</a>
         <button type="button" onClick={signOut}>Logga ut</button>
       </nav>
       <section style="min-width:0">
