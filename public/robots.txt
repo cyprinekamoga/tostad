@@ -5,5 +5,6 @@ Disallow: /admin
 Disallow: /app
 Disallow: /logga-in
 Disallow: /dokument
+Disallow: /kund
 
 Sitemap: https://tostadflytt.se/sitemap-index.xml

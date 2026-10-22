@@ -64,6 +64,13 @@
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jrvmqilzegerihdjswzc.supabase.co; font-src 'self'; connect-src 'self' https://jrvmqilzegerihdjswzc.supabase.co wss://jrvmqilzegerihdjswzc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
 [[headers]]
+  for = "/kund*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-cache"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://jrvmqilzegerihdjswzc.supabase.co; font-src 'self'; connect-src 'self' https://jrvmqilzegerihdjswzc.supabase.co wss://jrvmqilzegerihdjswzc.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+
+[[headers]]
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"

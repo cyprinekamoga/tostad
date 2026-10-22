@@ -1,7 +1,7 @@
 // Kundregistret: sök, lägg till, ändra och ta bort kunder.
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, formatDateTime } from '../../lib/supabase.js';
-import { Modal, ErrorMsg, Phone, Email } from '../ui.jsx';
+import { Modal, ErrorMsg, copyText, Phone, Email } from '../ui.jsx';
 
 const EMPTY = { kind: 'private', name: '', email: '', phone: '', street: '', postal_code: '', city: '', org_nr: '', notes: '' };
 
@@ -157,6 +157,7 @@ function CustomerForm({ customer, onDone }) {
         <label for="c-notes">Anteckningar</label>
         <textarea id="c-notes" maxLength={5000} value={form.notes} onInput={set('notes')} />
       </div>
+      {!isNew && <PortalBox customer={customer} />}
       <ErrorMsg error={error} />
       <div class="cp-actions">
         <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara'}</button>
@@ -164,5 +165,58 @@ function CustomerForm({ customer, onDone }) {
         {!isNew && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Ta bort</button>}
       </div>
     </form>
+  );
+}
+
+// Kundportalen: personlig länk som kunden får via SMS eller mejl. En ny länk gör den gamla ogiltig.
+function PortalBox({ customer }) {
+  const sb = supabase();
+  const [token, setToken] = useState(customer.portal_token ?? null);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState('');
+  const url = token ? `${window.location.origin}/kund?k=${token}` : '';
+  const first = (customer.name ?? '').split(' ')[0];
+  const text = `Hej ${first}! Här är din personliga länk till Mina sidor hos TO Städ & Flytt. Där ser du dina bokningar, fotorapporter, offerter och fakturor:\n${url}\n\nSpara länken, den är bara till dig.\n\nVänliga hälsningar\nTO Städ & Flytt`;
+  const phone = (customer.phone ?? '').replace(/[^\d+]/g, '');
+
+  async function setNew(next) {
+    if (token && next && !window.confirm('Den gamla länken slutar fungera. Skapa en ny?')) return;
+    if (!next && !window.confirm('Stänga av kundens länk? Kunden kommer inte in på Mina sidor förrän du skapar en ny.')) return;
+    setError('');
+    const value = next ? crypto.randomUUID() : null;
+    const { error: e } = await sb.from('customers').update({ portal_token: value, portal_created_at: next ? new Date().toISOString() : null }).eq('id', customer.id);
+    if (e) return setError('Kunde inte spara länken.');
+    setToken(value);
+    setCopied(false);
+  }
+
+  return (
+    <fieldset class="cp-fieldset">
+      <legend>Mina sidor för kunden</legend>
+      {!token ? (
+        <>
+          <p class="muted" style="margin:0">Kunden kan se sina bokningar, fotorapporter, offerter och fakturor och skicka meddelanden. Skapa en personlig länk och skicka den till kunden.</p>
+          <div><button class="btn btn--sm" type="button" onClick={() => setNew(true)}>Skapa länk</button></div>
+        </>
+      ) : (
+        <>
+          <div class="cp-link-box">{url}</div>
+          <small class="muted">
+            {customer.portal_seen_at ? `Senast öppnad ${formatDateTime(customer.portal_seen_at)}` : 'Inte öppnad ännu'}
+          </small>
+          <div class="cp-actions">
+            <button class="btn btn--sm" type="button" onClick={async () => setCopied(await copyText(text))}>{copied ? 'Texten är kopierad' : 'Kopiera text med länk'}</button>
+            {phone && <a class="btn btn--ghost btn--sm" href={`sms:${phone}?body=${encodeURIComponent(text)}`}>Skicka som SMS</a>}
+            {customer.email && <a class="btn btn--ghost btn--sm" href={`mailto:${customer.email}?subject=${encodeURIComponent('Dina sidor hos TO Städ & Flytt')}&body=${encodeURIComponent(text)}`}>Skicka som mejl</a>}
+            <a class="btn btn--ghost btn--sm" href={url} target="_blank" rel="noopener">Öppna</a>
+          </div>
+          <div class="cp-actions">
+            <button class="st-link" type="button" onClick={() => setNew(true)}>Skapa ny länk</button>
+            <button class="st-link" type="button" onClick={() => setNew(false)}>Stäng av</button>
+          </div>
+        </>
+      )}
+      <ErrorMsg error={error} />
+    </fieldset>
   );
 }

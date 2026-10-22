@@ -39,6 +39,7 @@ export const FIELDS = [
   ['kontakt', 'Kontakt'],
   ['kontaktsatt', 'Vill bli kontaktad via'],
   ['sprak', 'Språk'],
+  ['kalla', 'Skickat från'],
   ['kalkyl', 'Kalkyl'],
   ['samtycke', 'Samtycke'],
 ];

@@ -1,0 +1,205 @@
+/* Kundportalen */
+.kp-body {
+  background: #eef2ef;
+  margin: 0;
+}
+.kp-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--green-950);
+}
+.kp-top a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 750;
+  text-decoration: none;
+}
+.kp-top img {
+  border-radius: 50%;
+  background: #fff;
+}
+.kp-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 18px 16px 48px;
+}
+.kp,
+.kp-section {
+  display: grid;
+  gap: 12px;
+}
+.kp {
+  gap: 22px;
+}
+.kp-hello h1,
+.kp-welcome h1 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+.kp-hello p {
+  margin: 4px 0 0;
+  color: var(--ink-3);
+}
+.kp-section h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+.kp-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: inherit;
+  text-decoration: none;
+}
+.kp-card p {
+  margin: 0;
+}
+.kp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.kp-row span {
+  display: grid;
+}
+.kp-row small {
+  color: var(--ink-3);
+}
+.kp-go {
+  color: var(--green-800);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.kp-job {
+  border-left: 6px solid var(--green-600);
+}
+.kp-date {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+.kp-date span {
+  color: var(--ink-3);
+}
+.kp-service {
+  font-weight: 600;
+}
+.kp-muted {
+  color: var(--ink-3);
+}
+.kp-fine {
+  font-size: 0.88rem;
+  margin: 0;
+}
+.kp-badge {
+  justify-self: start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--green-100);
+  color: var(--green-900);
+  font-weight: 700;
+}
+.kp-link {
+  justify-self: start;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--green-800);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.kp-invoice.is-late {
+  border-color: #f3c3bd;
+  background: #fff8f7;
+}
+.kp-amount {
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+.kp-pay {
+  font-variant-numeric: tabular-nums;
+}
+.kp-photos summary,
+.kp-card > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--green-800);
+}
+.kp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.kp-grid a {
+  display: grid;
+  gap: 2px;
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.kp-grid img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.kp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 4px;
+}
+.kp-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.kp-list li {
+  display: grid;
+}
+.kp-list span {
+  color: var(--ink-3);
+  font-size: 0.9rem;
+}
+.kp-empty {
+  margin: 0;
+  padding: 14px;
+  border: 1.5px dashed var(--line);
+  border-radius: 14px;
+  color: var(--ink-3);
+}
+.kp-ok {
+  background: var(--green-100);
+}
+.kp-error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fdecea;
+  color: var(--danger);
+}
+.kp-foot {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  padding-top: 8px;
+}
+.kp-loading {
+  text-align: center;
+  padding: 60px 0;
+}

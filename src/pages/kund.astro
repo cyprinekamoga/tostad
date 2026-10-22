@@ -1,0 +1,30 @@
+---
+// Kundportalen. Visas inte i Google; kunden kommer hit med sin personliga länk.
+import '@fontsource-variable/inter/wght.css';
+import '../styles/global.css';
+import '../styles/portal.css';
+import { Image } from 'astro:assets';
+import logo from '../assets/brand/logo.png';
+import Portal from '../app/portal/Portal.jsx';
+---
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Mina sidor | TO Städ & Flytt</title>
+    <meta name="description" content="Dina bokningar, fotorapporter, offerter och fakturor hos TO Städ & Flytt." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0b3d24" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body class="kp-body">
+    <header class="kp-top">
+      <a href="/"><Image src={logo} alt="" width={36} height={36} loading="eager" /> TO Städ &amp; Flytt</a>
+    </header>
+    <main class="kp-main">
+      <Portal client:only="preact" />
+    </main>
+  </body>
+</html>

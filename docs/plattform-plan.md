@@ -225,3 +225,12 @@ Tested end to end against the live database with an admin and two employees on p
 - The privacy policy has a section for applicants.
 
 Tested end to end on computer and phone: 26 checks, including access rules, file checks and the cleanup.
+
+## 15. Customer portal: what is live
+
+- `/kund`: "Mina sidor" for customers, built for phones. Shows quotes to answer, upcoming bookings (date, time, address, who is coming, "on our way" on the day), invoices to pay (bankgiro and OCR, PDF), earlier jobs with the photo report, book again, report damage, all invoices and quotes, the customer's details, and a message form that lands in the inbox linked to the customer.
+- Login without email for now: each customer gets a personal secret link, created under Kunder (Mina sidor for the customer) and sent by SMS or email from your phone. The key is removed from the address bar and remembered on the device until "Logga ut". A new link makes the old one stop working; "Stäng av" turns the portal off for that customer. You see when the customer last opened it.
+- The portal never shows job prices for staff, internal notes or other customers' data.
+- When email is set up in phase 6, customers can also ask for a login link themselves.
+
+Tested end to end with a customer on a phone: 20 checks, including old and guessed links.
