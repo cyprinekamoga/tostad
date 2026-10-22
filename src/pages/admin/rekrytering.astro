@@ -1,0 +1,7 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import AdminApp from '../../app/AdminApp.jsx';
+---
+<AppLayout title="Rekrytering" heading="Administration: Rekrytering">
+  <AdminApp client:only="preact" page="rekrytering" />
+</AppLayout>

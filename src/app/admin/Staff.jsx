@@ -26,6 +26,12 @@ export default function Staff({ me }) {
 
   useEffect(() => {
     load();
+    // Från rekryteringen: öppna formuläret med den anställdas uppgifter.
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('ny')) {
+      setAdding({ full_name: q.get('namn') ?? '', email: q.get('epost') ?? '', phone: q.get('tel') ?? '' });
+      window.history.replaceState(null, '', window.location.pathname);
+    }
   }, []);
 
   const admins = (rows ?? []).filter((p) => p.active && p.role !== 'employee').length;
@@ -124,6 +130,7 @@ export default function Staff({ me }) {
 
       <Modal open={adding} label="Lägg till person" onClose={() => setAdding(false)}>
         <AddForm
+          prefill={typeof adding === 'object' ? adding : null}
           usedColors={(rows ?? []).filter((p) => p.active).map((p) => p.color.toLowerCase())}
           canAddAdmin={isOwner && admins < 3}
           onCancel={() => setAdding(false)}
@@ -144,8 +151,8 @@ export default function Staff({ me }) {
   );
 }
 
-function AddForm({ usedColors, canAddAdmin, onCancel, onCreated }) {
-  const [form, setForm] = useState({ full_name: '', email: '', phone: '', role: 'employee', color: COLORS.find((c) => !usedColors.includes(c)) ?? COLORS[0] });
+function AddForm({ prefill, usedColors, canAddAdmin, onCancel, onCreated }) {
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '', role: 'employee', color: COLORS.find((c) => !usedColors.includes(c)) ?? COLORS[0], ...(prefill ?? {}) });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (key) => (e) => setForm({ ...form, [key]: e.currentTarget.value });
