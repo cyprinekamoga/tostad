@@ -19,7 +19,7 @@ export default defineConfig({
   integrations: [
     preact(),
     sitemap({
-      filter: (page) => !/\/(tack|404)(\.html)?$/.test(page) && !/\/(admin|app|logga-in|dokument)(\/|\.html|$)/.test(page),
+      filter: (page) => !/\/(tack|404|jobb\/annons)(\.html)?$/.test(page) && !/\/(admin|app|logga-in|dokument)(\/|\.html|$)/.test(page),
       changefreq: 'monthly',
       priority: 0.7,
       serialize(item) {

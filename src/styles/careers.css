@@ -1,0 +1,133 @@
+/* Lediga jobb och ansökan */
+.container--narrow {
+  max-width: 760px;
+}
+.jobs-hero p {
+  max-width: 62ch;
+}
+.jobs-perks {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+}
+.jobs-perks li {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.jobs-perks strong {
+  display: block;
+  color: var(--green-900);
+  margin-bottom: 4px;
+}
+.jobs-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: grid;
+  gap: 12px;
+}
+.job-card {
+  display: grid;
+  gap: 4px;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: inherit;
+  text-decoration: none;
+}
+.job-card:hover {
+  border-color: var(--green-600);
+}
+.job-card strong {
+  font-size: 1.2rem;
+  color: var(--green-900);
+}
+.job-card span {
+  color: var(--ink-3);
+}
+.job-card p {
+  margin: 4px 0 0;
+}
+.job-card .job-more {
+  color: var(--green-800);
+  font-weight: 700;
+}
+.jobs-empty {
+  padding: 18px;
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius);
+}
+.job-ad {
+  padding-top: 28px;
+  padding-bottom: 48px;
+}
+.job-meta {
+  color: var(--ink-3);
+  font-weight: 600;
+  margin: 0;
+}
+.job-text ul {
+  padding-left: 1.2em;
+}
+.job-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 18px;
+  padding: 16px;
+  background: var(--green-50);
+  border-radius: var(--radius);
+  margin: 24px 0;
+}
+.job-facts dt {
+  color: var(--ink-3);
+}
+.job-facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+.apply-form {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: clamp(18px, 4vw, 28px);
+}
+.apply-radios {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  align-items: center;
+}
+.apply-radios legend {
+  width: 100%;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.apply-radios label {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.apply-error {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fdecea;
+  color: var(--danger);
+  margin: 0;
+}
+.apply-done {
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--green-100);
+}
+.apply-done h3 {
+  margin-top: 0;
+}

@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import JobList from '../app/careers/JobList.jsx';
+import '../styles/careers.css';
+---
+<Base
+  title="Jobba hos oss: lediga jobb inom städ och flytt"
+  description="Lediga jobb hos TO Städ & Flytt i Stockholm. Vi söker städare och flyttpersonal. Se aktuella tjänster och skicka din ansökan med CV direkt här."
+  breadcrumbs={[{ name: 'Jobba hos oss', href: '/jobb' }]}
+>
+  <section class="section section--tight jobs-hero">
+    <div class="container">
+      <Breadcrumbs items={[{ name: 'Jobba hos oss', href: '/jobb' }]} />
+      <h1>Jobba hos TO Städ &amp; Flytt</h1>
+      <p class="lead">Vi är ett växande städ och flyttföretag i Stockholm. Gillar du att göra ett ordentligt jobb och att kunderna blir glada? Då vill vi gärna höra av dig.</p>
+      <ul class="jobs-perks">
+        <li><strong>Schemat i mobilen</strong>Du ser dina jobb, adresser och kollegor i vår app och stämplar in och ut där.</li>
+        <li><strong>Tydliga uppdrag</strong>Varje jobb har en checklista, så du vet exakt vad som ska göras.</li>
+        <li><strong>Du jobbar i team</strong>Flyttar och större städningar gör vi tillsammans.</li>
+        <li><strong>Enkel ansökan</strong>Skriv några rader om dig själv och bifoga ditt CV. Vi svarar alla som söker.</li>
+      </ul>
+    </div>
+  </section>
+  <JobList client:only="preact" />
+</Base>

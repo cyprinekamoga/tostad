@@ -1,0 +1,14 @@
+---
+// En annons. Innehållet hämtas när sidan öppnas (/jobb/annons?a=...), så att nya annonser
+// syns direkt utan att webbplatsen behöver byggas om.
+import Base from '../../layouts/Base.astro';
+import JobAd from '../../app/careers/JobAd.jsx';
+import '../../styles/careers.css';
+---
+<Base
+  title="Ledigt jobb hos TO Städ & Flytt i Stockholm"
+  description="Ledigt jobb hos TO Städ & Flytt i Stockholm. Läs om tjänsten och skicka din ansökan med personligt brev och CV direkt på sidan."
+  breadcrumbs={[{ name: 'Jobba hos oss', href: '/jobb' }]}
+>
+  <JobAd client:only="preact" />
+</Base>
