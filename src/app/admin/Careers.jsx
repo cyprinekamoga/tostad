@@ -142,11 +142,11 @@ function ApplicationDetail({ app, vacancyTitle, onChanged, onDeleted }) {
       if (e) throw new Error('Kunde inte spara.');
     });
 
-  // CV-länken gäller i en minut och öppnas direkt.
+  // CV:t laddas ner via en länk som gäller i en minut. Sidan står kvar.
   async function openCv() {
     const { data, error: e } = await sb.storage.from('cv').createSignedUrl(app.cv_path, 60, { download: app.cv_name || true });
-    if (e) return setError('Kunde inte öppna CV:t.');
-    window.open(data.signedUrl, '_blank', 'noopener');
+    if (e) return setError('Kunde inte hämta CV:t.');
+    window.location.assign(data.signedUrl);
   }
 
   async function remove() {
@@ -178,7 +178,7 @@ function ApplicationDetail({ app, vacancyTitle, onChanged, onDeleted }) {
         <dt>Personligt brev</dt><dd>{app.letter}</dd>
       </dl>
       {app.cv_path ? (
-        <button class="btn btn--ghost btn--sm" type="button" onClick={openCv}>Öppna CV ({app.cv_name || 'fil'})</button>
+        <button class="btn btn--ghost btn--sm" type="button" onClick={openCv}>Ladda ner CV ({app.cv_name || 'fil'})</button>
       ) : (
         <p class="muted">Inget CV bifogat.</p>
       )}

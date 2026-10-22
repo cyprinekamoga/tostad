@@ -72,6 +72,7 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 - **Tider** (`/admin/tider`): stämplade timmar per person och månad, rätta tider och exportera till Excel (CSV) för lönen.
 - **Offerter** (`/admin/offerter`) och **Fakturor** (`/admin/fakturor`): offerter som kunden accepterar via länk, fakturor med löpnummer, OCR, RUT (krypterade personnummer), kreditfakturor, betalningar och påminnelser. Kunden ser dokumentet på `/dokument?t=…` och kan spara det som PDF. Skickade fakturor kan aldrig ändras eller tas bort.
 - **Ekonomi** (`/admin/ekonomi`) och **Inställningar** (`/admin/installningar`): obetalt, förfallet, RUT att ansöka om, bankgiro och betalningsvillkor.
+- **Rekrytering** (`/admin/rekrytering`): annonser som visas på `/jobb` (med JobPosting för Googles jobbsök) och ansökningar med personligt brev och CV. Nekade ansökningar raderas efter 24 månader och förfrågningar som inte blev uppdrag efter 12 månader (edge function `housekeeping`, körs när en administratör loggar in).
 - **Inkorgen** (`/admin/inkorg`) samlar bokningar, kontaktmeddelanden och skadeanmälningar från webbplatsen. Netlify Forms får en reservkopia.
 - Databasen ligger i Supabase (Stockholm). Tabeller och behörigheter finns i `supabase/migrations/`, serverfunktionerna i `supabase/functions/`.
 - Planen för kommande faser finns i `docs/plattform-plan.md`.

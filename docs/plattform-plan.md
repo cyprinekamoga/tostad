@@ -144,7 +144,7 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 - Tested end to end: activation, login, every admin page, staff invites, employee access limits, form submissions with photos.
 
 **Still manual until later phases**
-- Deleting enquiries that never became jobs after 12 months (privacy policy promise). Done by hand in the inbox until the scheduled cleanup is built.
+- (Done in phase 5: enquiries that never became jobs are deleted automatically after 12 months.)
 - Password reset by email needs the Resend setup; until then an admin creates a new login link under Personal.
 
 
@@ -207,3 +207,21 @@ Tested end to end against the live database with an admin and two employees on p
 **Still manual until phase 6**: emails are sent from your own mail app or SMS with the prepared text. Automatic emails come with Resend.
 
 **Tested**: the invoice rules were tested inside the live database in a transaction that was rolled back (nothing kept, no numbers used): sending, numbering, OCR, locks, encryption, credit notes. The screens were tested end to end in the browser on computer and phone.
+
+## 14. Phase 5: what is live
+
+**Public**
+- `/jobb`: why work with us, open positions, and the application form (also for open applications when nothing is advertised). Linked from the footer.
+- `/jobb/annons?a=...`: one page per ad with the full text, facts (employment, place, salary, start, last day) and the form. The page carries JobPosting data so Google can show it in job search.
+- Application: name, email, phone, driving licence, start date, experience, personal letter and CV (PDF or Word, up to 10 MB). The server checks the file content, not just the name, and limits applications to 5 per hour per connection. Applicants see a thank you message.
+
+**Admin (`/admin/rekrytering`)**
+- Applications: new and interview, hired, no thanks. Letter, contact details, CV download through a link valid for one minute, status, notes, email, delete. "Lägg till som personal" opens the staff form with the person's details. A number in the menu shows new applications.
+- Ads: write, publish, close. Published ads show on /jobb straight away. A blank line gives a new paragraph and lines starting with "-" become a list.
+
+**Privacy**
+- Only admins can read applications and CVs. CVs are in private storage in Stockholm.
+- Clean up, as the privacy policy says: rejected applications and their CVs are deleted 24 months after the decision, and enquiries that never became jobs are deleted after 12 months (damage reports are kept). It runs automatically when an admin logs in.
+- The privacy policy has a section for applicants.
+
+Tested end to end on computer and phone: 26 checks, including access rules, file checks and the cleanup.
