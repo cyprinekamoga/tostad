@@ -126,7 +126,7 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 
 1. **Supabase:** OK to create a new project "tostadflytt" in Stockholm. The free plan allows 2 active projects and you already have 2, so either pause or delete the unused US project, or upgrade to Pro.
 2. **Staff:** how many employees, and the names and emails of the 1 or 2 extra admins.
-3. **Bankgiro number** for invoices, and ask your bank to turn on OCR.
+3. **Bankgiro number** for invoices, and ask your bank to turn on OCR. Enter it under Inställningar.
 4. **SMS:** an account at 46elks (I'll guide you), and OK on the cost.
 5. **Email:** an account at Resend, then I'll give you the DNS records to add at one.com.
 6. **Reminder fee:** do you want to charge one? The law allows up to 60 kr, only if your terms say so before the job. Late interest is the reference rate plus 8 percentage points.
@@ -184,3 +184,26 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 - Planner: absences show in the week view, and a job booked on an absence day gives a warning. The job form shows who is away, the checklist, and what staff did (on the way, done, photos).
 
 Tested end to end against the live database with an admin and two employees on phones: 48 checks, including the access rules.
+
+## 13. Phase 4: what is live
+
+**Quotes (`/admin/offerter`)**
+- New quote, or "Skapa offert" from a booking in the inbox (service, date, address and price are filled in).
+- Lines with price including or excluding VAT, RUT per line, RUT for one or two people, live totals and a preview.
+- Send: the quote gets a private link to copy, email or SMS. You see when the customer opened it.
+- The customer reads the quote at `/dokument`, saves it as PDF, and accepts with their name or declines. An accepted quote becomes a booking in the inbox, ready to turn into a job.
+
+**Invoices (`/admin/fakturor`)**
+- From a job ("Skapa faktura" in the job form), from an accepted quote, or by hand.
+- RUT: the buyer's name and personal identity number. The number is stored encrypted in the database, shown masked, never shown to customers or staff, and every time it is shown in full it is logged.
+- Sending gives the invoice the next number without gaps, an OCR number (length and check digit, as Bankgirot checks), invoice date and due date (10 days by default). After that the invoice can never be changed or deleted; corrections are made with a credit note that refers to it.
+- Mark as paid (date and amount), send a reminder (no fee), credit, and RUT status (not applied, applied, paid out, denied).
+- Invoices show everything the VAT act requires: number, dates, both parties, what was done and when, amounts per VAT rate, VAT number and "Godkänd för F-skatt".
+
+**Money (`/admin/ekonomi`)**: unpaid, overdue, paid this month, RUT waiting from Skatteverket, paid invoices to apply for RUT for (with the personal number on request), and month by month totals.
+
+**Settings (`/admin/installningar`)**: bankgiro, VAT number, payment terms, quote validity, next invoice number (only before the first invoice), texts.
+
+**Still manual until phase 6**: emails are sent from your own mail app or SMS with the prepared text. Automatic emails come with Resend.
+
+**Tested**: the invoice rules were tested inside the live database in a transaction that was rolled back (nothing kept, no numbers used): sending, numbering, OCR, locks, encryption, credit notes. The screens were tested end to end in the browser on computer and phone.

@@ -198,6 +198,14 @@
   border-radius: 12px;
   padding: 20px;
 }
+.doc-answer .cp-check {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.doc-answer .cp-check input {
+  margin-top: 3px;
+  flex: none;
+}
 .doc-answer h2 {
   margin: 0;
   font-size: 1.2rem;
@@ -209,6 +217,7 @@
   .doc-lines tr {
     display: grid;
     grid-template-columns: 1fr auto;
+    column-gap: 16px;
     border-bottom: 1px solid #dfe7e2;
     padding: 6px 0;
   }

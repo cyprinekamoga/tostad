@@ -70,6 +70,8 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 - **Personalens app** (`/app`): byggd för mobilen och kan läggas på hemskärmen. Dagens jobb med adress, navigering och kundens telefon, jobbsida med checklista, foton före och efter, "Vi är på väg" och "Klart", stämpling in och ut (tiden sätts av systemet, platsen sparas bara vid stämplingen), mina tider per månad, ledighet, sjukanmälan, dagar man inte kan jobba, passbyten och en kalenderlänk till telefonens kalender.
 - **Ledighet** (`/admin/ledighet`): godkänn eller neka ledighet och passbyten, se kommande frånvaro och lägg in frånvaro åt någon. Frånvaron syns i planeringen.
 - **Tider** (`/admin/tider`): stämplade timmar per person och månad, rätta tider och exportera till Excel (CSV) för lönen.
+- **Offerter** (`/admin/offerter`) och **Fakturor** (`/admin/fakturor`): offerter som kunden accepterar via länk, fakturor med löpnummer, OCR, RUT (krypterade personnummer), kreditfakturor, betalningar och påminnelser. Kunden ser dokumentet på `/dokument?t=…` och kan spara det som PDF. Skickade fakturor kan aldrig ändras eller tas bort.
+- **Ekonomi** (`/admin/ekonomi`) och **Inställningar** (`/admin/installningar`): obetalt, förfallet, RUT att ansöka om, bankgiro och betalningsvillkor.
 - **Inkorgen** (`/admin/inkorg`) samlar bokningar, kontaktmeddelanden och skadeanmälningar från webbplatsen. Netlify Forms får en reservkopia.
 - Databasen ligger i Supabase (Stockholm). Tabeller och behörigheter finns i `supabase/migrations/`, serverfunktionerna i `supabase/functions/`.
 - Planen för kommande faser finns i `docs/plattform-plan.md`.
