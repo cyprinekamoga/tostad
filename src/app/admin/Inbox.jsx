@@ -226,6 +226,7 @@ function Detail({ item, names, onChanged, onDeleted }) {
       <div class="cp-actions">
         {jobId && <a class="btn btn--sm" href={`/admin/planering?jobb=${jobId}`}>Visa jobbet</a>}
         {jobId === null && <a class="btn btn--sm" href={`/admin/planering?fran=${item.id}`}>Skapa jobb</a>}
+        {item.kind !== 'skadeanmalan' && <a class="btn btn--ghost btn--sm" href={`/admin/offerter?fran=${item.id}`}>Skapa offert</a>}
         {item.status !== 'hanterad' && (
           <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('hanterad')}>Markera som hanterad</button>
         )}

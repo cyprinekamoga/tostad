@@ -212,3 +212,22 @@ export function messageFor(kind, doc, url, reminder = false) {
     return `${hi}\n\nVi har inte fått betalt för faktura ${doc.number} på ${kr(doc.to_pay)}, som förföll ${doc.due_date}. Har du redan betalat kan du bortse från detta. Fakturan med OCR-nummer finns här:\n${url}\n\nVänliga hälsningar\nTO Städ & Flytt\n072 222 88 00`;
   return `${hi}\n\nTack för att du anlitade TO Städ & Flytt! Här är faktura ${doc.number} på ${kr(doc.to_pay)} med förfallodag ${doc.due_date}:\n${url}\n\nVänliga hälsningar\nTO Städ & Flytt\n072 222 88 00`;
 }
+
+/** Företagsuppgifterna så som dokumentet visar dem (samma som på kundens länk). */
+export function companyFor(s) {
+  return {
+    name: 'TO Städ & Flytt',
+    legalName: 'TO Städ och Flytt AB',
+    orgNr: '559470-3398',
+    street: 'Hasselgatan 58',
+    postalCode: '194 37',
+    city: 'Upplands Väsby',
+    web: 'tostadflytt.se',
+    vatNr: s?.vat_nr ?? 'SE559470339801',
+    bankgiro: s?.bankgiro ?? null,
+    email: s?.email ?? 'info@tostadflytt.se',
+    phone: s?.phone ?? '072 222 88 00',
+    lateInterest: s?.late_interest ?? '',
+    invoiceNote: s?.invoice_note ?? '',
+  };
+}

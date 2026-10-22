@@ -1,0 +1,8 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import AdminApp from '../../app/AdminApp.jsx';
+import '../../styles/doc.css';
+---
+<AppLayout title="Inställningar" heading="Administration: Inställningar">
+  <AdminApp client:only="preact" page="installningar" />
+</AppLayout>

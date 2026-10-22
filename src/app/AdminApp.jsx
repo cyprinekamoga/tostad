@@ -9,6 +9,10 @@ import Planner from './admin/Planner.jsx';
 import MapPage from './admin/MapPage.jsx';
 import Absences from './admin/Absences.jsx';
 import TimeReport from './admin/TimeReport.jsx';
+import Quotes from './admin/Quotes.jsx';
+import Invoices from './admin/Invoices.jsx';
+import Money from './admin/Money.jsx';
+import Settings from './admin/Settings.jsx';
 
 const PAGES = {
   oversikt: { href: '/admin', label: 'Översikt', Page: Overview },
@@ -16,9 +20,13 @@ const PAGES = {
   karta: { href: '/admin/karta', label: 'Karta', Page: MapPage },
   inkorg: { href: '/admin/inkorg', label: 'Inkorg', Page: Inbox },
   kunder: { href: '/admin/kunder', label: 'Kunder', Page: Customers },
+  offerter: { href: '/admin/offerter', label: 'Offerter', Page: Quotes },
+  fakturor: { href: '/admin/fakturor', label: 'Fakturor', Page: Invoices },
+  ekonomi: { href: '/admin/ekonomi', label: 'Ekonomi', Page: Money },
   ledighet: { href: '/admin/ledighet', label: 'Ledighet', Page: Absences },
   tider: { href: '/admin/tider', label: 'Tider', Page: TimeReport },
   personal: { href: '/admin/personal', label: 'Personal', Page: Staff },
+  installningar: { href: '/admin/installningar', label: 'Inställningar', Page: Settings },
 };
 
 export default function AdminApp({ page }) {

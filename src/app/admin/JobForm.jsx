@@ -294,6 +294,7 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
         <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara'}</button>
         <button class="btn btn--ghost" type="button" onClick={onClose}>Avbryt</button>
         {job && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Ta bort</button>}
+        {job && job.status !== 'avbokad' && <a class="btn btn--ghost" href={`/admin/fakturor?jobb=${job.id}`}>Skapa faktura</a>}
       </div>
     </form>
   );

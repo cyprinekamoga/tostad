@@ -1709,3 +1709,68 @@ input[type='search'] {
   font-size: 0.85rem;
   color: #7a4d00;
 }
+
+/* Offerter och fakturor */
+.doc-editor .cp-fieldset {
+  gap: 10px;
+}
+.doc-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px 72px 110px 76px;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.doc-line input,
+.doc-line select {
+  min-height: 42px;
+  padding: 6px 8px;
+}
+.doc-line-text {
+  grid-column: 1 / -1;
+}
+.doc-line-rut {
+  grid-column: 1 / 3;
+  font-size: 0.88rem;
+}
+.doc-line-sum {
+  grid-column: 3 / 5;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.doc-line .st-link {
+  justify-self: end;
+}
+@media (min-width: 720px) {
+  .doc-line {
+    grid-template-columns: minmax(0, 1fr) 64px 72px 110px 76px;
+  }
+}
+.doc-editor-sum {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: end;
+  gap: 4px 18px;
+  margin: 0;
+}
+.doc-editor-sum dd {
+  margin: 0;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.doc-pnr {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+}
+.cp-modal:has(.doc-editor),
+.cp-modal:has(.doc-preview) {
+  width: min(860px, calc(100vw - 24px));
+}
+.doc-preview .doc-sheet {
+  box-shadow: none;
+  border: 1px solid var(--line);
+}

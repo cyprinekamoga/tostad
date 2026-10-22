@@ -1,0 +1,8 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import AdminApp from '../../app/AdminApp.jsx';
+import '../../styles/doc.css';
+---
+<AppLayout title="Ekonomi" heading="Administration: Ekonomi">
+  <AdminApp client:only="preact" page="ekonomi" />
+</AppLayout>
