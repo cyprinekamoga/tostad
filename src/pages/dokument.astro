@@ -1,0 +1,25 @@
+---
+// Kundens länk till en offert eller faktura. Visas inte i Google.
+import '@fontsource-variable/inter/wght.css';
+import '../styles/global.css';
+import '../styles/app.css';
+import '../styles/doc.css';
+import logo from '../assets/brand/logo.png';
+import DocumentPage from '../app/docs/DocumentPage.jsx';
+---
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offert och faktura | TO Städ & Flytt</title>
+    <meta name="description" content="Offert eller faktura från TO Städ & Flytt." />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+  </head>
+  <body class="doc-body">
+    <main class="doc-main">
+      <DocumentPage client:only="preact" logo={logo.src} />
+    </main>
+  </body>
+</html>

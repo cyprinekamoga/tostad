@@ -4,5 +4,6 @@ Disallow: /tack
 Disallow: /admin
 Disallow: /app
 Disallow: /logga-in
+Disallow: /dokument
 
 Sitemap: https://tostadflytt.se/sitemap-index.xml
