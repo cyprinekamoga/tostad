@@ -14,19 +14,19 @@ create table public.company_settings (
   phone text not null default '072 222 88 00' check (char_length(phone) <= 40),
   updated_at timestamptz not null default now()
 );
-insert into public.company_settings (id) values (1);
 
--- Löpnummer. Nästa nummer är value + 1.
+-- Löpnummer. Senast använda nummer per serie; första numret är 1001.
 create table public.counters (
   name text primary key,
   value bigint not null
 );
-insert into public.counters (name, value) values ('faktura', 1000), ('offert', 1000);
 
 create function private.next_number(p_name text) returns bigint
 language sql security definer set search_path = ''
 as $$
-  update public.counters set value = value + 1 where name = p_name returning value;
+  insert into public.counters as c (name, value) values (p_name, 1001)
+  on conflict (name) do update set value = c.value + 1
+  returning value;
 $$;
 
 create function private.luhn(p_digits text) returns int
@@ -186,24 +186,32 @@ create index invoices_quote_idx on public.invoices (quote_id);
 create index invoices_credit_of_idx on public.invoices (credit_of);
 create index invoices_created_by_idx on public.invoices (created_by);
 
--- Köpare som delar på RUT-avdraget. Personnumret är krypterat med en nyckel i Supabase Vault.
+-- Köpare som delar på RUT-avdraget, högst två per faktura (plats 1 och 2). Personnumret är
+-- krypterat (pgcrypto) med en nyckel i databasen. En plats som inte används töms i stället för
+-- att tas bort. (Den levande databasen har också en tom tabell rut_people_unused från ett
+-- tidigare utkast av den här migrationen.)
 create table public.rut_people (
-  id uuid primary key default gen_random_uuid(),
-  invoice_id uuid not null references public.invoices (id) on delete restrict,
-  name text not null check (char_length(name) between 1 and 200),
-  pnr_enc bytea not null,
-  pnr_last4 text not null check (pnr_last4 ~ '^\d{4}$'),
-  created_at timestamptz not null default now()
+  invoice_id uuid not null references public.invoices (id) on delete cascade,
+  slot int not null check (slot in (1, 2)),
+  id uuid not null default gen_random_uuid(),
+  name text check (char_length(name) <= 200),
+  pnr_enc bytea,
+  pnr_last4 text check (pnr_last4 ~ '^\d{4}$'),
+  created_at timestamptz not null default now(),
+  constraint rut_people_slots_pkey primary key (invoice_id, slot),
+  constraint rut_people_slots_id_key unique (id)
 );
-create index rut_people_invoice_idx on public.rut_people (invoice_id);
 
-select vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'rut_pnr_key', 'Krypterar personnummer för RUT-avdrag');
-
-create function private.pnr_key() returns text
-language sql stable security definer set search_path = ''
-as $$
-  select decrypted_secret from vault.decrypted_secrets where name = 'rut_pnr_key' limit 1;
-$$;
+-- Nyckeln skapas slumpmässigt i databasen och finns aldrig i koden. Funktionen kan bara
+-- anropas av andra funktioner i databasen, inte av användare.
+do $do$
+begin
+  execute format(
+    'create function private.pnr_key() returns text language sql immutable security definer set search_path = '''' as %L',
+    'select ' || quote_literal(encode(extensions.gen_random_bytes(32), 'hex'))
+  );
+end
+$do$;
 revoke execute on function private.pnr_key() from public, anon, authenticated;
 
 -- Räknar om summorna när ett utkast sparas.
@@ -310,7 +318,7 @@ create trigger quotes_guard before insert or update on public.quotes for each ro
 create trigger quotes_compute before insert or update on public.quotes for each row execute function public.docs_compute();
 create trigger invoices_guard before insert or update or delete on public.invoices for each row execute function public.invoices_guard();
 create trigger invoices_compute before insert or update on public.invoices for each row execute function public.docs_compute();
-create trigger rut_people_guard before insert or update or delete on public.rut_people for each row execute function public.rut_people_guard();
+create trigger rut_people_slots_guard before insert or update or delete on public.rut_people for each row execute function public.rut_people_guard();
 create trigger quotes_log after insert or update or delete on public.quotes for each row execute function public.log_change();
 create trigger invoices_log after insert or update or delete on public.invoices for each row execute function public.log_change();
 create trigger company_settings_touch before update on public.company_settings for each row execute function public.touch_updated_at();
@@ -332,17 +340,22 @@ begin
   if jsonb_typeof(p_people) <> 'array' or jsonb_array_length(p_people) > 2 then
     raise exception 'Högst två personer';
   end if;
-  delete from public.rut_people where invoice_id = p_invoice;
-  for p in select * from jsonb_array_elements(p_people) loop
+  for i in 1..2 loop
+    p := p_people -> (i - 1);
+    if p is null then
+      update public.rut_people set name = null, pnr_enc = null, pnr_last4 = null where invoice_id = p_invoice and slot = i;
+      continue;
+    end if;
     pnr := regexp_replace(coalesce(p ->> 'pnr', ''), '\D', '', 'g');
     if pnr !~ '^(19|20)\d{10}$' or private.luhn(substr(pnr, 3, 9)) <> substr(pnr, 12, 1)::int then
-      raise exception 'Personnumret % är inte giltigt', coalesce(p ->> 'name', '');
+      raise exception 'Personnumret för % är inte giltigt', coalesce(nullif(trim(p ->> 'name'), ''), 'köparen');
     end if;
     if char_length(trim(coalesce(p ->> 'name', ''))) = 0 then
       raise exception 'Namn saknas';
     end if;
-    insert into public.rut_people (invoice_id, name, pnr_enc, pnr_last4)
-    values (p_invoice, left(trim(p ->> 'name'), 200), extensions.pgp_sym_encrypt(pnr, private.pnr_key()), right(pnr, 4));
+    insert into public.rut_people (invoice_id, slot, name, pnr_enc, pnr_last4)
+    values (p_invoice, i, left(trim(p ->> 'name'), 200), extensions.pgp_sym_encrypt(pnr, private.pnr_key()), right(pnr, 4))
+    on conflict (invoice_id, slot) do update set name = excluded.name, pnr_enc = excluded.pnr_enc, pnr_last4 = excluded.pnr_last4;
   end loop;
 end;
 $$;
@@ -374,7 +387,7 @@ declare
   today date := (now() at time zone 'Europe/Stockholm')::date;
 begin
   select * into s from public.company_settings where id = 1;
-  if s.bankgiro is null then
+  if s.id is null or s.bankgiro is null then
     raise exception 'Lägg in bankgironumret under Inställningar först';
   end if;
   select * into inv from public.invoices where id = p_id for update;
@@ -390,10 +403,15 @@ begin
   if inv.delivery_date is null then
     raise exception 'Ange när tjänsten utfördes';
   end if;
-  if inv.rut <> 0 and (select count(*) from public.rut_people where invoice_id = p_id) <> inv.rut_persons then
+  if inv.rut <> 0 and (select count(*) from public.rut_people where invoice_id = p_id and slot <= inv.rut_persons and pnr_enc is not null) <> inv.rut_persons then
     raise exception 'Fyll i namn och personnummer för RUT-avdraget';
   end if;
   perform set_config('app.finalizing', 'on', true);
+  -- Personnummer som inte behövs för avdraget sparas inte på den skickade fakturan.
+  if inv.rut = 0 or inv.rut_persons < 2 then
+    update public.rut_people set name = null, pnr_enc = null, pnr_last4 = null
+     where invoice_id = p_id and (inv.rut = 0 or slot > inv.rut_persons);
+  end if;
   n := private.next_number('faktura');
   update public.invoices
      set number = n,
@@ -443,8 +461,8 @@ begin
           (select coalesce(jsonb_agg(l || jsonb_build_object('qty', -((l ->> 'qty')::numeric))), '[]'::jsonb) from jsonb_array_elements(o.lines) l),
           left(concat_ws(' ', 'Kreditering av faktura ' || o.number || '.', nullif(trim(p_reason), '')), 3000))
   returning id into new_id;
-  insert into public.rut_people (invoice_id, name, pnr_enc, pnr_last4)
-  select new_id, name, pnr_enc, pnr_last4 from public.rut_people where invoice_id = o.id;
+  insert into public.rut_people (invoice_id, slot, name, pnr_enc, pnr_last4)
+  select new_id, slot, name, pnr_enc, pnr_last4 from public.rut_people where invoice_id = o.id and pnr_enc is not null;
   update public.invoices set status = 'krediterad', updated_at = now() where id = o.id;
   perform set_config('app.finalizing', 'off', true);
   perform private.finalize(new_id);
@@ -466,14 +484,15 @@ begin
   if p_next < 1 or p_next > 999999999 then
     raise exception 'Ogiltigt nummer';
   end if;
-  update public.counters set value = p_next - 1 where name = 'faktura';
+  insert into public.counters as c (name, value) values ('faktura', p_next - 1)
+  on conflict (name) do update set value = p_next - 1;
 end;
 $$;
 
 create function public.next_invoice_number() returns bigint
 language sql stable security definer set search_path = ''
 as $$
-  select value + 1 from public.counters where name = 'faktura' and private.is_admin();
+  select case when private.is_admin() then coalesce((select value + 1 from public.counters where name = 'faktura'), 1001) end;
 $$;
 
 -- Behörigheter: bara administratörer.

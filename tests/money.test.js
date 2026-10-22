@@ -42,6 +42,7 @@ test('OCR med längd- och kontrollsiffra', () => {
   assert.equal(luhnDigit('7992739871'), '3');
   assert.equal(ocrFor(1001), '100164'); // 1001 + längd 6, Luhn över 10016 ger 4
   assert.ok(validOcr(ocrFor(1001)));
+  assert.equal(ocrFor(123456), '12345682'); // samma som databasens private.ocr
   assert.ok(validOcr(ocrFor(123456)));
   assert.ok(!validOcr('100165'));
   assert.ok(!validOcr('10014'));
