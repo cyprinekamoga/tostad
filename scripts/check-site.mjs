@@ -41,7 +41,8 @@ for (const f of files) {
     if (!noindex) descs.set(desc, [...(descs.get(desc) || []), rel]);
   }
   if (!canonical && !noindex) problems.push(`${rel}: saknar canonical`);
-  if (h1s !== 1) problems.push(`${rel}: ${h1s} st h1`);
+  // Sidor som inte indexeras kan få sin rubrik från skriptet (till exempel /dokument).
+  if (h1s > 1 || (h1s === 0 && !noindex)) problems.push(`${rel}: ${h1s} st h1`);
   for (const m of html.matchAll(/<img\b[^>]*>/g)) if (!/\salt(=|\s|>|\/)/.test(m[0])) problems.push(`${rel}: img utan alt ${m[0].slice(0, 80)}`);
   for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
     try { JSON.parse(m[1]); } catch (e) { problems.push(`${rel}: ogiltig JSON-LD ${e.message}`); }
