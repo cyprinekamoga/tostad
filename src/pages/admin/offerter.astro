@@ -3,6 +3,6 @@ import AppLayout from '../../layouts/AppLayout.astro';
 import AdminApp from '../../app/AdminApp.jsx';
 import '../../styles/doc.css';
 ---
-<AppLayout title="Offerter" heading="Administration: Offerter">
+<AppLayout title="Offerter" bare>
   <AdminApp client:only="preact" page="offerter" />
 </AppLayout>

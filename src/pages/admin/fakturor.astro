@@ -3,6 +3,6 @@ import AppLayout from '../../layouts/AppLayout.astro';
 import AdminApp from '../../app/AdminApp.jsx';
 import '../../styles/doc.css';
 ---
-<AppLayout title="Fakturor" heading="Administration: Fakturor">
+<AppLayout title="Fakturor" bare>
   <AdminApp client:only="preact" page="fakturor" />
 </AppLayout>

@@ -14,6 +14,7 @@ import Invoices from './admin/Invoices.jsx';
 import Money from './admin/Money.jsx';
 import Settings from './admin/Settings.jsx';
 import Careers from './admin/Careers.jsx';
+import logo from '../assets/brand/logo.png';
 
 const PAGES = {
   oversikt: { href: '/admin', label: 'Översikt', Page: Overview },
@@ -31,8 +32,26 @@ const PAGES = {
   installningar: { href: '/admin/installningar', label: 'Inställningar', Page: Settings },
 };
 
+// Menyn i grupper, så att den går att överblicka.
+const GROUPS = [
+  ['', ['oversikt']],
+  ['Planering', ['planering', 'karta', 'ledighet', 'tider']],
+  ['Kunder och ekonomi', ['inkorg', 'kunder', 'offerter', 'fakturor', 'ekonomi']],
+  ['Företaget', ['personal', 'rekrytering', 'installningar']],
+];
+const MENU_KEY = 'tostad-meny';
+const readMenuHidden = () => {
+  try {
+    return localStorage.getItem(MENU_KEY) === 'dold';
+  } catch {
+    return false;
+  }
+};
+
 export default function AdminApp({ page }) {
   const [me, setMe] = useState(null);
+  const [menuHidden, setMenuHidden] = useState(readMenuHidden);
+  const [drawer, setDrawer] = useState(false);
   const [newCount, setNewCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [appCount, setAppCount] = useState(0);
@@ -77,29 +96,66 @@ export default function AdminApp({ page }) {
     go('/logga-in');
   }
 
-  if (!me) return <p class="muted" aria-busy="true">Laddar …</p>;
-  const { Page } = PAGES[page] ?? PAGES.oversikt;
+  if (!me) return <p class="muted adm-loading" aria-busy="true">Laddar …</p>;
+  const current = PAGES[page] ?? PAGES.oversikt;
+  const { Page } = current;
+  const badge = { inkorg: newCount, ledighet: pendingCount, rekrytering: appCount };
+
+  function toggleMenu() {
+    // På mobilen glider menyn in över sidan. På datorn kan den döljas och valet sparas.
+    if (window.matchMedia('(max-width: 959px)').matches) return setDrawer(!drawer);
+    const next = !menuHidden;
+    setMenuHidden(next);
+    try {
+      localStorage.setItem(MENU_KEY, next ? 'dold' : 'visas');
+    } catch {
+      /* ignoreras */
+    }
+  }
 
   return (
-    <div class="cp-shell">
-      <nav class="cp-nav" aria-label="Administration">
-        {Object.entries(PAGES).map(([key, p]) => (
-          <a href={p.href} aria-current={key === page ? 'page' : undefined}>
-            {p.label}
-            {key === 'inkorg' && newCount > 0 && <span class="count">{newCount}</span>}
-            {key === 'ledighet' && pendingCount > 0 && <span class="count">{pendingCount}</span>}
-            {key === 'rekrytering' && appCount > 0 && <span class="count">{appCount}</span>}
-          </a>
-        ))}
-        <span class="cp-me">{me.profile.full_name}</span>
-        <a href="/app">Mina jobb</a>
-        <button type="button" onClick={signOut}>Logga ut</button>
-      </nav>
-      <section style="min-width:0">
-        <PageBoundary>
-          <Page me={me} onInboxChange={refreshCount} />
-        </PageBoundary>
-      </section>
+    <div class={`adm${menuHidden ? ' is-menu-hidden' : ''}${drawer ? ' is-drawer-open' : ''}`}>
+      <header class="adm-top">
+        <button class="adm-burger" type="button" aria-label={menuHidden ? 'Visa menyn' : 'Dölj menyn'} aria-expanded={!menuHidden || drawer} onClick={toggleMenu}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+        </button>
+        <a class="adm-brand" href="/admin" aria-label="Översikt">
+          <img src={logo.src} alt="" width="32" height="32" />
+          <span>TO Städ &amp; Flytt</span>
+        </a>
+        <h1 class="adm-title">{current.label}</h1>
+        <div class="adm-user">
+          <span class="adm-name">{me.profile.full_name}</span>
+          <a href="/app">Mina jobb</a>
+          <button type="button" onClick={signOut}>Logga ut</button>
+        </div>
+      </header>
+      <div class="adm-body">
+        <nav class="adm-nav" aria-label="Administration">
+          {GROUPS.map(([title, keys]) => (
+            <div class="adm-group">
+              {title && <p class="adm-group-title">{title}</p>}
+              {keys.map((key) => (
+                <a href={PAGES[key].href} aria-current={key === page ? 'page' : undefined}>
+                  <span>{PAGES[key].label}</span>
+                  {badge[key] > 0 && <span class="count">{badge[key]}</span>}
+                </a>
+              ))}
+            </div>
+          ))}
+          <div class="adm-group adm-nav-me">
+            <p class="adm-group-title">{me.profile.full_name}</p>
+            <a href="/app">Mina jobb</a>
+            <button type="button" onClick={signOut}>Logga ut</button>
+          </div>
+        </nav>
+        <button class="adm-scrim" type="button" aria-label="Stäng menyn" tabIndex={-1} onClick={() => setDrawer(false)} />
+        <section class="adm-page">
+          <PageBoundary>
+            <Page me={me} onInboxChange={refreshCount} />
+          </PageBoundary>
+        </section>
+      </div>
     </div>
   );
 }

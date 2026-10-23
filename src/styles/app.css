@@ -1800,3 +1800,355 @@ input[type='search'] {
   padding: 2px 8px;
   border-radius: 6px;
 }
+
+/* Administrationens ram: övre rad, meny som kan döljas och sidan */
+.app-main--bare {
+  max-width: none;
+  padding: 0;
+}
+.adm-loading {
+  padding: 24px;
+}
+.adm-top {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 16px;
+  background: var(--green-950);
+  color: #fff;
+}
+.adm-burger {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 0;
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+  cursor: pointer;
+}
+.adm-burger:hover {
+  background: rgb(255 255 255 / 0.16);
+}
+.adm-burger svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.adm-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 750;
+  flex: none;
+}
+.adm-brand img {
+  border-radius: 50%;
+  background: #fff;
+}
+.adm-title {
+  margin: 0;
+  padding-left: 14px;
+  border-left: 1px solid rgb(255 255 255 / 0.2);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.adm-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+.adm-name {
+  color: #cfe9da;
+  font-size: 0.9rem;
+  margin-right: 6px;
+}
+.adm-user a,
+.adm-user button {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: none;
+  color: #fff;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.adm-user a:hover,
+.adm-user button:hover {
+  background: rgb(255 255 255 / 0.12);
+}
+.adm-body {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: calc(100dvh - 56px);
+}
+.adm.is-menu-hidden .adm-body {
+  grid-template-columns: minmax(0, 1fr);
+}
+.adm.is-menu-hidden .adm-nav {
+  display: none;
+}
+.adm-nav {
+  position: sticky;
+  top: 56px;
+  align-self: start;
+  max-height: calc(100dvh - 56px);
+  overflow-y: auto;
+  padding: 14px 10px 24px;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  display: grid;
+  gap: 14px;
+}
+.adm-group {
+  display: grid;
+  gap: 2px;
+}
+.adm-group-title {
+  margin: 0;
+  padding: 0 12px 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.adm-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  color: var(--ink-2);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+.adm-nav a:hover {
+  background: var(--green-50);
+  color: var(--green-900);
+}
+.adm-nav a[aria-current='page'] {
+  background: var(--green-900);
+  color: #fff;
+}
+.adm-scrim {
+  display: none;
+}
+.adm-page {
+  min-width: 0;
+  padding: 22px clamp(16px, 2.5vw, 32px) 56px;
+  max-width: 1600px;
+}
+.adm.is-menu-hidden .adm-page {
+  max-width: none;
+}
+@media (max-width: 959px) {
+  .adm-body,
+  .adm.is-menu-hidden .adm-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .adm-brand span,
+  .adm-name {
+    display: none;
+  }
+  .adm-title {
+    padding-left: 10px;
+  }
+  .adm-user a {
+    display: none;
+  }
+  .adm-nav,
+  .adm.is-menu-hidden .adm-nav {
+    display: grid;
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    z-index: 35;
+    width: min(280px, 82vw);
+    max-height: none;
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+    box-shadow: var(--shadow-lg);
+  }
+  .adm.is-drawer-open .adm-nav {
+    transform: none;
+  }
+  .adm.is-drawer-open .adm-scrim {
+    display: block;
+    position: fixed;
+    inset: 56px 0 0;
+    z-index: 30;
+    border: 0;
+    background: rgb(6 42 25 / 0.4);
+  }
+  .adm-page {
+    padding: 16px 16px 48px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .adm-nav {
+    transition: none;
+  }
+}
+.adm-nav-me {
+  display: none;
+}
+.adm-nav-me button {
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-align: left;
+  cursor: pointer;
+}
+@media (max-width: 959px) {
+  .adm-nav .adm-nav-me {
+    display: grid;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* Planeringens verktygsrad */
+.pl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-bottom: 10px;
+}
+.pl-bar-left,
+.pl-bar-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+.pl-bar .pl-title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.pl-date {
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+  background: #fff;
+}
+.pl-legend-wrap {
+  margin-bottom: 14px;
+  font-size: 0.88rem;
+}
+.pl-legend-wrap summary {
+  cursor: pointer;
+  color: var(--ink-3);
+  font-weight: 600;
+  width: max-content;
+}
+.pl-legend-wrap .pl-legend-list {
+  display: flex;
+  margin: 8px 0 0;
+}
+@media (max-width: 760px) {
+  .pl-bar,
+  .pl-bar-left,
+  .pl-bar-right {
+    display: grid;
+    width: 100%;
+  }
+  .pl-bar-left {
+    grid-template-columns: auto 1fr;
+  }
+  .pl-bar-right {
+    grid-template-columns: 1fr auto;
+  }
+  .pl-bar-right .cp-tabs {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .pl-legend-wrap .pl-legend-list {
+    display: flex;
+  }
+}
+
+/* Stor kalender */
+.pl-big .pl-week {
+  grid-template-columns: 180px repeat(7, minmax(172px, 1fr));
+  min-width: 1384px;
+}
+.pl-big .pl-dayhead {
+  padding: 12px 10px;
+  font-size: 1rem;
+}
+.pl-big .pl-person {
+  font-size: 1rem;
+  padding: 12px;
+}
+.pl-big .pl-cell {
+  min-height: 132px;
+  padding: 8px;
+  gap: 8px;
+}
+.pl-big .pl-job {
+  padding: 9px 11px;
+  font-size: 0.92rem;
+  gap: 3px;
+}
+.pl-big .pl-job strong {
+  font-size: 0.92rem;
+}
+.pl-big .pl-job span,
+.pl-big .pl-job small {
+  white-space: normal;
+}
+.pl-big .pl-day {
+  grid-template-columns: 180px minmax(1100px, 1fr);
+}
+.pl-big .pl-hours {
+  height: 40px;
+}
+.pl-big .pl-hours span {
+  font-size: 0.9rem;
+  top: 10px;
+}
+.pl-big .pl-mday {
+  min-height: 168px;
+  padding: 6px;
+  gap: 4px;
+}
+.pl-big .pl-chip {
+  font-size: 0.86rem;
+  padding: 4px 8px;
+}
+.pl-big .pl-mdate {
+  font-size: 1rem;
+}

@@ -73,6 +73,22 @@ export default function Planner() {
   const [people, setPeople] = useState([]);
   const [ready, setReady] = useState(false);
   const [absences, setAbsences] = useState([]);
+  // Större kalender: bredare dagar, högre rader och större text. Valet sparas på enheten.
+  const [big, setBig] = useState(() => {
+    try {
+      return localStorage.getItem('tostad-plan-storlek') === 'stor';
+    } catch {
+      return false;
+    }
+  });
+  function setSize(next) {
+    setBig(next);
+    try {
+      localStorage.setItem('tostad-plan-storlek', next ? 'stor' : 'normal');
+    } catch {
+      /* ignoreras */
+    }
+  }
   const [customers, setCustomers] = useState([]);
   const [editing, setEditing] = useState(null);
   const [over, setOver] = useState('');
@@ -286,30 +302,40 @@ export default function Planner() {
   }
 
   return (
-    <>
-      <div class="cp-head">
-        <h2>Planering</h2>
-        <button class="btn btn--sm" type="button" onClick={() => newJob({})}>Nytt jobb</button>
+    <div class={`pl-root${big ? ' pl-big' : ''}`}>
+      <div class="pl-bar">
+        <div class="pl-bar-left">
+          <div class="pl-nav">
+            <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(-1)} aria-label="Föregående">‹</button>
+            <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(now)}>Idag</button>
+            <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(1)} aria-label="Nästa">›</button>
+          </div>
+          <strong class="pl-title">{title(view, date, from, to)}</strong>
+        </div>
+        <div class="pl-bar-right">
+          <div class="cp-tabs" role="group" aria-label="Vy">
+            {VIEWS.map(([key, label]) => (
+              <button type="button" aria-pressed={view === key} onClick={() => setView(key)}>{label}</button>
+            ))}
+          </div>
+          {!phone && (
+            <div class="cp-tabs" role="group" aria-label="Storlek på kalendern">
+              <button type="button" aria-pressed={!big} onClick={() => setSize(false)}>Normal</button>
+              <button type="button" aria-pressed={big} onClick={() => setSize(true)}>Stor</button>
+            </div>
+          )}
+          <input class="pl-date" type="date" aria-label="Gå till datum" value={date} onInput={(e) => e.currentTarget.value && setDate(e.currentTarget.value)} />
+          <button class="btn btn--sm" type="button" onClick={() => newJob({})}>Nytt jobb</button>
+        </div>
       </div>
-      <div class="pl-toolbar">
-        <div class="cp-tabs" role="group" aria-label="Vy">
-          {VIEWS.map(([key, label]) => (
-            <button type="button" aria-pressed={view === key} onClick={() => setView(key)}>{label}</button>
+      <details class="pl-legend-wrap">
+        <summary>Färger för tjänsterna</summary>
+        <ul class="pl-legend-list" aria-label="Färger per tjänst">
+          {Object.entries(SERVICE_COLORS).map(([k, c]) => (
+            <li><i style={`background:${c}`} />{SERVICE_LABELS[k]}</li>
           ))}
-        </div>
-        <div class="pl-nav">
-          <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(-1)} aria-label="Föregående">‹</button>
-          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(now)}>Idag</button>
-          <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(1)} aria-label="Nästa">›</button>
-          <input type="date" aria-label="Gå till datum" value={date} onInput={(e) => e.currentTarget.value && setDate(e.currentTarget.value)} />
-        </div>
-        <strong class="pl-title">{title(view, date, from, to)}</strong>
-      </div>
-      <ul class="pl-legend-list" aria-label="Färger per tjänst">
-        {Object.entries(SERVICE_COLORS).map(([k, c]) => (
-          <li><i style={`background:${c}`} />{SERVICE_LABELS[k]}</li>
-        ))}
-      </ul>
+        </ul>
+      </details>
       <ErrorMsg error={error} />
       {info && <p class="msg msg--ok">{info}</p>}
 
@@ -383,6 +409,7 @@ export default function Planner() {
           onDrop={drop}
           onNew={newJob}
           card={card}
+          big={big}
         />
       ) : (
         <div class="pl-month">
@@ -465,11 +492,11 @@ export default function Planner() {
           />
         )}
       </Modal>
-    </>
+    </div>
   );
 }
 
-function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave, onDrop, onNew, card }) {
+function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave, onDrop, onNew, card, big }) {
   const span = DAY_END - DAY_START;
   const hours = [];
   for (let m = DAY_START; m <= DAY_END; m += 120) hours.push(m);
@@ -507,7 +534,7 @@ function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave
               </div>
               <div
                 class={`pl-lane${over === key ? ' is-over' : ''}${warnCells.has(key) ? ' is-warn' : ''}`}
-                style={`min-height:${rowsIn * 64 + 6}px`}
+                style={`min-height:${rowsIn * (big ? 96 : 64) + 6}px`}
                 onDragOver={(e) => onDragOver(e, key)}
                 onDragLeave={() => onDragLeave(key)}
                 onDrop={(e) => onDrop(e, { date, person: p.id, lane: true })}
