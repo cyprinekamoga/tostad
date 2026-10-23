@@ -1,4 +1,4 @@
-// Personal: bjud in, skapa ny inloggningslänk, ändra roll, stäng av eller aktivera och ta bort.
+// Personal: lägg till med lösenord eller länk, nytt lösenord, ny inloggningslänk, ändra roll, stäng av eller aktivera och ta bort.
 // Bara inloggade administratörer får anropa funktionen.
 // Länkarna skickas inte här; administratören kopierar dem och skickar via SMS eller mejl.
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -47,8 +47,16 @@ function activationLink(req: Request, tokenHash: string, type: 'invite' | 'recov
   return `${site}/app/aktivera?th=${encodeURIComponent(tokenHash)}&typ=${type}`;
 }
 
-async function createStaff(req: Request, input: { full_name: string; email: string; phone: string; color: string; role: string }) {
-  const { data, error } = await db.auth.admin.generateLink({ type: 'invite', email: input.email });
+// Lösenord som administratören väljer: minst 10 tecken.
+const validPassword = (p: unknown): p is string => typeof p === 'string' && p.length >= 10 && p.length <= 72;
+
+async function createStaff(req: Request, input: { full_name: string; email: string; phone: string; color: string; role: string; password?: string }) {
+  // Med lösenord skapas kontot direkt och kan användas med en gång. Annars får personen en länk.
+  const created = input.password
+    ? await db.auth.admin.createUser({ email: input.email, password: input.password, email_confirm: true })
+    : await db.auth.admin.generateLink({ type: 'invite', email: input.email });
+  const data = created.data as { user: { id: string } | null; properties?: { hashed_token: string } };
+  const error = created.error;
   if (error || !data.user) {
     const taken = /already|registered|exists/i.test(error?.message ?? '');
     return reply(req, taken ? 409 : 400, { error: taken ? 'E-postadressen används redan' : 'Kunde inte skapa kontot' });
@@ -65,7 +73,8 @@ async function createStaff(req: Request, input: { full_name: string; email: stri
     await db.auth.admin.deleteUser(data.user.id);
     return reply(req, 400, { error: /administratörer/.test(profileError.message) ? 'Högst tre administratörer' : 'Kunde inte spara profilen' });
   }
-  return reply(req, 200, { ok: true, user_id: data.user.id, link: activationLink(req, data.properties.hashed_token, 'invite') });
+  if (input.password) return reply(req, 200, { ok: true, user_id: data.user.id });
+  return reply(req, 200, { ok: true, user_id: data.user.id, link: activationLink(req, data.properties!.hashed_token, 'invite') });
 }
 
 Deno.serve(async (req) => {
@@ -139,7 +148,8 @@ Deno.serve(async (req) => {
     if (!ROLES.includes(role)) return reply(req, 400, { error: 'Ogiltig roll' });
     if (role === 'admin' && me.role !== 'owner') return reply(req, 403, { error: 'Bara ägaren kan lägga till administratörer' });
     if (!isEmail(email) || !full_name) return reply(req, 400, { error: 'Namn och e-post krävs' });
-    return createStaff(req, { full_name, email, phone: clean(body.phone, 40), color: clean(body.color, 7), role });
+    if (body.password !== undefined && body.password !== null && !validPassword(body.password)) return reply(req, 400, { error: 'Lösenordet behöver minst 10 tecken' });
+    return createStaff(req, { full_name, email, phone: clean(body.phone, 40), color: clean(body.color, 7), role, password: validPassword(body.password) ? body.password : undefined });
   }
 
   const userId = clean(body.user_id, 36);
@@ -156,6 +166,13 @@ Deno.serve(async (req) => {
     if (result.error) return reply(req, 400, { error: 'Kunde inte skapa länken' });
     const used = result.data.properties.verification_type === 'invite' ? 'invite' : 'recovery';
     return reply(req, 200, { ok: true, link: activationLink(req, result.data.properties.hashed_token, used) });
+  }
+
+  if (action === 'set_password') {
+    if (!validPassword(body.password)) return reply(req, 400, { error: 'Lösenordet behöver minst 10 tecken' });
+    const { error } = await db.auth.admin.updateUserById(userId, { password: body.password, email_confirm: true });
+    if (error) return reply(req, 400, { error: /weak|pwned|leaked/i.test(error.message) ? 'Lösenordet är för svagt. Välj ett annat.' : 'Kunde inte spara lösenordet' });
+    return reply(req, 200, { ok: true });
   }
 
   if (action === 'set_active') {
