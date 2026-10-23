@@ -1774,3 +1774,12 @@ input[type='search'] {
   box-shadow: none;
   border: 1px solid var(--line);
 }
+.cp-calc {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--green-50);
+}
+.cp-calc h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}

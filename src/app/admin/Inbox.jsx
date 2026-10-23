@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { supabase, formatDateTime } from '../../lib/supabase.js';
 import { ErrorMsg, Phone, Email } from '../ui.jsx';
 import { KIND, STATUS, FIELDS, fieldValue, summary, ensureCustomer } from './submission.js';
+import { describeCalc } from '../../lib/calcSummary.js';
 
 const FILTERS = [
   ['ny', 'Nya'],
@@ -190,13 +191,26 @@ function Detail({ item, names, onChanged, onDeleted }) {
         <Phone value={item.phone} /> {item.phone && item.email && ' · '} <Email value={item.email} />
       </p>
       <dl class="cp-dl">
-        {FIELDS.filter(([key]) => data[key] && !['namn', 'telefon', 'epost', 'kontakt'].includes(key)).map(([key, label]) => (
+        {FIELDS.filter(([key]) => data[key] && !['namn', 'telefon', 'epost', 'kontakt', 'kalkyl'].includes(key)).map(([key, label]) => (
           <>
             <dt>{label}</dt>
             <dd>{fieldValue(key, data[key])}</dd>
           </>
         ))}
       </dl>
+      {data.kalkyl && describeCalc(data.kalkyl).length > 0 && (
+        <section class="cp-calc">
+          <h4>Kundens val i priskalkylatorn</h4>
+          <dl class="cp-dl">
+            {describeCalc(data.kalkyl).map(([label, value]) => (
+              <>
+                <dt>{label}</dt>
+                <dd>{value}</dd>
+              </>
+            ))}
+          </dl>
+        </section>
+      )}
       {item.files?.length > 0 && (
         <div class="cp-files">
           {item.files.map((path) => {
