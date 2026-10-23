@@ -10,24 +10,25 @@ test('kalkylen tolkas', () => {
 
 test('paket visar bara det som gäller flytt och flyttstädning', () => {
   const rows = Object.fromEntries(describeCalc(sample));
-  assert.equal(rows['Tjänst'], 'Flytt + flyttstädning');
-  assert.match(rows['Bostad'], /^2 rum och kök/);
-  assert.equal(rows['Flyttar från'], 'Våning 6, hiss finns');
-  assert.equal(rows['Lång bärväg (över 25 m)'], 'Ja');
-  assert.equal(rows['Packhjälp'], 'Nej');
-  assert.equal(rows['Fönsterputs'], '2 tvåsidiga');
-  assert.match(rows['Pris'], /^4\s953 kr efter RUT$/);
-  assert.equal(rows['Tid'], undefined);
-  assert.equal(rows['Besök per månad'], undefined);
+  assert.equal(rows['Service'], 'Moving + move-out cleaning');
+  assert.match(rows['Home'], /^2 rooms and kitchen/);
+  assert.equal(rows['Moving from'], 'Floor 6, with lift');
+  assert.equal(rows['Long carry (over 25 m)'], 'Yes');
+  assert.equal(rows['Packing help'], 'No');
+  assert.equal(rows['Window cleaning'], '2 two-sided');
+  assert.match(rows['Price'], /^4\s953 kr after RUT$/);
+  assert.equal(rows['Time'], undefined);
+  assert.equal(rows['Visits per month'], undefined);
 });
 
 test('hemstädning och fönsterputs', () => {
   assert.deepEqual(describeCalc('tjanst=hemstadning, timmar=3.5, regelbunden=ja, pris=438'), [
-    ['Tjänst', 'Hemstädning'],
-    ['Tid', '3,5 timmar'],
-    ['Regelbunden städning', 'Ja, 10 % rabatt'],
-    ['Pris', '438 kr efter RUT'],
+    ['Service', 'Home cleaning'],
+    ['Time', '3.5 hours'],
+    ['Regular cleaning', 'Yes, 10% discount'],
+    ['Price', '438 kr after RUT'],
   ]);
-  assert.equal(Object.fromEntries(describeCalc('tjanst=fonsterputs, fp2=1, fp4=3'))['Fönster'], '1 tvåsidigt och 3 fyrsidiga');
-  assert.equal(Object.fromEntries(describeCalc('tjanst=flytt, vaningFran=0'))['Flyttar från'], 'Bottenvåning');
+  assert.equal(Object.fromEntries(describeCalc('tjanst=fonsterputs, fp2=1, fp4=3'))['Windows'], '1 two-sided and 3 four-sided');
+  assert.equal(Object.fromEntries(describeCalc('tjanst=flytt, vaningFran=0'))['Moving from'], 'Ground floor');
+  assert.equal(Object.fromEntries(describeCalc('tjanst=flytt, bemanning=3-2'))['Crew'], '3 movers + 2 trucks');
 });

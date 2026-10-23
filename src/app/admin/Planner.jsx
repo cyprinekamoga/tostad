@@ -23,18 +23,18 @@ import JobForm from './JobForm.jsx';
 import { ABSENCE_KIND } from '../staff/api.js';
 
 const VIEWS = [
-  ['vecka', 'Vecka'],
-  ['dag', 'Dag'],
-  ['manad', 'Månad'],
+  ['vecka', 'Week'],
+  ['dag', 'Day'],
+  ['manad', 'Month'],
 ];
-const DAY_NAMES = ['mån', 'tis', 'ons', 'tor', 'fre', 'lör', 'sön'];
+const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const DAY_START = 6 * 60;
 const DAY_END = 22 * 60;
-const UNASSIGNED = { id: '', full_name: 'Ej bemannade', color: '#9aa5a0' };
+const UNASSIGNED = { id: '', full_name: 'Unassigned', color: '#9aa5a0' };
 
-const longDate = new Intl.DateTimeFormat('sv-SE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-const shortDate = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-const monthName = new Intl.DateTimeFormat('sv-SE', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const longDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const shortDate = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+const monthName = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 const fmt = (f, date) => f.format(new Date(`${date}T12:00:00Z`));
 
 function lastOfMonth(date) {
@@ -57,12 +57,12 @@ function rangeFor(view, date) {
 function title(view, date, from, to) {
   if (view === 'dag') return fmt(longDate, date);
   if (view === 'manad') return fmt(monthName, date);
-  return `Vecka ${weekNumber(from)} · ${fmt(shortDate, from)} till ${fmt(shortDate, to)}`;
+  return `Week ${weekNumber(from)} · ${fmt(shortDate, from)} to ${fmt(shortDate, to)}`;
 }
 
 const minutesOf = (time) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
 const timeOf = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
-const hoursText = (h) => `${Math.round(h * 10) / 10}`.replace('.', ',');
+const hoursText = (h) => `${Math.round(h * 10) / 10}`;
 
 export default function Planner() {
   const sb = supabase();
@@ -138,7 +138,7 @@ export default function Planner() {
 
   async function openJob(id) {
     const job = await loadJob(id);
-    if (!job) return setError('Hittar inte jobbet.');
+    if (!job) return setError('Could not find the job.');
     setDate(job.date);
     setEditing({ job });
   }
@@ -146,7 +146,7 @@ export default function Planner() {
   // Ny bokning från inkorgen: fyll i formuläret med det kunden skrev.
   async function fromSubmission(id) {
     const { data: item } = await sb.from('submissions').select('id, kind, name, email, phone, data, customer_id, created_at').eq('id', id).maybeSingle();
-    if (!item) return setError('Hittar inte bokningen.');
+    if (!item) return setError('Could not find the booking.');
     const { data: existing } = await sb.from('jobs').select('id').eq('submission_id', id).maybeSingle();
     if (existing) return openJob(existing.id);
     const d = item.data ?? {};
@@ -159,7 +159,7 @@ export default function Planner() {
         fromSubmission: true,
         submission_id: item.id,
         customer_id: item.customer_id ?? '',
-        newCustomerName: item.customer_id ? '' : item.name || 'Utan namn',
+        newCustomerName: item.customer_id ? '' : item.name || 'No name',
         service: SERVICE_LABELS[d.tjanst] ? d.tjanst : 'annat',
         date: wanted,
         start: startFromWish(d.tid),
@@ -167,8 +167,8 @@ export default function Planner() {
         postal_code: zip.length === 5 ? `${zip.slice(0, 3)} ${zip.slice(3)}` : d.postnummer ?? '',
         to_street: d.nyAdress ?? '',
         price: /^\d+$/.test(d.pris ?? '') ? d.pris : '',
-        staff_note: [d.vaningOchHiss && `Våning och hiss: ${d.vaningOchHiss}`, d.ovrigt].filter(Boolean).join('\n'),
-        internal_note: `Från bokning ${formatDateTime(item.created_at)}${d.flexibel ? ', kunden är flexibel ± 2 dagar' : ''}`,
+        staff_note: [d.vaningOchHiss && `Floor and lift: ${d.vaningOchHiss}`, d.ovrigt].filter(Boolean).join('\n'),
+        internal_note: `From booking ${formatDateTime(item.created_at)}${d.flexibel ? ', the customer is flexible ± 2 days' : ''}`,
       },
     });
   }
@@ -178,7 +178,7 @@ export default function Planner() {
     setEditing(null);
     if (submission && ids.length) {
       await sb.from('submissions').update({ status: 'hanterad' }).eq('id', submission.id);
-      setInfo('Jobbet är skapat och bokningen är markerad som hanterad.');
+      setInfo('The job is created and the booking is marked as handled.');
     }
     await reload();
     // Kartpositionen hämtas i bakgrunden.
@@ -287,15 +287,15 @@ export default function Planner() {
         onDragStart={(e) => dragStart(e, job, person, grabFrom ? grabFrom(e) : 0)}
         onClick={() => setEditing({ job })}
         onKeyDown={(e) => e.key === 'Enter' && setEditing({ job })}
-        title={`${job.startTime} till ${job.endTime} ${jobLabel(job)}`}
+        title={`${job.startTime} to ${job.endTime} ${jobLabel(job)}`}
       >
-        <strong>{job.startTime} till {job.endTime}</strong>
+        <strong>{job.startTime} to {job.endTime}</strong>
         <span>{jobLabel(job)}</span>
         <small>
           {SERVICE_LABELS[job.service]}
           {job.staff.length > 1 && <span class="pl-dots">{job.staff.map((id) => <i style={`background:${colorOf(id)}`} title={nameOf(id)} />)}</span>}
-          {job.series_id && ' · återkommande'}
-          {job.status !== 'planerad' && ` · ${job.status === 'klar' ? 'klar' : 'avbokad'}`}
+          {job.series_id && ' · recurring'}
+          {job.status !== 'planerad' && ` · ${job.status === 'klar' ? 'done' : 'cancelled'}`}
         </small>
       </div>
     );
@@ -306,31 +306,31 @@ export default function Planner() {
       <div class="pl-bar">
         <div class="pl-bar-left">
           <div class="pl-nav">
-            <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(-1)} aria-label="Föregående">‹</button>
-            <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(now)}>Idag</button>
-            <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(1)} aria-label="Nästa">›</button>
+            <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(-1)} aria-label="Previous">‹</button>
+            <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(now)}>Today</button>
+            <button class="btn btn--ghost btn--sm" type="button" onClick={() => step(1)} aria-label="Next">›</button>
           </div>
           <strong class="pl-title">{title(view, date, from, to)}</strong>
         </div>
         <div class="pl-bar-right">
-          <div class="cp-tabs" role="group" aria-label="Vy">
+          <div class="cp-tabs" role="group" aria-label="View">
             {VIEWS.map(([key, label]) => (
               <button type="button" aria-pressed={view === key} onClick={() => setView(key)}>{label}</button>
             ))}
           </div>
           {!phone && (
-            <div class="cp-tabs" role="group" aria-label="Storlek på kalendern">
+            <div class="cp-tabs" role="group" aria-label="Calendar size">
               <button type="button" aria-pressed={!big} onClick={() => setSize(false)}>Normal</button>
-              <button type="button" aria-pressed={big} onClick={() => setSize(true)}>Stor</button>
+              <button type="button" aria-pressed={big} onClick={() => setSize(true)}>Large</button>
             </div>
           )}
-          <input class="pl-date" type="date" aria-label="Gå till datum" value={date} onInput={(e) => e.currentTarget.value && setDate(e.currentTarget.value)} />
-          <button class="btn btn--sm" type="button" onClick={() => newJob({})}>Nytt jobb</button>
+          <input class="pl-date" type="date" aria-label="Go to date" value={date} onInput={(e) => e.currentTarget.value && setDate(e.currentTarget.value)} />
+          <button class="btn btn--sm" type="button" onClick={() => newJob({})}>New job</button>
         </div>
       </div>
       <details class="pl-legend-wrap">
-        <summary>Färger för tjänsterna</summary>
-        <ul class="pl-legend-list" aria-label="Färger per tjänst">
+        <summary>Service colours</summary>
+        <ul class="pl-legend-list" aria-label="Colour per service">
           {Object.entries(SERVICE_COLORS).map(([k, c]) => (
             <li><i style={`background:${c}`} />{SERVICE_LABELS[k]}</li>
           ))}
@@ -340,7 +340,7 @@ export default function Planner() {
       {info && <p class="msg msg--ok">{info}</p>}
 
       {jobs === null || !ready ? (
-        <p class="muted">Laddar …</p>
+        <p class="muted">Loading …</p>
       ) : phone && view !== 'manad' ? (
         <Agenda
           days={view === 'vecka' ? days : [date]}
@@ -385,11 +385,11 @@ export default function Planner() {
                     >
                       {p.id && absentOn(p.id, d) && (
                         <span class={`pl-absent${absentOn(p.id, d).status === 'begard' ? ' is-pending' : ''}`}>
-                          {ABSENCE_KIND[absentOn(p.id, d).kind]}{absentOn(p.id, d).status === 'begard' ? ' (ansökt)' : ''}
+                          {ABSENCE_KIND[absentOn(p.id, d).kind]}{absentOn(p.id, d).status === 'begard' ? ' (requested)' : ''}
                         </span>
                       )}
                       {jobsFor(p.id, d).map((j) => card(j, p.id))}
-                      <button class="pl-add" type="button" aria-label={`Nytt jobb ${d}${p.id ? ` för ${p.full_name}` : ''}`} onClick={() => newJob({ date: d, staff: p.id ? [p.id] : [] })}>+</button>
+                      <button class="pl-add" type="button" aria-label={`New job ${d}${p.id ? ` for ${p.full_name}` : ''}`} onClick={() => newJob({ date: d, staff: p.id ? [p.id] : [] })}>+</button>
                     </div>
                   );
                 })}
@@ -440,39 +440,39 @@ export default function Planner() {
                     {j.startTime} {jobLabel(j)}
                   </div>
                 ))}
-                {list.length > 4 && <button type="button" class="pl-more" onClick={() => { setDate(d); setView('dag'); }}>+{list.length - 4} till</button>}
+                {list.length > 4 && <button type="button" class="pl-more" onClick={() => { setDate(d); setView('dag'); }}>+{list.length - 4} more</button>}
               </div>
             );
           })}
         </div>
       )}
 
-      {phone && <button class="pl-fab" type="button" aria-label="Nytt jobb" onClick={() => newJob({})}>+</button>}
-      <section class="cp-panel pl-warnings" aria-label="Varningar">
-        <h3>Varningar</h3>
+      {phone && <button class="pl-fab" type="button" aria-label="New job" onClick={() => newJob({})}>+</button>}
+      <section class="cp-panel pl-warnings" aria-label="Warnings">
+        <h3>Warnings</h3>
         {warnings.list.length === 0 ? (
-          <p class="muted">Inga dubbelbokningar och vilan räcker för alla under perioden.</p>
+          <p class="muted">No double bookings, and everyone gets enough rest in this period.</p>
         ) : (
           <ul>
             {warnings.list.map((w) => (
               <li>
                 <span class="dot" style={`background:${w.person.color}`} /> <strong>{w.person.full_name}:</strong>{' '}
                 {w.kind === 'dubbel' &&
-                  `dubbelbokad ${fmt(shortDate, jobs.find((j) => j.id === w.jobs[0])?.date ?? from)} (${w.jobs.map((id) => jobLabel(jobs.find((j) => j.id === id) ?? {})).join(' och ')})`}
-                {w.kind === 'dygnsvila' && `mindre än ${DAILY_REST_H} timmars dygnsvila ${fmt(shortDate, w.date)} (bara ${hoursText(w.restHours)} h)`}
+                  `double booked ${fmt(shortDate, jobs.find((j) => j.id === w.jobs[0])?.date ?? from)} (${w.jobs.map((id) => jobLabel(jobs.find((j) => j.id === id) ?? {})).join(' and ')})`}
+                {w.kind === 'dygnsvila' && `less than ${DAILY_REST_H} hours of daily rest ${fmt(shortDate, w.date)} (only ${hoursText(w.restHours)} h)`}
                 {w.kind === 'franvaro' &&
-                  `bokad ${fmt(shortDate, w.date)} men ${w.absence.status === 'begard' ? 'har ansökt om' : 'har'} ${ABSENCE_KIND[w.absence.kind].toLowerCase()} (${jobLabel(jobs.find((j) => j.id === w.job) ?? {})})`}
-                {w.kind === 'veckovila' && `mindre än ${WEEKLY_REST_H} timmars sammanhängande ledighet vecka ${weekNumber(w.date)} (längsta ${hoursText(w.restHours)} h)`}
+                  `booked ${fmt(shortDate, w.date)} but ${w.absence.status === 'begard' ? 'has requested' : 'is'} ${ABSENCE_KIND[w.absence.kind].toLowerCase()} (${jobLabel(jobs.find((j) => j.id === w.job) ?? {})})`}
+                {w.kind === 'veckovila' && `less than ${WEEKLY_REST_H} hours of continuous rest in week ${weekNumber(w.date)} (longest ${hoursText(w.restHours)} h)`}
               </li>
             ))}
           </ul>
         )}
         <p class="muted pl-legend">
-          {phone ? 'Tryck på ett jobb för att ändra tid, dag eller personal.' : 'Dra ett jobb till en annan person, dag eller tid. Klicka på ett jobb för att ändra det.'}
+          {phone ? 'Tap a job to change the time, day or staff.' : 'Drag a job to another person, day or time. Click a job to change it.'}
         </p>
       </section>
 
-      <Modal open={!!editing} label="Jobb" onClose={() => setEditing(null)}>
+      <Modal open={!!editing} label="Job" onClose={() => setEditing(null)}>
         {editing && (
           <JobForm
             key={editing.job?.id ?? 'ny'}
@@ -562,17 +562,17 @@ function DayView({ rows, date, jobsFor, over, warnCells, onDragOver, onDragLeave
           );
         })}
       </div>
-      <p class="muted pl-legend">Dubbelklicka på en tom plats för att lägga till ett jobb där. Tiden visas 06 till 22.</p>
+      <p class="muted pl-legend">Double-click an empty spot to add a job there. Times are shown from 06 to 22.</p>
     </div>
   );
 }
 
 // Mobil: en rad med veckans dagar och jobben som kort i tidsordning.
 function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, onPick, onOpen, onNew, away }) {
-  const dayLabel = new Intl.DateTimeFormat('sv-SE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  const dayLabel = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
   return (
     <div class="pl-agenda">
-      <div class="pl-strip" role="group" aria-label="Välj dag">
+      <div class="pl-strip" role="group" aria-label="Choose day">
         {week.map((d) => {
           const count = jobs.filter((j) => j.date === d && j.status !== 'avbokad').length;
           return (
@@ -588,12 +588,12 @@ function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, on
         const list = jobs.filter((j) => j.date === d).sort((a, b) => a.start - b.start);
         return (
           <section class="pl-aday">
-            <h3>{fmt(dayLabel, d)}{d === now && <span class="badge">Idag</span>}</h3>
+            <h3>{fmt(dayLabel, d)}{d === now && <span class="badge">Today</span>}</h3>
             {away(d).length > 0 && (
-              <p class="pl-away">Borta: {away(d).map(({ p, a }) => `${p.full_name.split(' ')[0]} (${ABSENCE_KIND[a.kind].toLowerCase()}${a.status === 'begard' ? ', ansökt' : ''})`).join(', ')}</p>
+              <p class="pl-away">Away: {away(d).map(({ p, a }) => `${p.full_name.split(' ')[0]} (${ABSENCE_KIND[a.kind].toLowerCase()}${a.status === 'begard' ? ', requested' : ''})`).join(', ')}</p>
             )}
             {list.length === 0 && (
-              <button type="button" class="pl-aempty" onClick={() => onNew(d)}>Inga jobb · lägg till</button>
+              <button type="button" class="pl-aempty" onClick={() => onNew(d)}>No jobs · add one</button>
             )}
             {list.map((j) => {
               const warn = warnings.filter((w) => (w.kind === 'dubbel' && w.jobs.includes(j.id)) || (w.kind === 'franvaro' && w.job === j.id) || (w.kind === 'dygnsvila' && w.date === d && j.staff.includes(w.person.id)));
@@ -606,12 +606,12 @@ function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, on
                     <small>{hoursText(hours)} h</small>
                   </span>
                   <span class="pl-abody">
-                    <span class="pl-atag">{SERVICE_LABELS[j.service]}{j.series_id ? ' · återkommande' : ''}{j.status !== 'planerad' ? ` · ${j.status === 'klar' ? 'klar' : 'avbokad'}` : ''}</span>
+                    <span class="pl-atag">{SERVICE_LABELS[j.service]}{j.series_id ? ' · recurring' : ''}{j.status !== 'planerad' ? ` · ${j.status === 'klar' ? 'done' : 'cancelled'}` : ''}</span>
                     <strong>{jobLabel(j)}</strong>
                     {jobAddress(j) && <small class="pl-aaddr">{jobAddress(j)}{j.to_street ? ` → ${jobAddress(j, true)}` : ''}</small>}
                     <span class="pl-astaff">
                       {j.staff.length === 0 ? (
-                        <span class="badge badge--ny">Ingen personal</span>
+                        <span class="badge badge--ny">No staff</span>
                       ) : (
                         j.staff.map((id) => (
                           <span class="pl-person-chip"><i style={`background:${colorOf(id)}`} />{nameOf(id).split(' ')[0]}</span>
@@ -620,7 +620,7 @@ function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, on
                     </span>
                     {warn.length > 0 && (
                       <small class="cp-warn-text">
-                        {[...new Set(warn.map((w) => `${w.person.full_name.split(' ')[0]}: ${w.kind === 'dubbel' ? 'dubbelbokad' : w.kind === 'franvaro' ? 'frånvarande' : 'kort dygnsvila'}`))].join(', ')}
+                        {[...new Set(warn.map((w) => `${w.person.full_name.split(' ')[0]}: ${w.kind === 'dubbel' ? 'double booked' : w.kind === 'franvaro' ? 'absent' : 'short daily rest'}`))].join(', ')}
                       </small>
                     )}
                   </span>

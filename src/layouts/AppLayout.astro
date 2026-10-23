@@ -16,10 +16,10 @@ interface Props {
   // Administrationen ritar själv sin övre rad och meny.
   bare?: boolean;
 }
-const { title, heading = title, description = `${site.name}: inloggning för personal och administratörer.`, narrow = false, staff = false, bare = false } = Astro.props;
+const { title, heading = title, description = `${site.name}: login for staff and admins.`, narrow = false, staff = false, bare = false } = Astro.props;
 ---
 <!doctype html>
-<html lang="sv">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -34,7 +34,7 @@ const { title, heading = title, description = `${site.name}: inloggning för per
         <link rel="manifest" href="/app.webmanifest" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="TO Personal" />
+        <meta name="apple-mobile-web-app-title" content="TO Staff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </>
     )}
@@ -42,7 +42,7 @@ const { title, heading = title, description = `${site.name}: inloggning för per
   <body class:list={['app-body', { 'app-body--staff': staff }]}>
     {!bare && (
       <header class="app-top">
-        <a class="app-brand" href="/" aria-label={`${site.name}, till webbplatsen`}>
+        <a class="app-brand" href="/" aria-label={`${site.name}, to the website`}>
           <Image src={logo} alt="" width={36} height={36} loading="eager" />
           <span>TO Städ &amp; Flytt</span>
         </a>

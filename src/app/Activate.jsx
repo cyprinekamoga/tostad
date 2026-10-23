@@ -45,28 +45,28 @@ export default function Activate() {
   async function savePassword(e) {
     e.preventDefault();
     setError('');
-    if (pw1.length < MIN_LENGTH) return setError(`Lösenordet behöver minst ${MIN_LENGTH} tecken.`);
-    if (pw1 !== pw2) return setError('Lösenorden är inte lika.');
+    if (pw1.length < MIN_LENGTH) return setError(`The password needs at least ${MIN_LENGTH} characters.`);
+    if (pw1 !== pw2) return setError('The passwords do not match.');
     setBusy(true);
     const { error: updateError } = await sb.auth.updateUser({ password: pw1 });
     setBusy(false);
     if (updateError) {
-      if (/weak|pwned|leaked/i.test(updateError.message)) return setError('Lösenordet är för svagt eller har läckt i andra sammanhang. Välj ett annat.');
-      if (/same|different/i.test(updateError.message)) return setError('Välj ett annat lösenord än det gamla.');
-      return setError('Kunde inte spara lösenordet. Försök igen.');
+      if (/weak|pwned|leaked/i.test(updateError.message)) return setError('This password is too weak or has leaked elsewhere. Choose another one.');
+      if (/same|different/i.test(updateError.message)) return setError('Choose a different password from the old one.');
+      return setError('Could not save the password. Try again.');
     }
     // Inloggningssidan skickar personal till appen och administratörer till administrationen.
     go('/logga-in');
   }
 
-  if (step === 'verifying') return <div class="auth-card" aria-busy="true"><p>Kontrollerar länken …</p></div>;
+  if (step === 'verifying') return <div class="auth-card" aria-busy="true"><p>Checking the link …</p></div>;
 
   if (step === 'error')
     return (
       <div class="auth-card">
-        <h2>Länken fungerar inte</h2>
-        <p>Länken har redan använts eller gått ut. Den gäller i en timme. Be en administratör om en ny länk.</p>
-        <a class="btn btn--ghost btn--block" href="/logga-in">Till inloggningen</a>
+        <h2>This link does not work</h2>
+        <p>The link has already been used or has expired. It is valid for one hour. Ask an admin for a new link.</p>
+        <a class="btn btn--ghost btn--block" href="/logga-in">Go to login</a>
       </div>
     );
 
@@ -75,17 +75,17 @@ export default function Activate() {
       {error && <p class="msg msg--error" role="alert">{error}</p>}
       {step === 'password' && (
         <form class="form-grid" onSubmit={savePassword}>
-          <h2>{isNew ? 'Välkommen! Välj ett lösenord' : 'Välj ett nytt lösenord'}</h2>
-          <p>Minst {MIN_LENGTH} tecken. En mening med några ord är lätt att komma ihåg och svår att gissa.</p>
+          <h2>{isNew ? 'Welcome! Choose a password' : 'Choose a new password'}</h2>
+          <p>At least {MIN_LENGTH} characters. A sentence with a few words is easy to remember and hard to guess.</p>
           <div class="field">
-            <label for="ac-pw1">Lösenord</label>
+            <label for="ac-pw1">Password</label>
             <input id="ac-pw1" type="password" autocomplete="new-password" required minLength={MIN_LENGTH} value={pw1} onInput={(e) => setPw1(e.currentTarget.value)} />
           </div>
           <div class="field">
-            <label for="ac-pw2">Upprepa lösenordet</label>
+            <label for="ac-pw2">Repeat the password</label>
             <input id="ac-pw2" type="password" autocomplete="new-password" required minLength={MIN_LENGTH} value={pw2} onInput={(e) => setPw2(e.currentTarget.value)} />
           </div>
-          <button class="btn btn--block" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara och fortsätt'}</button>
+          <button class="btn btn--block" type="submit" disabled={busy}>{busy ? 'Saving …' : 'Save and continue'}</button>
         </form>
       )}
     </div>

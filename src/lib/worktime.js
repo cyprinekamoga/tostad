@@ -1,17 +1,17 @@
-// Checklistor per tjänst och summering av stämplade tider. Rena funktioner som går att testa.
-import { zoned, startOfWeek } from './planner.js';
+// Checklistor per tjänst och summering av rapporterade timmar. Rena funktioner som går att testa.
+import { startOfWeek } from './planner.js';
 
 // Standardpunkter som visas när ett jobb inte har en egen checklista.
 export const CHECKLISTS = {
-  hemstadning: ['Damma av ytor och lister', 'Dammsuga och våttorka golv', 'Kök: bänkar, spis och diskho', 'Badrum: handfat, toalett och dusch', 'Tömma papperskorgar', 'Ta foton efteråt'],
-  storstadning: ['Damma av alla ytor, även högt upp', 'Torka lister, dörrar och strömbrytare', 'Kök: luckor, vitvaror utvändigt, spis och fläkt', 'Badrum: kakel, fogar, golvbrunn', 'Dammsuga och våttorka golv', 'Ta foton efteråt'],
-  flyttstadning: ['Ta foton före', 'Ugn, plåtar och spis', 'Kyl och frys (avfrostade)', 'Fläkt och filter', 'Skåp och lådor in och utvändigt', 'Badrum: kakel, fogar, golvbrunn', 'Fönster, karmar och bågar', 'Element, lister och dörrar', 'Golv dammsugna och våttorkade', 'Ta foton efteråt'],
-  fonsterputs: ['Ta foton före', 'Putsa utsida', 'Putsa insida', 'Torka karmar och fönsterbleck', 'Ta foton efteråt'],
-  kontor: ['Tömma papperskorgar', 'Torka skrivbord och bord', 'Pentry: bänkar, diskho och kaffemaskin', 'Toaletter', 'Dammsuga och våttorka golv'],
-  flytt: ['Ta foton före', 'Skydda golv och dörrkarmar', 'Bär ut och lasta', 'Kontrollera att bostaden är tom', 'Lasta av och ställ möbler på plats', 'Ta foton efteråt'],
-  paket: ['Ta foton före', 'Skydda golv och dörrkarmar', 'Bär ut och lasta', 'Lasta av och ställ möbler på plats', 'Flyttstädning enligt checklistan', 'Ta foton efteråt'],
-  pianoflytt: ['Ta foton före', 'Mät dörrar och trappor', 'Spänn fast och skydda', 'Ställ på plats', 'Ta foton efteråt'],
-  annat: ['Ta foton före', 'Ta foton efteråt'],
+  hemstadning: ['Dust surfaces and skirting boards', 'Vacuum and mop floors', 'Kitchen: counters, stove and sink', 'Bathroom: basin, toilet and shower', 'Empty bins', 'Take photos afterwards'],
+  storstadning: ['Dust every surface, also high up', 'Wipe skirting boards, doors and switches', 'Kitchen: cupboard doors, appliances outside, stove and hood', 'Bathroom: tiles, grout, floor drain', 'Vacuum and mop floors', 'Take photos afterwards'],
+  flyttstadning: ['Take photos before', 'Oven, trays and stove', 'Fridge and freezer (defrosted)', 'Hood and filter', 'Cupboards and drawers inside and out', 'Bathroom: tiles, grout, floor drain', 'Windows, frames and sashes', 'Radiators, skirting boards and doors', 'Floors vacuumed and mopped', 'Take photos afterwards'],
+  fonsterputs: ['Take photos before', 'Clean the outside', 'Clean the inside', 'Wipe frames and window sills', 'Take photos afterwards'],
+  kontor: ['Empty bins', 'Wipe desks and tables', 'Kitchenette: counters, sink and coffee machine', 'Toilets', 'Vacuum and mop floors'],
+  flytt: ['Take photos before', 'Protect floors and door frames', 'Carry out and load', 'Check that the home is empty', 'Unload and place the furniture', 'Take photos afterwards'],
+  paket: ['Take photos before', 'Protect floors and door frames', 'Carry out and load', 'Unload and place the furniture', 'Move-out cleaning by the checklist', 'Take photos afterwards'],
+  pianoflytt: ['Take photos before', 'Measure doors and stairs', 'Strap and protect', 'Put in place', 'Take photos afterwards'],
+  annat: ['Take photos before', 'Take photos afterwards'],
 };
 
 /** Jobbets checklista, eller standardlistan för tjänsten om jobbet saknar en egen. */
@@ -20,20 +20,17 @@ export function checklistFor(job) {
   return (CHECKLISTS[job.service] ?? CHECKLISTS.annat).map((label) => ({ label, done: false }));
 }
 
-/** Längd i timmar. En pågående stämpling räknas fram till now. */
-export function entryHours(entry, now = Date.now()) {
-  const end = entry.ended_at ? Date.parse(entry.ended_at) : now;
-  return Math.max(0, (end - Date.parse(entry.started_at)) / 3600000);
-}
+/** Timmar på en rad. */
+export const entryHours = (entry) => Number(entry.hours) || 0;
 
-/** Timmar per dag och vecka (måndag), räknat på dagen då stämplingen började i svensk tid. */
-export function sumHours(entries, now = Date.now()) {
+/** Timmar per dag och vecka (måndag), räknat på arbetsdagen. */
+export function sumHours(entries) {
   const days = {};
   const weeks = {};
   let total = 0;
   for (const e of entries) {
-    const h = entryHours(e, now);
-    const d = zoned(e.started_at).date;
+    const h = entryHours(e);
+    const d = e.work_date;
     days[d] = (days[d] ?? 0) + h;
     const w = startOfWeek(d);
     weeks[w] = (weeks[w] ?? 0) + h;
@@ -41,6 +38,21 @@ export function sumHours(entries, now = Date.now()) {
   }
   return { days, weeks, total };
 }
+
+/** "3,5", "3.5" eller "3:30" blir 3.5. Ogiltigt eller utanför 0,25 till 16 timmar blir null. */
+export function parseHours(value) {
+  const text = String(value ?? '').trim().replace(',', '.');
+  let h;
+  const clock = text.match(/^(\d{1,2}):([0-5]\d)$/);
+  if (clock) h = Number(clock[1]) + Number(clock[2]) / 60;
+  else if (/^\d{0,2}(\.\d+)?$/.test(text) && text !== '' && text !== '.') h = Number(text);
+  else return null;
+  h = Math.round(h * 4) / 4;
+  return h >= 0.25 && h <= 16 ? h : null;
+}
+
+/** Ett jobbs längd avrundad till närmaste kvart, som förslag på timmar. */
+export const jobHours = (job) => Math.max(0.25, Math.round(((job.end - job.start) / 3600000) * 4) / 4);
 
 /** 7,5 h blir "7 h 30 min". */
 export function formatHours(h) {

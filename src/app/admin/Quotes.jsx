@@ -9,9 +9,9 @@ import DocEditor from './DocEditor.jsx';
 import SendBox from './SendBox.jsx';
 
 const FILTERS = [
-  ['aktiva', 'Aktiva'],
-  ['accepterad', 'Accepterade'],
-  ['alla', 'Alla'],
+  ['aktiva', 'Active'],
+  ['accepterad', 'Accepted'],
+  ['alla', 'All'],
 ];
 const BADGE = { utkast: 'badge--muted', skickad: '', oppnad: 'badge--ny', accepterad: '', avbojd: 'badge--skadeanmalan' };
 
@@ -67,7 +67,7 @@ export default function Quotes() {
   }
 
   async function remove(q) {
-    if (!window.confirm(`Ta bort utkastet till offert ${q.number}?`)) return;
+    if (!window.confirm(`Remove the draft of quote ${q.number}?`)) return;
     try {
       await deleteDraft('quotes', q.id);
       load();
@@ -81,58 +81,58 @@ export default function Quotes() {
   return (
     <>
       <div class="cp-head">
-        <h2>Offerter</h2>
-        <button class="btn btn--sm" type="button" onClick={() => setEditing({ service: 'hemstadning', rut_persons: 1, buyer: {}, lines: [] })}>Ny offert</button>
+        <h2>Quotes</h2>
+        <button class="btn btn--sm" type="button" onClick={() => setEditing({ service: 'hemstadning', rut_persons: 1, buyer: {}, lines: [] })}>New quote</button>
       </div>
       <div class="cp-tabs" role="group" aria-label="Filter" style="margin-bottom:14px">
         {FILTERS.map(([k, l]) => <button type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>{l}</button>)}
       </div>
       <ErrorMsg error={error} />
       <div class="cp-panel">
-        {rows === null && <p class="muted">Laddar …</p>}
-        {rows && shown.length === 0 && <p class="cp-empty">Inga offerter här.</p>}
+        {rows === null && <p class="muted">Loading …</p>}
+        {rows && shown.length === 0 && <p class="cp-empty">No quotes here.</p>}
         <ul class="cp-list">
           {shown.map((q) => (
             <li class="cp-row cp-row--static">
               <span class="cp-row-top">
-                <strong>Offert {q.number} · {q.buyer?.name || 'Utan namn'}</strong>
+                <strong>Quote {q.number} · {q.buyer?.name || 'No name'}</strong>
                 <span class={`badge ${BADGE[q.status]}`}>{QUOTE_STATUS[q.status]}</span>
               </span>
               <p>
                 {SERVICE_LABELS[q.service]} · {formatKrWhole(q.to_pay)}
-                {Number(q.rut) !== 0 && ' efter RUT'}
-                {q.wanted_date && ` · önskat ${q.wanted_date}`}
+                {Number(q.rut) !== 0 && ' after RUT'}
+                {q.wanted_date && ` · wanted ${q.wanted_date}`}
               </p>
               <small>
-                {q.sent_at ? `Skickad ${formatDateTime(q.sent_at)}` : `Skapad ${formatDateTime(q.created_at)}`}
-                {q.opened_at && ` · öppnad ${formatDateTime(q.opened_at)}`}
-                {q.decided_at && ` · ${q.status === 'accepterad' ? 'accepterad' : 'avböjd'} ${formatDateTime(q.decided_at)}${q.decided_name ? ` av ${q.decided_name}` : ''}`}
-                {q.valid_until && q.status !== 'accepterad' && ` · giltig till ${q.valid_until}`}
+                {q.sent_at ? `Sent ${formatDateTime(q.sent_at)}` : `Created ${formatDateTime(q.created_at)}`}
+                {q.opened_at && ` · opened ${formatDateTime(q.opened_at)}`}
+                {q.decided_at && ` · ${q.status === 'accepterad' ? 'accepted' : 'declined'} ${formatDateTime(q.decided_at)}${q.decided_name ? ` by ${q.decided_name}` : ''}`}
+                {q.valid_until && q.status !== 'accepterad' && ` · valid until ${q.valid_until}`}
               </small>
               <span class="cp-actions">
-                {q.status !== 'accepterad' && <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(q)}>Ändra</button>}
+                {q.status !== 'accepterad' && <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(q)}>Edit</button>}
                 {['utkast', 'skickad', 'oppnad'].includes(q.status) && (
-                  <button class="btn btn--sm" type="button" onClick={() => send(q)}>{q.status === 'utkast' ? 'Skicka' : 'Skicka igen'}</button>
+                  <button class="btn btn--sm" type="button" onClick={() => send(q)}>{q.status === 'utkast' ? 'Send' : 'Send again'}</button>
                 )}
-                {q.status !== 'utkast' && <a class="btn btn--ghost btn--sm" href={docUrl(q.token)} target="_blank" rel="noopener">Visa</a>}
-                {q.status === 'accepterad' && <a class="btn btn--sm" href={`/admin/fakturor?offert=${q.id}`}>Skapa faktura</a>}
-                {q.status === 'accepterad' && <a class="btn btn--ghost btn--sm" href="/admin/inkorg">Bokningen i inkorgen</a>}
-                {q.status === 'utkast' && <button class="btn btn--danger btn--sm" type="button" onClick={() => remove(q)}>Ta bort</button>}
+                {q.status !== 'utkast' && <a class="btn btn--ghost btn--sm" href={docUrl(q.token)} target="_blank" rel="noopener">View</a>}
+                {q.status === 'accepterad' && <a class="btn btn--sm" href={`/admin/fakturor?offert=${q.id}`}>Create invoice</a>}
+                {q.status === 'accepterad' && <a class="btn btn--ghost btn--sm" href="/admin/inkorg">The booking in the inbox</a>}
+                {q.status === 'utkast' && <button class="btn btn--danger btn--sm" type="button" onClick={() => remove(q)}>Remove</button>}
               </span>
             </li>
           ))}
         </ul>
       </div>
-      <p class="muted" style="margin-top:12px">När kunden accepterar en offert hamnar den som en bokning i inkorgen, där du gör ett jobb av den med ett klick.</p>
+      <p class="muted" style="margin-top:12px">When the customer accepts a quote, it lands as a booking in the inbox, where you turn it into a job with one click. Quotes are sent to customers in Swedish.</p>
 
-      <Modal open={!!editing} label="Offert" onClose={() => setEditing(null)}>
+      <Modal open={!!editing} label="Quote" onClose={() => setEditing(null)}>
         {editing && <DocEditor type="offert" value={editing} customers={customers} company={companyFor(settings)} onSave={save} onCancel={() => setEditing(null)} />}
       </Modal>
-      <Modal open={!!sending} label="Skicka offerten" onClose={() => setSending(null)}>
+      <Modal open={!!sending} label="Send the quote" onClose={() => setSending(null)}>
         {sending && (
           <SendBox
-            title={`Offert ${sending.number} är redo att skickas`}
-            intro="Skicka länken till kunden. Där kan kunden läsa offerten, spara den som PDF och acceptera direkt. Du ser här när den har öppnats."
+            title={`Quote ${sending.number} is ready to send`}
+            intro="Send the link to the customer. There the customer can read the quote, save it as a PDF and accept it right away. You see here when it has been opened."
             url={docUrl(sending.token)}
             text={messageFor('offert', sending, docUrl(sending.token))}
             subject={`Offert ${sending.number} från TO Städ & Flytt`}

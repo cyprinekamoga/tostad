@@ -9,11 +9,11 @@ import { serviceColor, SERVICE_LABELS, JOB_STATUS, DEFAULT_HOURS, createJobs, up
 
 const MOVES = ['flytt', 'paket', 'pianoflytt'];
 const REPEAT = [
-  ['0', 'Nej, bara en gång'],
-  ['1', 'Varje vecka'],
-  ['2', 'Varannan vecka'],
-  ['3', 'Var tredje vecka'],
-  ['4', 'Var fjärde vecka'],
+  ['0', 'No, just once'],
+  ['1', 'Every week'],
+  ['2', 'Every other week'],
+  ['3', 'Every third week'],
+  ['4', 'Every fourth week'],
 ];
 
 function initialForm(job, prefill) {
@@ -113,9 +113,9 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
   async function submit(e) {
     e.preventDefault();
     setError('');
-    if (form.end <= form.start) return setError('Sluttiden måste vara efter starttiden.');
-    if (!job && form.repeat !== '0' && form.until < form.date) return setError('Slutdatumet för serien måste vara efter första tillfället.');
-    if (!job && form.repeat !== '0' && form.until > addDays(form.date, 366)) return setError('En serie kan vara högst ett år. Förläng den senare vid behov.');
+    if (form.end <= form.start) return setError('The end time must be after the start time.');
+    if (!job && form.repeat !== '0' && form.until < form.date) return setError('The end date of the series must be after the first visit.');
+    if (!job && form.repeat !== '0' && form.until > addDays(form.date, 366)) return setError('A series can be at most one year. Extend it later if needed.');
     setBusy(true);
     try {
       let values = form;
@@ -130,7 +130,7 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
 
   async function remove() {
     const many = scope === 'following' && job.series_id;
-    if (!window.confirm(many ? 'Ta bort detta och alla kommande tillfällen i serien?' : 'Ta bort jobbet?')) return;
+    if (!window.confirm(many ? 'Remove this and all coming visits in the series?' : 'Remove the job?')) return;
     setBusy(true);
     try {
       await deleteJobs(job, scope);
@@ -143,30 +143,30 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
 
   return (
     <form onSubmit={submit}>
-      <h3>{job ? jobLabel(job) : 'Nytt jobb'}</h3>
-      {prefill?.fromSubmission && !job && <p class="msg msg--ok">Uppgifterna kommer från bokningen. Kontrollera tid och personal innan du sparar.</p>}
+      <h3>{job ? jobLabel(job) : 'New job'}</h3>
+      {prefill?.fromSubmission && !job && <p class="msg msg--ok">The details come from the booking. Check the time and staff before you save.</p>}
 
       <div class="form-2">
         <div class="field">
-          <label for="j-service"><span class="dot" style={`background:${serviceColor(form.service)}`} /> Tjänst</label>
+          <label for="j-service"><span class="dot" style={`background:${serviceColor(form.service)}`} /> Service</label>
           <select id="j-service" value={form.service} onChange={set('service')}>
             {Object.entries(SERVICE_LABELS).map(([k, v]) => <option value={k}>{v}</option>)}
           </select>
         </div>
         <div class="field">
-          <label for="j-title">Rubrik (valfri)</label>
+          <label for="j-title">Title (optional)</label>
           <input id="j-title" type="text" maxLength={200} value={form.title} onInput={set('title')} />
         </div>
       </div>
 
       {prefill?.newCustomerName && !job ? (
-        <p class="muted">Kund: <strong>{prefill.newCustomerName}</strong> (skapas eller kopplas från bokningen när du sparar)</p>
+        <p class="muted">Customer: <strong>{prefill.newCustomerName}</strong> (created or linked from the booking when you save)</p>
       ) : (
         <div class="field">
-          <label for="j-customer">Kund</label>
-          <input type="search" placeholder="Sök kund" aria-label="Sök kund" value={search} onInput={(e) => setSearch(e.currentTarget.value)} />
+          <label for="j-customer">Customer</label>
+          <input type="search" placeholder="Search customer" aria-label="Search customer" value={search} onInput={(e) => setSearch(e.currentTarget.value)} />
           <select id="j-customer" value={form.customer_id} onChange={(e) => pickCustomer(e.currentTarget.value)}>
-            <option value="">Ingen kund vald</option>
+            <option value="">No customer chosen</option>
             {shownCustomers.slice(0, 200).map((c) => <option value={c.id}>{c.name}{c.street ? `, ${c.street}` : ''}</option>)}
           </select>
         </div>
@@ -174,7 +174,7 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
 
       <div class="form-3">
         <div class="field">
-          <label for="j-date">Datum</label>
+          <label for="j-date">Date</label>
           <input id="j-date" type="date" required value={form.date} onInput={set('date')} />
         </div>
         <div class="field">
@@ -182,52 +182,52 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
           <input id="j-start" type="time" step="900" required value={form.start} onInput={set('start')} />
         </div>
         <div class="field">
-          <label for="j-end">Slut</label>
+          <label for="j-end">End</label>
           <input id="j-end" type="time" step="900" required value={form.end} onInput={set('end')} />
         </div>
       </div>
 
       <fieldset class="cp-fieldset">
-        <legend>Personal</legend>
+        <legend>Staff</legend>
         <div class="cp-checks">
           {people.map((p) => (
             <label class="cp-check">
               <input type="checkbox" checked={form.staff.includes(p.id)} onChange={() => toggleStaff(p.id)} />
               <span class="dot" style={`background:${p.color}`} /> {p.full_name}
-              {busyPeople[p.id] && <small class="cp-warn-text"> upptagen: {jobLabel(busyPeople[p.id])} {busyPeople[p.id].startTime}</small>}
-              {absentOn(p.id, form.date) && <small class="cp-warn-text"> {ABSENCE_KIND[absentOn(p.id, form.date).kind].toLowerCase()}{absentOn(p.id, form.date).status === 'begard' ? ' (ansökt)' : ''}</small>}
+              {busyPeople[p.id] && <small class="cp-warn-text"> busy: {jobLabel(busyPeople[p.id])} {busyPeople[p.id].startTime}</small>}
+              {absentOn(p.id, form.date) && <small class="cp-warn-text"> {ABSENCE_KIND[absentOn(p.id, form.date).kind].toLowerCase()}{absentOn(p.id, form.date).status === 'begard' ? ' (requested)' : ''}</small>}
             </label>
           ))}
         </div>
       </fieldset>
 
       <div class="field">
-        <label for="j-street">{isMove ? 'Från adress' : 'Adress'}</label>
+        <label for="j-street">{isMove ? 'From address' : 'Address'}</label>
         <input id="j-street" type="text" maxLength={200} autocomplete="off" value={form.street} onInput={set('street')} />
       </div>
       <div class="form-2">
         <div class="field">
-          <label for="j-zip">Postnummer</label>
+          <label for="j-zip">Postcode</label>
           <input id="j-zip" type="text" inputmode="numeric" maxLength={10} value={form.postal_code} onInput={set('postal_code')} />
         </div>
         <div class="field">
-          <label for="j-city">Ort</label>
+          <label for="j-city">City</label>
           <input id="j-city" type="text" maxLength={100} value={form.city} onInput={set('city')} />
         </div>
       </div>
       {isMove && (
         <>
           <div class="field">
-            <label for="j-tostreet">Till adress</label>
+            <label for="j-tostreet">To address</label>
             <input id="j-tostreet" type="text" maxLength={200} autocomplete="off" value={form.to_street} onInput={set('to_street')} />
           </div>
           <div class="form-2">
             <div class="field">
-              <label for="j-tozip">Postnummer</label>
+              <label for="j-tozip">Postcode</label>
               <input id="j-tozip" type="text" inputmode="numeric" maxLength={10} value={form.to_postal_code} onInput={set('to_postal_code')} />
             </div>
             <div class="field">
-              <label for="j-tocity">Ort</label>
+              <label for="j-tocity">City</label>
               <input id="j-tocity" type="text" maxLength={100} value={form.to_city} onInput={set('to_city')} />
             </div>
           </div>
@@ -236,7 +236,7 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
 
       <div class="form-2">
         <div class="field">
-          <label for="j-price">Pris till kunden (kr)</label>
+          <label for="j-price">Price to the customer (kr)</label>
           <input id="j-price" type="text" inputmode="numeric" maxLength={9} value={form.price} onInput={set('price')} />
         </div>
         {job && (
@@ -249,16 +249,16 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
         )}
       </div>
       <div class="field">
-        <label for="j-staffnote">Information till personalen</label>
-        <textarea id="j-staffnote" maxLength={5000} rows={3} placeholder="Portkod, nyckel, parkering, vad som ska göras" value={form.staff_note} onInput={set('staff_note')} />
+        <label for="j-staffnote">Information for the staff</label>
+        <textarea id="j-staffnote" maxLength={5000} rows={3} placeholder="Door code, key, parking, what to do" value={form.staff_note} onInput={set('staff_note')} />
       </div>
       <div class="field">
-        <label for="j-check">Checklista för personalen (en punkt per rad)</label>
-        <textarea id="j-check" rows={4} maxLength={8000} placeholder={`Lämna tom för standardlistan:\n${(CHECKLISTS[form.service] ?? CHECKLISTS.annat).slice(0, 3).join('\n')} …`} value={form.checklist_text} onInput={set('checklist_text')} />
-        {job?.checklist?.length > 0 && <small class="muted">{job.checklist.filter((i) => i.done).length} av {job.checklist.length} avbockade av personalen.</small>}
+        <label for="j-check">Checklist for the staff (one item per line)</label>
+        <textarea id="j-check" rows={4} maxLength={8000} placeholder={`Leave empty for the standard list:\n${(CHECKLISTS[form.service] ?? CHECKLISTS.annat).slice(0, 3).join('\n')} …`} value={form.checklist_text} onInput={set('checklist_text')} />
+        {job?.checklist?.length > 0 && <small class="muted">{job.checklist.filter((i) => i.done).length} of {job.checklist.length} ticked by the staff.</small>}
       </div>
       <div class="field">
-        <label for="j-note">Intern anteckning (bara administratörer)</label>
+        <label for="j-note">Internal note (admins only)</label>
         <textarea id="j-note" maxLength={5000} rows={2} value={form.internal_note} onInput={set('internal_note')} />
       </div>
 
@@ -267,14 +267,14 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
       {!job && (
         <div class="form-2">
           <div class="field">
-            <label for="j-repeat">Återkommande</label>
+            <label for="j-repeat">Recurring</label>
             <select id="j-repeat" value={form.repeat} onChange={set('repeat')}>
               {REPEAT.map(([k, v]) => <option value={k}>{v}</option>)}
             </select>
           </div>
           {form.repeat !== '0' && (
             <div class="field">
-              <label for="j-until">Till och med</label>
+              <label for="j-until">Until (inclusive)</label>
               <input id="j-until" type="date" required value={form.until} min={form.date} onInput={set('until')} />
             </div>
           )}
@@ -283,18 +283,18 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
 
       {job?.series_id && (
         <fieldset class="cp-fieldset">
-          <legend>Jobbet ingår i en serie. Ändringen gäller</legend>
-          <label class="cp-check"><input type="radio" name="scope" checked={scope === 'one'} onChange={() => setScope('one')} /> Bara detta tillfälle</label>
-          <label class="cp-check"><input type="radio" name="scope" checked={scope === 'following'} onChange={() => setScope('following')} /> Detta och alla kommande</label>
+          <legend>This job is part of a series. The change applies to</legend>
+          <label class="cp-check"><input type="radio" name="scope" checked={scope === 'one'} onChange={() => setScope('one')} /> Only this visit</label>
+          <label class="cp-check"><input type="radio" name="scope" checked={scope === 'following'} onChange={() => setScope('following')} /> This and all coming visits</label>
         </fieldset>
       )}
 
       <ErrorMsg error={error} />
       <div class="cp-actions">
-        <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara'}</button>
-        <button class="btn btn--ghost" type="button" onClick={onClose}>Avbryt</button>
-        {job && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Ta bort</button>}
-        {job && job.status !== 'avbokad' && <a class="btn btn--ghost" href={`/admin/fakturor?jobb=${job.id}`}>Skapa faktura</a>}
+        <button class="btn" type="submit" disabled={busy}>{busy ? 'Saving …' : 'Save'}</button>
+        <button class="btn btn--ghost" type="button" onClick={onClose}>Cancel</button>
+        {job && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Remove</button>}
+        {job && job.status !== 'avbokad' && <a class="btn btn--ghost" href={`/admin/fakturor?jobb=${job.id}`}>Create invoice</a>}
       </div>
     </form>
   );
@@ -307,18 +307,18 @@ function JobProgress({ job, people }) {
     loadPhotos(job.id).then(setPics, () => setPics([]));
   }, [job.id]);
   const name = (id) => people.find((p) => p.id === id)?.full_name ?? '';
-  const kinds = { fore: 'Före', efter: 'Efter', skada: 'Skada' };
+  const kinds = { fore: 'Before', efter: 'After', skada: 'Damage' };
   if (!job.on_way_at && !job.done_at && !pics?.length) return null;
   return (
     <fieldset class="cp-fieldset">
-      <legend>Från personalen</legend>
-      {job.on_way_at && <p class="muted" style="margin:0">På väg {formatDateTime(job.on_way_at)}</p>}
-      {job.done_at && <p class="muted" style="margin:0">Klart {formatDateTime(job.done_at)}{job.done_by ? ` av ${name(job.done_by)}` : ''}</p>}
+      <legend>From the staff</legend>
+      {job.on_way_at && <p class="muted" style="margin:0">On the way {formatDateTime(job.on_way_at)}</p>}
+      {job.done_at && <p class="muted" style="margin:0">Done {formatDateTime(job.done_at)}{job.done_by ? ` by ${name(job.done_by)}` : ''}</p>}
       {pics?.length > 0 && (
         <div class="cp-files">
           {pics.map((p) => (
             <a href={p.url} target="_blank" rel="noopener">
-              <img src={p.url} alt={`Foto ${kinds[p.kind].toLowerCase()}`} loading="lazy" />
+              <img src={p.url} alt={`Photo ${kinds[p.kind].toLowerCase()}`} loading="lazy" />
               {kinds[p.kind]}
             </a>
           ))}

@@ -14,7 +14,7 @@ export default function Customers() {
 
   async function load() {
     const { data, error: e } = await sb.from('customers').select('*').order('name').limit(1000);
-    if (e) return setError('Kunde inte hämta kunderna.');
+    if (e) return setError('Could not load the customers.');
     setRows(data);
     const wanted = window.location.hash.slice(1);
     const hit = wanted && data.find((c) => c.id === wanted);
@@ -31,39 +31,39 @@ export default function Customers() {
   return (
     <>
       <div class="cp-head">
-        <h2>Kunder</h2>
-        <button class="btn btn--sm" type="button" onClick={() => setEditing({ ...EMPTY })}>Ny kund</button>
+        <h2>Customers</h2>
+        <button class="btn btn--sm" type="button" onClick={() => setEditing({ ...EMPTY })}>New customer</button>
       </div>
       <ErrorMsg error={error} />
       <div class="cp-panel">
-        <label class="visually-hidden" for="cust-search">Sök kund</label>
-        <input id="cust-search" type="search" placeholder="Sök på namn, telefon, mejl eller ort" value={search} onInput={(e) => setSearch(e.currentTarget.value)} />
-        {rows === null && <p class="muted">Laddar …</p>}
-        {rows?.length === 0 && <p class="cp-empty">Inga kunder ännu. Skapa en här eller från ett ärende i inkorgen.</p>}
+        <label class="visually-hidden" for="cust-search">Search customer</label>
+        <input id="cust-search" type="search" placeholder="Search by name, phone, email or city" value={search} onInput={(e) => setSearch(e.currentTarget.value)} />
+        {rows === null && <p class="muted">Loading …</p>}
+        {rows?.length === 0 && <p class="cp-empty">No customers yet. Create one here or from an item in the inbox.</p>}
         {shown.length > 0 && (
           <div class="cp-scroll">
             <table class="cp-table">
               <thead>
                 <tr>
-                  <th>Namn</th>
-                  <th>Telefon</th>
-                  <th>Mejl</th>
-                  <th>Ort</th>
-                  <th><span class="visually-hidden">Åtgärder</span></th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>City</th>
+                  <th><span class="visually-hidden">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
                 {shown.map((c) => (
                   <tr>
                     <td>
-                      <strong>{c.name}</strong> {c.kind === 'company' && <span class="badge badge--muted">Företag</span>}
+                      <strong>{c.name}</strong> {c.kind === 'company' && <span class="badge badge--muted">Company</span>}
                     </td>
                     <td><Phone value={c.phone} /></td>
                     <td><Email value={c.email} /></td>
                     <td>{c.city}</td>
                     <td>
                       <div class="cp-actions">
-                        <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(c)}>Öppna</button>
+                        <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(c)}>Open</button>
                       </div>
                     </td>
                   </tr>
@@ -72,9 +72,9 @@ export default function Customers() {
             </table>
           </div>
         )}
-        {rows?.length > 0 && shown.length === 0 && <p class="cp-empty">Ingen kund matchar sökningen.</p>}
+        {rows?.length > 0 && shown.length === 0 && <p class="cp-empty">No customer matches the search.</p>}
       </div>
-      <Modal open={!!editing} label="Kund" onClose={() => { setEditing(null); window.history.replaceState(null, '', window.location.pathname); }}>
+      <Modal open={!!editing} label="Customer" onClose={() => { setEditing(null); window.history.replaceState(null, '', window.location.pathname); }}>
         {editing && <CustomerForm customer={editing} onDone={() => { setEditing(null); window.history.replaceState(null, '', window.location.pathname); load(); }} />}
       </Modal>
     </>
@@ -98,77 +98,78 @@ function CustomerForm({ customer, onDone }) {
     payload.name = form.name.trim();
     const { error: saveError } = isNew ? await sb.from('customers').insert(payload) : await sb.from('customers').update(payload).eq('id', customer.id);
     setBusy(false);
-    if (saveError) return setError('Kunde inte spara. Kontrollera fälten.');
+    if (saveError) return setError('Could not save. Check the fields.');
     onDone();
   }
 
   async function remove() {
-    if (!window.confirm(`Ta bort ${customer.name} ur kundregistret?`)) return;
+    if (!window.confirm(`Remove ${customer.name} from the customer register?`)) return;
     setBusy(true);
     const { error: removeError } = await sb.from('customers').delete().eq('id', customer.id);
     setBusy(false);
-    if (removeError) return setError('Kunde inte ta bort kunden.');
+    if (removeError) return setError('Could not remove the customer.');
     onDone();
   }
 
   return (
     <form onSubmit={save}>
-      <h3>{isNew ? 'Ny kund' : customer.name}</h3>
-      {!isNew && <p class="muted">Skapad {formatDateTime(customer.created_at)}</p>}
-      <div class="cp-tabs" role="group" aria-label="Kundtyp">
-        <button type="button" aria-pressed={form.kind === 'private'} onClick={() => setForm({ ...form, kind: 'private' })}>Privatperson</button>
-        <button type="button" aria-pressed={form.kind === 'company'} onClick={() => setForm({ ...form, kind: 'company' })}>Företag</button>
+      <h3>{isNew ? 'New customer' : customer.name}</h3>
+      {!isNew && <p class="muted">Created {formatDateTime(customer.created_at)}</p>}
+      <div class="cp-tabs" role="group" aria-label="Customer type">
+        <button type="button" aria-pressed={form.kind === 'private'} onClick={() => setForm({ ...form, kind: 'private' })}>Private person</button>
+        <button type="button" aria-pressed={form.kind === 'company'} onClick={() => setForm({ ...form, kind: 'company' })}>Company</button>
       </div>
       <div class="field">
-        <label for="c-name">{form.kind === 'company' ? 'Företagsnamn' : 'Namn'}</label>
+        <label for="c-name">{form.kind === 'company' ? 'Company name' : 'Name'}</label>
         <input id="c-name" type="text" required maxLength={200} value={form.name} onInput={set('name')} />
       </div>
       <div class="form-2">
         <div class="field">
-          <label for="c-phone">Telefon</label>
+          <label for="c-phone">Phone</label>
           <input id="c-phone" type="tel" maxLength={40} value={form.phone} onInput={set('phone')} />
         </div>
         <div class="field">
-          <label for="c-email">Mejl</label>
+          <label for="c-email">Email</label>
           <input id="c-email" type="email" maxLength={254} value={form.email} onInput={set('email')} />
         </div>
       </div>
       <div class="field">
-        <label for="c-street">Adress</label>
+        <label for="c-street">Address</label>
         <input id="c-street" type="text" maxLength={200} value={form.street} onInput={set('street')} />
       </div>
       <div class="form-2">
         <div class="field">
-          <label for="c-zip">Postnummer</label>
+          <label for="c-zip">Postcode</label>
           <input id="c-zip" type="text" inputmode="numeric" maxLength={10} value={form.postal_code} onInput={set('postal_code')} />
         </div>
         <div class="field">
-          <label for="c-city">Ort</label>
+          <label for="c-city">City</label>
           <input id="c-city" type="text" maxLength={100} value={form.city} onInput={set('city')} />
         </div>
       </div>
       {form.kind === 'company' && (
         <div class="field">
-          <label for="c-org">Organisationsnummer</label>
+          <label for="c-org">Company registration number</label>
           <input id="c-org" type="text" maxLength={20} value={form.org_nr} onInput={set('org_nr')} />
         </div>
       )}
       <div class="field">
-        <label for="c-notes">Anteckningar</label>
+        <label for="c-notes">Notes</label>
         <textarea id="c-notes" maxLength={5000} value={form.notes} onInput={set('notes')} />
       </div>
       {!isNew && <PortalBox customer={customer} />}
       <ErrorMsg error={error} />
       <div class="cp-actions">
-        <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara'}</button>
-        <button class="btn btn--ghost" type="button" onClick={onDone}>Avbryt</button>
-        {!isNew && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Ta bort</button>}
+        <button class="btn" type="submit" disabled={busy}>{busy ? 'Saving …' : 'Save'}</button>
+        <button class="btn btn--ghost" type="button" onClick={onDone}>Cancel</button>
+        {!isNew && <button class="btn btn--danger" type="button" disabled={busy} onClick={remove}>Remove</button>}
       </div>
     </form>
   );
 }
 
 // Kundportalen: personlig länk som kunden får via SMS eller mejl. En ny länk gör den gamla ogiltig.
+// Texten till kunden är på svenska.
 function PortalBox({ customer }) {
   const sb = supabase();
   const [token, setToken] = useState(customer.portal_token ?? null);
@@ -180,39 +181,39 @@ function PortalBox({ customer }) {
   const phone = (customer.phone ?? '').replace(/[^\d+]/g, '');
 
   async function setNew(next) {
-    if (token && next && !window.confirm('Den gamla länken slutar fungera. Skapa en ny?')) return;
-    if (!next && !window.confirm('Stänga av kundens länk? Kunden kommer inte in på Mina sidor förrän du skapar en ny.')) return;
+    if (token && next && !window.confirm('The old link will stop working. Create a new one?')) return;
+    if (!next && !window.confirm('Turn off the customer\'s link? The customer cannot open their page until you create a new link.')) return;
     setError('');
     const value = next ? crypto.randomUUID() : null;
     const { error: e } = await sb.from('customers').update({ portal_token: value, portal_created_at: next ? new Date().toISOString() : null }).eq('id', customer.id);
-    if (e) return setError('Kunde inte spara länken.');
+    if (e) return setError('Could not save the link.');
     setToken(value);
     setCopied(false);
   }
 
   return (
     <fieldset class="cp-fieldset">
-      <legend>Mina sidor för kunden</legend>
+      <legend>Customer portal (Mina sidor)</legend>
       {!token ? (
         <>
-          <p class="muted" style="margin:0">Kunden kan se sina bokningar, fotorapporter, offerter och fakturor och skicka meddelanden. Skapa en personlig länk och skicka den till kunden.</p>
-          <div><button class="btn btn--sm" type="button" onClick={() => setNew(true)}>Skapa länk</button></div>
+          <p class="muted" style="margin:0">The customer can see their bookings, photo reports, quotes and invoices and send messages. Create a personal link and send it to the customer.</p>
+          <div><button class="btn btn--sm" type="button" onClick={() => setNew(true)}>Create link</button></div>
         </>
       ) : (
         <>
           <div class="cp-link-box">{url}</div>
           <small class="muted">
-            {customer.portal_seen_at ? `Senast öppnad ${formatDateTime(customer.portal_seen_at)}` : 'Inte öppnad ännu'}
+            {customer.portal_seen_at ? `Last opened ${formatDateTime(customer.portal_seen_at)}` : 'Not opened yet'}
           </small>
           <div class="cp-actions">
-            <button class="btn btn--sm" type="button" onClick={async () => setCopied(await copyText(text))}>{copied ? 'Texten är kopierad' : 'Kopiera text med länk'}</button>
-            {phone && <a class="btn btn--ghost btn--sm" href={`sms:${phone}?body=${encodeURIComponent(text)}`}>Skicka som SMS</a>}
-            {customer.email && <a class="btn btn--ghost btn--sm" href={`mailto:${customer.email}?subject=${encodeURIComponent('Dina sidor hos TO Städ & Flytt')}&body=${encodeURIComponent(text)}`}>Skicka som mejl</a>}
-            <a class="btn btn--ghost btn--sm" href={url} target="_blank" rel="noopener">Öppna</a>
+            <button class="btn btn--sm" type="button" onClick={async () => setCopied(await copyText(text))}>{copied ? 'The text is copied' : 'Copy text with link'}</button>
+            {phone && <a class="btn btn--ghost btn--sm" href={`sms:${phone}?body=${encodeURIComponent(text)}`}>Send as SMS</a>}
+            {customer.email && <a class="btn btn--ghost btn--sm" href={`mailto:${customer.email}?subject=${encodeURIComponent('Dina sidor hos TO Städ & Flytt')}&body=${encodeURIComponent(text)}`}>Send as email</a>}
+            <a class="btn btn--ghost btn--sm" href={url} target="_blank" rel="noopener">Open</a>
           </div>
           <div class="cp-actions">
-            <button class="st-link" type="button" onClick={() => setNew(true)}>Skapa ny länk</button>
-            <button class="st-link" type="button" onClick={() => setNew(false)}>Stäng av</button>
+            <button class="st-link" type="button" onClick={() => setNew(true)}>Create new link</button>
+            <button class="st-link" type="button" onClick={() => setNew(false)}>Turn off</button>
           </div>
         </>
       )}

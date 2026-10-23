@@ -27,11 +27,11 @@ import DocEditor from './DocEditor.jsx';
 import SendBox from './SendBox.jsx';
 
 const FILTERS = [
-  ['obetalda', 'Obetalda'],
-  ['forfallna', 'Förfallna'],
-  ['utkast', 'Utkast'],
-  ['betalda', 'Betalda'],
-  ['alla', 'Alla'],
+  ['obetalda', 'Unpaid'],
+  ['forfallna', 'Overdue'],
+  ['utkast', 'Drafts'],
+  ['betalda', 'Paid'],
+  ['alla', 'All'],
 ];
 
 const match = {
@@ -93,8 +93,8 @@ export default function Invoices() {
 
   const send = (inv) =>
     run(inv.id, async () => {
-      if (!settings?.bankgiro) throw new Error('Lägg in bankgironumret under Inställningar innan du skickar fakturor.');
-      if (!window.confirm('När fakturan skickas får den nummer och OCR och kan inte längre ändras. Fortsätta?')) return;
+      if (!settings?.bankgiro) throw new Error('Add the bankgiro number under Settings before you send invoices.');
+      if (!window.confirm('When the invoice is sent it gets a number and OCR and can no longer be changed. Continue?')) return;
       const sent = await finalizeInvoice(inv.id);
       setSending({ inv: sent, reminder: false });
       setFilter('obetalda');
@@ -107,7 +107,7 @@ export default function Invoices() {
     });
 
   const credit = (inv) => {
-    const reason = window.prompt(`Kreditera hela faktura ${inv.number}? Skriv gärna orsaken (visas på kreditfakturan).`, '');
+    const reason = window.prompt(`Credit the whole invoice ${inv.number}? Write the reason if you like (shown on the credit note, in Swedish).`, '');
     if (reason === null) return;
     run(inv.id, async () => {
       await creditInvoice(inv.id, reason);
@@ -123,11 +123,11 @@ export default function Invoices() {
   return (
     <>
       <div class="cp-head">
-        <h2>Fakturor</h2>
-        <button class="btn btn--sm" type="button" onClick={() => setEditing({ buyer: {}, lines: [], rut_persons: 1, delivery_date: today() })}>Ny faktura</button>
+        <h2>Invoices</h2>
+        <button class="btn btn--sm" type="button" onClick={() => setEditing({ buyer: {}, lines: [], rut_persons: 1, delivery_date: today() })}>New invoice</button>
       </div>
       {settings && !settings.bankgiro && (
-        <p class="msg msg--error">Bankgironumret saknas. <a href="/admin/installningar">Lägg in det under Inställningar</a> innan du skickar den första fakturan.</p>
+        <p class="msg msg--error">The bankgiro number is missing. <a href="/admin/installningar">Add it under Settings</a> before you send the first invoice.</p>
       )}
       <div class="cp-tabs" role="group" aria-label="Filter" style="margin-bottom:14px">
         {FILTERS.map(([k, l]) => (
@@ -139,8 +139,8 @@ export default function Invoices() {
       </div>
       <ErrorMsg error={error} />
       <div class="cp-panel">
-        {rows === null && <p class="muted">Laddar …</p>}
-        {rows && shown.length === 0 && <p class="cp-empty">Inga fakturor här.</p>}
+        {rows === null && <p class="muted">Loading …</p>}
+        {rows && shown.length === 0 && <p class="cp-empty">No invoices here.</p>}
         <ul class="cp-list">
           {shown.map((inv) => {
             const overdue = isOverdue(inv);
@@ -149,49 +149,49 @@ export default function Invoices() {
               <li class="cp-row cp-row--static">
                 <span class="cp-row-top">
                   <strong>
-                    {kredit ? 'Kreditfaktura' : 'Faktura'} {inv.number ?? '(utkast)'} · {inv.buyer?.name || 'Utan namn'}
+                    {kredit ? 'Credit note' : 'Invoice'} {inv.number ?? '(draft)'} · {inv.buyer?.name || 'No name'}
                   </strong>
                   <span>
-                    {overdue && <span class="badge badge--skadeanmalan">Förfallen</span>}{' '}
+                    {overdue && <span class="badge badge--skadeanmalan">Overdue</span>}{' '}
                     <span class={`badge ${inv.status === 'utkast' || inv.status === 'krediterad' ? 'badge--muted' : inv.status === 'skickad' ? 'badge--ny' : ''}`}>
-                      {kredit && inv.status === 'skickad' ? 'Skickad' : INVOICE_STATUS[inv.status]}
+                      {kredit && inv.status === 'skickad' ? 'Sent' : INVOICE_STATUS[inv.status]}
                     </span>
                   </span>
                 </span>
                 <p>
                   <strong>{formatKrWhole(inv.to_pay)}</strong>
                   {Number(inv.rut) !== 0 && ` (RUT ${formatMoney(inv.rut)})`}
-                  {inv.due_date && !kredit && ` · förfaller ${inv.due_date}`}
+                  {inv.due_date && !kredit && ` · due ${inv.due_date}`}
                   {inv.ocr && ` · OCR ${inv.ocr}`}
                 </p>
                 <small>
-                  {inv.sent_at ? `Skickad ${formatDateTime(inv.sent_at)}` : `Skapad ${formatDateTime(inv.created_at)}`}
-                  {inv.paid_at && ` · betald ${inv.paid_at}${inv.paid_amount != null && Number(inv.paid_amount) !== Number(inv.to_pay) ? ` (${formatKrWhole(inv.paid_amount)})` : ''}`}
-                  {inv.reminder_count > 0 && ` · ${inv.reminder_count} påminnelse${inv.reminder_count > 1 ? 'r' : ''}, senast ${formatDateTime(inv.last_reminder_at)}`}
+                  {inv.sent_at ? `Sent ${formatDateTime(inv.sent_at)}` : `Created ${formatDateTime(inv.created_at)}`}
+                  {inv.paid_at && ` · paid ${inv.paid_at}${inv.paid_amount != null && Number(inv.paid_amount) !== Number(inv.to_pay) ? ` (${formatKrWhole(inv.paid_amount)})` : ''}`}
+                  {inv.reminder_count > 0 && ` · ${inv.reminder_count} reminder${inv.reminder_count > 1 ? 's' : ''}, latest ${formatDateTime(inv.last_reminder_at)}`}
                 </small>
                 <span class="cp-actions">
                   {inv.status === 'utkast' && (
                     <>
-                      <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(inv)}>Ändra</button>
-                      <button class="btn btn--sm" type="button" disabled={busy === inv.id} onClick={() => send(inv)}>Skicka</button>
-                      <button class="btn btn--danger btn--sm" type="button" disabled={busy === inv.id} onClick={() => window.confirm('Ta bort utkastet?') && run(inv.id, () => deleteDraft('invoices', inv.id))}>Ta bort</button>
+                      <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(inv)}>Edit</button>
+                      <button class="btn btn--sm" type="button" disabled={busy === inv.id} onClick={() => send(inv)}>Send</button>
+                      <button class="btn btn--danger btn--sm" type="button" disabled={busy === inv.id} onClick={() => window.confirm('Remove the draft?') && run(inv.id, () => deleteDraft('invoices', inv.id))}>Remove</button>
                     </>
                   )}
-                  {inv.status !== 'utkast' && <a class="btn btn--ghost btn--sm" href={docUrl(inv.token)} target="_blank" rel="noopener">Visa</a>}
+                  {inv.status !== 'utkast' && <a class="btn btn--ghost btn--sm" href={docUrl(inv.token)} target="_blank" rel="noopener">View</a>}
                   {inv.status === 'skickad' && !kredit && (
                     <>
-                      <button class="btn btn--sm" type="button" onClick={() => setPaying(inv)}>Markera betald</button>
-                      <button class="btn btn--ghost btn--sm" type="button" onClick={() => setSending({ inv, reminder: false })}>Skicka igen</button>
-                      {overdue && <button class="btn btn--ghost btn--sm" type="button" disabled={busy === inv.id} onClick={() => remind(inv)}>Påminnelse</button>}
+                      <button class="btn btn--sm" type="button" onClick={() => setPaying(inv)}>Mark as paid</button>
+                      <button class="btn btn--ghost btn--sm" type="button" onClick={() => setSending({ inv, reminder: false })}>Send again</button>
+                      {overdue && <button class="btn btn--ghost btn--sm" type="button" disabled={busy === inv.id} onClick={() => remind(inv)}>Reminder</button>}
                     </>
                   )}
-                  {inv.status === 'betald' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy === inv.id} onClick={() => unpay(inv)}>Ångra betald</button>}
+                  {inv.status === 'betald' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy === inv.id} onClick={() => unpay(inv)}>Undo paid</button>}
                   {['skickad', 'betald'].includes(inv.status) && !kredit && (
-                    <button class="btn btn--ghost btn--sm" type="button" disabled={busy === inv.id} onClick={() => credit(inv)}>Kreditera</button>
+                    <button class="btn btn--ghost btn--sm" type="button" disabled={busy === inv.id} onClick={() => credit(inv)}>Credit</button>
                   )}
-                  {kredit && inv.status === 'skickad' && <button class="btn btn--ghost btn--sm" type="button" onClick={() => setSending({ inv, reminder: false })}>Skicka</button>}
+                  {kredit && inv.status === 'skickad' && <button class="btn btn--ghost btn--sm" type="button" onClick={() => setSending({ inv, reminder: false })}>Send</button>}
                   {inv.status !== 'utkast' && inv.rut_status !== 'ej_aktuell' && (
-                    <select aria-label="RUT-status" value={inv.rut_status} disabled={busy === inv.id} onChange={(e) => setRut(inv, e.currentTarget.value)}>
+                    <select aria-label="RUT status" value={inv.rut_status} disabled={busy === inv.id} onChange={(e) => setRut(inv, e.currentTarget.value)}>
                       {Object.entries(RUT_STATUS).filter(([k]) => k !== 'ej_aktuell').map(([k, v]) => <option value={k}>RUT: {v}</option>)}
                     </select>
                   )}
@@ -200,17 +200,17 @@ export default function Invoices() {
             );
           })}
         </ul>
-        {shown.length > 0 && filter !== 'utkast' && <p class="muted" style="margin:12px 0 0">Summa att betala: <strong>{formatKrWhole(sum)}</strong></p>}
+        {shown.length > 0 && filter !== 'utkast' && <p class="muted" style="margin:12px 0 0">Total to pay: <strong>{formatKrWhole(sum)}</strong></p>}
       </div>
 
-      <Modal open={!!editing} label="Faktura" onClose={() => setEditing(null)}>
+      <Modal open={!!editing} label="Invoice" onClose={() => setEditing(null)}>
         {editing && <DocEditor type="faktura" value={editing} customers={customers} company={companyFor(settings)} onSave={save} onCancel={() => setEditing(null)} />}
       </Modal>
-      <Modal open={!!sending} label="Skicka fakturan" onClose={() => setSending(null)}>
+      <Modal open={!!sending} label="Send the invoice" onClose={() => setSending(null)}>
         {sending && (
           <SendBox
-            title={sending.reminder ? `Påminnelse för faktura ${sending.inv.number}` : `${sending.inv.kind === 'kredit' ? 'Kreditfaktura' : 'Faktura'} ${sending.inv.number} är skickad`}
-            intro={sending.reminder ? 'Ingen påminnelseavgift tas ut. Skicka texten till kunden.' : 'Fakturan har fått nummer och OCR. Skicka länken till kunden; där finns fakturan som PDF.'}
+            title={sending.reminder ? `Reminder for invoice ${sending.inv.number}` : `${sending.inv.kind === 'kredit' ? 'Credit note' : 'Invoice'} ${sending.inv.number} is sent`}
+            intro={sending.reminder ? 'No reminder fee is charged. Send the text to the customer.' : 'The invoice has a number and OCR. Send the link to the customer; the invoice is there as a PDF.'}
             url={docUrl(sending.inv.token)}
             text={messageFor('faktura', sending.inv, docUrl(sending.inv.token), sending.reminder)}
             subject={`${sending.reminder ? 'Påminnelse: faktura' : 'Faktura'} ${sending.inv.number} från TO Städ & Flytt`}
@@ -220,7 +220,7 @@ export default function Invoices() {
           />
         )}
       </Modal>
-      <Modal open={!!paying} label="Betalning" onClose={() => setPaying(null)}>
+      <Modal open={!!paying} label="Payment" onClose={() => setPaying(null)}>
         {paying && <PayForm inv={paying} onDone={() => { setPaying(null); load(); }} />}
       </Modal>
     </>
@@ -242,22 +242,22 @@ function PayForm({ inv, onDone }) {
   }
   return (
     <form onSubmit={submit}>
-      <h3>Betalning för faktura {inv.number}</h3>
+      <h3>Payment for invoice {inv.number}</h3>
       <div class="form-2">
         <div class="field">
-          <label for="p-date">Betalningsdag</label>
+          <label for="p-date">Payment date</label>
           <input id="p-date" type="date" required value={date} onInput={(e) => setDate(e.currentTarget.value)} />
         </div>
         <div class="field">
-          <label for="p-amount">Belopp (kr)</label>
+          <label for="p-amount">Amount (kr)</label>
           <input id="p-amount" type="text" inputmode="decimal" required value={amount} onInput={(e) => setAmount(e.currentTarget.value)} />
         </div>
       </div>
-      {Number(inv.rut) !== 0 && <p class="muted">När kunden har betalat kan du ansöka om RUT-utbetalningen hos Skatteverket. Ändra sedan RUT-status på fakturan.</p>}
+      {Number(inv.rut) !== 0 && <p class="muted">When the customer has paid, you can apply for the RUT payout from Skatteverket. Then change the RUT status on the invoice.</p>}
       <ErrorMsg error={error} />
       <div class="cp-actions">
-        <button class="btn" type="submit">Spara</button>
-        <button class="btn btn--ghost" type="button" onClick={onDone}>Avbryt</button>
+        <button class="btn" type="submit">Save</button>
+        <button class="btn btn--ghost" type="button" onClick={onDone}>Cancel</button>
       </div>
     </form>
   );

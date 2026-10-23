@@ -1,22 +1,22 @@
-// Idag: stämpling, dagens jobb och de närmaste dagarna.
+// Idag: dagens jobb, påminnelse om att rapportera timmar och de närmaste dagarna.
 import { useEffect, useState } from 'preact/hooks';
 import { today, addDays } from '../../lib/planner.js';
 import { ErrorMsg } from '../ui.jsx';
-import { myJobs, openEntry, openSwaps, jobAction, telLink } from './api.js';
-import { JobCard, ClockCard, NavButton, dayName, jobTitle } from './parts.jsx';
+import { myJobs, myHours, openSwaps, jobAction, telLink } from './api.js';
+import { JobCard, NavButton, dayName, jobTitle } from './parts.jsx';
 
 export default function Today({ me }) {
   const [jobs, setJobs] = useState(null);
-  const [entry, setEntry] = useState(undefined);
+  const [reported, setReported] = useState(null);
   const [swaps, setSwaps] = useState(0);
   const [error, setError] = useState('');
   const now = today();
 
   async function load() {
     try {
-      const [list, open] = await Promise.all([myJobs(now, addDays(now, 7)), openEntry(me.profile.id)]);
+      const [list, hours] = await Promise.all([myJobs(now, addDays(now, 7)), myHours(addDays(now, -7), now)]);
       setJobs(list);
-      setEntry(open);
+      setReported(new Set(hours.map((h) => h.job_id).filter(Boolean)));
     } catch (e) {
       setError(e.message);
     }
@@ -29,7 +29,8 @@ export default function Today({ me }) {
 
   const todays = (jobs ?? []).filter((j) => j.date === now);
   const later = (jobs ?? []).filter((j) => j.date > now && j.status !== 'avbokad');
-  const current = todays.find((j) => j.status === 'planerad' && j.end > Date.now()) ?? null;
+  // Jobb som har börjat idag men saknar dina timmar.
+  const toReport = reported ? todays.filter((j) => j.status !== 'avbokad' && j.start <= Date.now() && !reported.has(j.id)) : [];
 
   async function onWay(job) {
     try {
@@ -43,29 +44,45 @@ export default function Today({ me }) {
   return (
     <div class="st-page">
       <header class="st-hello">
-        <h2>Hej {me.profile.full_name.split(' ')[0]}!</h2>
+        <h2>Hi {me.profile.full_name.split(' ')[0]}!</h2>
         <p>{dayName(now)}</p>
       </header>
       <ErrorMsg error={error} />
-      {entry !== undefined && (
-        <ClockCard entry={entry} jobId={current?.id ?? null} jobLabel={current ? jobTitle(current) : ''} onChange={load} />
+
+      {reported && (
+        <section class="st-card st-report">
+          <h3>Your hours</h3>
+          {toReport.length > 0 ? (
+            <>
+              <p class="muted">Write how many hours you worked and who you worked with.</p>
+              <div class="st-actions st-actions--stack">
+                {toReport.map((j) => (
+                  <a class="btn" href={`/app/jobb?id=${j.id}#hours`}>Report hours for {jobTitle(j)}</a>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p class="muted">{todays.some((j) => reported.has(j.id)) ? 'You have reported your hours for today. Thank you!' : 'Report your hours after each job.'}</p>
+          )}
+          <a class="btn btn--ghost btn--sm" href="/app/tider">Report other hours</a>
+        </section>
       )}
 
       <section class="st-section">
-        <h3>Dagens jobb</h3>
-        {jobs === null && <p class="muted">Laddar …</p>}
-        {jobs?.length >= 0 && todays.length === 0 && <p class="st-empty">Inga jobb idag.</p>}
+        <h3>Today's jobs</h3>
+        {jobs === null && <p class="muted">Loading …</p>}
+        {jobs?.length >= 0 && todays.length === 0 && <p class="st-empty">No jobs today.</p>}
         {todays.map((j) => (
           <div class="st-jobwrap">
             <JobCard job={j} />
             {j.status === 'planerad' && (
               <div class="st-quick">
                 <NavButton job={j} />
-                {j.customer_phone && <a class="btn btn--ghost btn--sm" href={telLink(j.customer_phone)}>Ring kunden</a>}
+                {j.customer_phone && <a class="btn btn--ghost btn--sm" href={telLink(j.customer_phone)}>Call the customer</a>}
                 {!j.on_way_at && j.start > Date.now() && (
-                  <button class="btn btn--ghost btn--sm" type="button" onClick={() => onWay(j)}>Vi är på väg</button>
+                  <button class="btn btn--ghost btn--sm" type="button" onClick={() => onWay(j)}>We are on our way</button>
                 )}
-                {j.on_way_at && <span class="badge">På väg</span>}
+                {j.on_way_at && <span class="badge">On the way</span>}
               </div>
             )}
           </div>
@@ -74,20 +91,20 @@ export default function Today({ me }) {
 
       {swaps > 0 && (
         <a class="st-banner" href="/app/ledighet#pass">
-          {swaps === 1 ? 'En kollega vill byta bort ett pass.' : `${swaps} pass är lediga att ta.`} Visa
+          {swaps === 1 ? 'A colleague wants to give away a shift.' : `${swaps} shifts are open to take.`} Show
         </a>
       )}
 
       <section class="st-section">
-        <h3>Kommande dagar</h3>
-        {jobs !== null && later.length === 0 && <p class="st-empty">Inga jobb bokade den närmaste veckan.</p>}
+        <h3>Coming days</h3>
+        {jobs !== null && later.length === 0 && <p class="st-empty">No jobs booked in the coming week.</p>}
         {[...new Set(later.map((j) => j.date))].map((d) => (
           <>
             <h4 class="st-day">{dayName(d)}</h4>
             {later.filter((j) => j.date === d).map((j) => <JobCard job={j} compact />)}
           </>
         ))}
-        <a class="btn btn--ghost btn--block" href="/app/schema">Hela schemat</a>
+        <a class="btn btn--ghost btn--block" href="/app/schema">Full schedule</a>
       </section>
     </div>
   );

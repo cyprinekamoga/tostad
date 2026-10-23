@@ -2,11 +2,11 @@
 import { supabase } from '../../lib/supabase.js';
 import { today, addDays, zoned } from '../../lib/planner.js';
 import { exVat } from '../../lib/money.js';
-import { SERVICE_LABELS } from './jobs.js';
+import { SERVICE_LABELS_SV as SERVICE_LABELS } from './jobs.js';
 
-export const QUOTE_STATUS = { utkast: 'Utkast', skickad: 'Skickad', oppnad: 'Öppnad', accepterad: 'Accepterad', avbojd: 'Avböjd' };
-export const INVOICE_STATUS = { utkast: 'Utkast', skickad: 'Obetald', betald: 'Betald', krediterad: 'Krediterad' };
-export const RUT_STATUS = { ej_aktuell: 'Inget RUT', ej_ansokt: 'Ej ansökt', ansokt: 'Ansökt', utbetald: 'Utbetald', nekad: 'Nekad' };
+export const QUOTE_STATUS = { utkast: 'Draft', skickad: 'Sent', oppnad: 'Opened', accepterad: 'Accepted', avbojd: 'Declined' };
+export const INVOICE_STATUS = { utkast: 'Draft', skickad: 'Unpaid', betald: 'Paid', krediterad: 'Credited' };
+export const RUT_STATUS = { ej_aktuell: 'No RUT', ej_ansokt: 'Not applied', ansokt: 'Applied', utbetald: 'Paid out', nekad: 'Rejected' };
 // Tjänster där arbetet ger RUT-avdrag. Kontorsstädning åt företag gör det inte.
 export const RUT_SERVICES = ['hemstadning', 'storstadning', 'flyttstadning', 'fonsterputs', 'flytt', 'paket', 'pianoflytt'];
 
@@ -48,7 +48,7 @@ export async function loadSettings() {
 
 export async function saveSettings(values) {
   const { error } = await sb().from('company_settings').upsert({ ...values, id: 1 });
-  if (error) fail(error, /bankgiro/.test(error.message) ? 'Bankgironumret ska skrivas som 123-4567 eller 1234-5678.' : 'Kunde inte spara.');
+  if (error) fail(error, /bankgiro/.test(error.message) ? 'Write the bankgiro number as 123-4567 or 1234-5678.' : 'Could not save.');
 }
 
 export async function nextInvoiceNumber() {
@@ -58,7 +58,7 @@ export async function nextInvoiceNumber() {
 
 export async function setInvoiceStart(n) {
   const { error } = await sb().rpc('set_invoice_start', { p_next: Number(n) });
-  if (error) fail(error, 'Kunde inte spara startnumret.');
+  if (error) fail(error, 'Could not save the start number.');
 }
 
 export async function loadCustomers() {
@@ -72,7 +72,7 @@ const pick = (obj, keys) => Object.fromEntries(keys.filter((k) => k in obj).map(
 
 export async function loadQuotes() {
   const { data, error } = await sb().from('quotes').select('*').order('created_at', { ascending: false }).limit(500);
-  if (error) fail(error, 'Kunde inte hämta offerterna.');
+  if (error) fail(error, 'Could not load the quotes.');
   return data;
 }
 
@@ -80,7 +80,7 @@ export async function saveQuote(form) {
   const values = pick(form, QUOTE_FIELDS);
   const q = form.id ? sb().from('quotes').update(values).eq('id', form.id) : sb().from('quotes').insert(values);
   const { data, error } = await q.select('*').single();
-  if (error) fail(error, 'Kunde inte spara offerten.');
+  if (error) fail(error, 'Could not save the quote.');
   return data;
 }
 
@@ -91,13 +91,13 @@ export async function sendQuote(quote, quoteDays) {
     .eq('id', quote.id)
     .select('*')
     .single();
-  if (error) fail(error, 'Kunde inte skicka offerten.');
+  if (error) fail(error, 'Could not send the quote.');
   return data;
 }
 
 export async function deleteDraft(table, id) {
   const { error } = await sb().from(table).delete().eq('id', id).eq('status', 'utkast');
-  if (error) fail(error, 'Kunde inte ta bort utkastet.');
+  if (error) fail(error, 'Could not remove the draft.');
 }
 
 // Fakturor
@@ -110,7 +110,7 @@ export async function loadInvoices() {
     .not('rut_people.pnr_last4', 'is', null)
     .order('created_at', { ascending: false })
     .limit(1000);
-  if (error) fail(error, 'Kunde inte hämta fakturorna.');
+  if (error) fail(error, 'Could not load the invoices.');
   return data.map((inv) => ({ ...inv, rut_people: (inv.rut_people ?? []).sort((a, b) => a.slot - b.slot) }));
 }
 
@@ -118,36 +118,36 @@ export async function saveInvoice(form, people) {
   const values = pick(form, INVOICE_FIELDS);
   const q = form.id ? sb().from('invoices').update(values).eq('id', form.id) : sb().from('invoices').insert(values);
   const { data, error } = await q.select('*').single();
-  if (error) fail(error, 'Kunde inte spara fakturan.');
+  if (error) fail(error, 'Could not save the invoice.');
   // Personnummer skickas bara när de har ändrats (fältet är tomt annars).
   if (people) {
     const { error: e } = await sb().rpc('set_rut_people', { p_invoice: data.id, p_people: people });
-    if (e) fail(e, 'Kunde inte spara personnumren.');
+    if (e) fail(e, 'Could not save the personal identity numbers.');
   }
   return data;
 }
 
 export async function finalizeInvoice(id) {
   const { data, error } = await sb().rpc('finalize_invoice', { p_id: id });
-  if (error) fail(error, 'Kunde inte skicka fakturan.');
+  if (error) fail(error, 'Could not send the invoice.');
   return data;
 }
 
 export async function creditInvoice(id, reason) {
   const { data, error } = await sb().rpc('credit_invoice', { p_id: id, p_reason: reason || null });
-  if (error) fail(error, 'Kunde inte kreditera fakturan.');
+  if (error) fail(error, 'Could not credit the invoice.');
   return data;
 }
 
 export async function updateInvoice(id, values) {
   const { data, error } = await sb().from('invoices').update(values).eq('id', id).select('*').single();
-  if (error) fail(error, 'Kunde inte spara.');
+  if (error) fail(error, 'Could not save.');
   return data;
 }
 
 export async function revealPnr(personId) {
   const { data, error } = await sb().rpc('reveal_pnr', { p_id: personId });
-  if (error) fail(error, 'Kunde inte visa personnumret.');
+  if (error) fail(error, 'Could not show the personal identity number.');
   return data;
 }
 
@@ -203,7 +203,7 @@ export function quoteFromSubmission(s) {
 
 const kr = (n) => `${new Intl.NumberFormat('sv-SE').format(Math.round(Number(n)))} kr`;
 
-/** Text till mejl eller SMS med länken. */
+/** Text till mejl eller SMS med länken. Kunden får texten på svenska. */
 export function messageFor(kind, doc, url, reminder = false) {
   const first = (doc.buyer?.name ?? '').split(' ')[0];
   const hi = first ? `Hej ${first}!` : 'Hej!';

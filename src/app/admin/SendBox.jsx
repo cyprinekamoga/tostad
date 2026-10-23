@@ -11,17 +11,17 @@ export default function SendBox({ title, intro, url, text, subject, email, phone
       {intro && <p>{intro}</p>}
       <div class="cp-link-box">{url}</div>
       <div class="cp-actions">
-        <button class="btn btn--sm" type="button" onClick={async () => setCopied((await copyText(url)) ? 'link' : '')}>{copied === 'link' ? 'Länken är kopierad' : 'Kopiera länken'}</button>
-        <button class="btn btn--ghost btn--sm" type="button" onClick={async () => setCopied((await copyText(text)) ? 'text' : '')}>{copied === 'text' ? 'Texten är kopierad' : 'Kopiera hela texten'}</button>
-        {email && <a class="btn btn--ghost btn--sm" href={`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`}>Skicka som mejl</a>}
-        {tel && <a class="btn btn--ghost btn--sm" href={`sms:${tel}?body=${encodeURIComponent(text)}`}>Skicka som SMS</a>}
-        <a class="btn btn--ghost btn--sm" href={url} target="_blank" rel="noopener">Öppna</a>
+        <button class="btn btn--sm" type="button" onClick={async () => setCopied((await copyText(url)) ? 'link' : '')}>{copied === 'link' ? 'The link is copied' : 'Copy the link'}</button>
+        <button class="btn btn--ghost btn--sm" type="button" onClick={async () => setCopied((await copyText(text)) ? 'text' : '')}>{copied === 'text' ? 'The text is copied' : 'Copy the whole text'}</button>
+        {email && <a class="btn btn--ghost btn--sm" href={`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`}>Send as email</a>}
+        {tel && <a class="btn btn--ghost btn--sm" href={`sms:${tel}?body=${encodeURIComponent(text)}`}>Send as SMS</a>}
+        <a class="btn btn--ghost btn--sm" href={url} target="_blank" rel="noopener">Open</a>
       </div>
       <details>
-        <summary>Visa texten</summary>
+        <summary>Show the text (in Swedish, for the customer)</summary>
         <p style="white-space:pre-wrap">{text}</p>
       </details>
-      <button class="btn btn--ghost" type="button" onClick={onClose}>Klar</button>
+      <button class="btn btn--ghost" type="button" onClick={onClose}>Done</button>
     </div>
   );
 }

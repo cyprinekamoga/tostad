@@ -1418,30 +1418,74 @@ input[type='search'] {
   min-height: 54px;
   font-size: 1.05rem;
 }
-.st-clock {
+/* Rapportera timmar */
+.st-report {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 10px 14px;
-  align-items: center;
-  padding: 16px;
-  border-radius: 18px;
-  background: #fff;
+  gap: 10px;
+  justify-items: start;
+}
+.st-report .st-actions--stack {
+  width: 100%;
+}
+.st-hours .hint {
+  min-height: 1.2em;
+}
+.st-with {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.st-with legend {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.st-with ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.st-with li {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
   border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
 }
-.st-clock > div {
-  display: grid;
-  gap: 2px;
+.st-with li.is-on {
+  border-color: var(--green-600, #1a7f45);
+  background: var(--green-50, #f1f8f4);
 }
-.st-clock small {
-  color: var(--ink-3);
+.st-with-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  cursor: pointer;
 }
-.st-clock.is-in {
-  background: var(--green-900);
-  border-color: var(--green-900);
-  color: #fff;
+.st-with-name input {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  accent-color: var(--green-700, #146c3a);
 }
-.st-clock.is-in small,
-.st-clock.is-in .st-fine {
+.st-with-hours {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding-left: 32px;
+  font-size: 0.92rem;
+}
+.st-with-hours input {
+  width: 6.5em;
+  min-height: 40px;
+  padding: 6px 10px;
+}
+.st-fine {
   color: #cfe9da;
 }
 .st-clock.is-in .btn {
@@ -2157,4 +2201,7 @@ input.pl-date {
 }
 .pl-big .pl-mdate {
   font-size: 1rem;
+}
+.st-with-hours .st-link {
+  color: var(--green-700);
 }

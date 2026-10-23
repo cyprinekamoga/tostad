@@ -1,11 +1,23 @@
 // Etiketter och korta sammanfattningar för det som kommer in via webbplatsens formulär.
-import { HOME_SIZES } from '../../lib/pricing.js';
+import { HOME_SIZES_EN } from '../../lib/calcSummary.js';
 import { formatDateTime } from '../../lib/supabase.js';
 
-export const KIND = { bokning: 'Bokning', kontakt: 'Meddelande', skadeanmalan: 'Skadeanmälan' };
-export const STATUS = { ny: 'Ny', hanterad: 'Hanterad', arkiverad: 'Arkiverad' };
+export const KIND = { bokning: 'Booking', kontakt: 'Message', skadeanmalan: 'Damage report' };
+export const STATUS = { ny: 'New', hanterad: 'Handled', arkiverad: 'Archived' };
 
 export const SERVICES = {
+  flytt: 'Moving',
+  flyttstadning: 'Move-out cleaning',
+  paket: 'Moving + move-out cleaning',
+  hemstadning: 'Home cleaning',
+  storstadning: 'Deep cleaning',
+  fonsterputs: 'Window cleaning',
+  kontor: 'Office cleaning',
+  pianoflytt: 'Piano moving / heavy lifting',
+};
+
+// Svenska namn för text som kunden ser, till exempel rader på offerter och fakturor.
+export const SERVICES_SV = {
   flytt: 'Flytt',
   flyttstadning: 'Flyttstädning',
   paket: 'Flytt + flyttstädning',
@@ -18,37 +30,37 @@ export const SERVICES = {
 
 // Ordning och etiketter när ett ärende visas i sin helhet.
 export const FIELDS = [
-  ['tjanst', 'Tjänst'],
-  ['pris', 'Pris från kalkylatorn'],
-  ['datum', 'Datum'],
-  ['tid', 'Tid'],
-  ['flexibel', 'Flexibel med datum'],
-  ['adress', 'Adress'],
-  ['postnummer', 'Postnummer'],
-  ['nyAdress', 'Ny adress'],
-  ['storlek', 'Bostad'],
-  ['kvm', 'Kvadratmeter'],
-  ['vaningOchHiss', 'Våning och hiss'],
-  ['typ', 'Gäller'],
-  ['beskrivning', 'Beskrivning'],
-  ['meddelande', 'Meddelande'],
-  ['ovrigt', 'Övrigt'],
-  ['namn', 'Namn'],
-  ['telefon', 'Telefon'],
-  ['epost', 'Mejl'],
-  ['kontakt', 'Kontakt'],
-  ['kontaktsatt', 'Vill bli kontaktad via'],
-  ['sprak', 'Språk'],
-  ['kalla', 'Skickat från'],
-  ['kalkyl', 'Kalkyl'],
-  ['samtycke', 'Samtycke'],
+  ['tjanst', 'Service'],
+  ['pris', 'Price from the calculator'],
+  ['datum', 'Date'],
+  ['tid', 'Time'],
+  ['flexibel', 'Flexible with the date'],
+  ['adress', 'Address'],
+  ['postnummer', 'Postcode'],
+  ['nyAdress', 'New address'],
+  ['storlek', 'Home'],
+  ['kvm', 'Square metres'],
+  ['vaningOchHiss', 'Floor and lift'],
+  ['typ', 'Concerns'],
+  ['beskrivning', 'Description'],
+  ['meddelande', 'Message'],
+  ['ovrigt', 'Other'],
+  ['namn', 'Name'],
+  ['telefon', 'Phone'],
+  ['epost', 'Email'],
+  ['kontakt', 'Contact'],
+  ['kontaktsatt', 'Wants to be contacted by'],
+  ['sprak', 'Language'],
+  ['kalla', 'Sent from'],
+  ['kalkyl', 'Calculation'],
+  ['samtycke', 'Consent'],
 ];
 
 export function fieldValue(key, value) {
   if (key === 'tjanst') return SERVICES[value] ?? value;
-  if (key === 'storlek') return HOME_SIZES[value]?.label ?? (value === 'annat' ? 'Annat eller företag' : value);
+  if (key === 'storlek') return HOME_SIZES_EN[value] ?? value;
   if (key === 'pris' && /^\d+$/.test(value)) return `${Number(value).toLocaleString('sv-SE')} kr`;
-  if (key === 'sprak') return value === 'en' ? 'Engelska' : 'Svenska';
+  if (key === 'sprak') return value === 'en' ? 'English' : 'Swedish';
   return value;
 }
 
@@ -81,19 +93,19 @@ export async function ensureCustomer(sb, item) {
       .from('customers')
       .insert({
         kind: data.storlek === 'annat' || data.tjanst === 'kontor' ? 'company' : 'private',
-        name: item.name || 'Utan namn',
+        name: item.name || 'No name',
         email: item.email,
         phone: item.phone,
         street: data.adress ?? null,
         postal_code: digits.length === 5 ? `${digits.slice(0, 3)} ${digits.slice(3)}` : null,
-        notes: `Från ${KIND[item.kind].toLowerCase()} ${formatDateTime(item.created_at)}`,
+        notes: `From ${KIND[item.kind].toLowerCase()} ${formatDateTime(item.created_at)}`,
       })
       .select('id, name')
       .single();
-    if (error) throw new Error('Kunde inte skapa kunden.');
+    if (error) throw new Error('Could not create the customer.');
     customer = { ...created, existed: false };
   }
   const { error } = await sb.from('submissions').update({ customer_id: customer.id }).eq('id', item.id);
-  if (error) throw new Error('Kunde inte koppla kunden.');
+  if (error) throw new Error('Could not link the customer.');
   return customer;
 }

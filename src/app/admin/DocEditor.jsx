@@ -6,6 +6,7 @@ import { SERVICE_LABELS } from './jobs.js';
 import { buyerFrom, RUT_SERVICES } from './docs.js';
 import DocView from '../docs/DocView.jsx';
 
+// Enheterna står på dokumentet som kunden får, därför på svenska (st = pieces, tim = hours, kvm = m²).
 const UNITS = ['st', 'tim', 'kvm', 'km'];
 const num = (v) => {
   const n = Number(String(v ?? '').replace(/\s/g, '').replace(',', '.'));
@@ -68,8 +69,8 @@ export default function DocEditor({ type, value, customers, company, onSave, onC
   async function submit(e) {
     e.preventDefault();
     setError('');
-    if (!form.buyer?.name?.trim()) return setError('Skriv köparens namn.');
-    if (priced.some((l) => !String(l.text ?? '').trim())) return setError('Varje rad behöver en beskrivning.');
+    if (!form.buyer?.name?.trim()) return setError('Write the buyer\'s name.');
+    if (priced.some((l) => !String(l.text ?? '').trim())) return setError('Every line needs a description.');
     // RUT-köpare skickas bara för fakturor och bara om något har ändrats.
     let rutPeople;
     if (!isQuote) {
@@ -79,12 +80,12 @@ export default function DocEditor({ type, value, customers, company, onSave, onC
         rutPeople = [];
         for (const p of wanted) {
           if (!p.edit && p.saved) {
-            setError('Skriv in personnumret igen för alla köpare när du ändrar RUT-uppgifterna.');
+            setError('Enter the personal identity number again for every buyer when you change the RUT details.');
             return;
           }
           const pnr = normalizePnr(p.pnr);
-          if (!p.name.trim()) return setError('Skriv namnet på varje person som får RUT-avdrag.');
-          if (!pnr) return setError(`Personnumret för ${p.name} är inte giltigt.`);
+          if (!p.name.trim()) return setError('Write the name of every person who gets the RUT deduction.');
+          if (!pnr) return setError(`The personal identity number for ${p.name} is not valid.`);
           rutPeople.push({ name: p.name.trim(), pnr });
         }
       } else if (t.rut === 0 && existing.length) rutPeople = [];
@@ -104,90 +105,91 @@ export default function DocEditor({ type, value, customers, company, onSave, onC
         <div class="doc-preview">
           <DocView type={type} company={company} doc={{ ...form, lines: priced, number: value.number, rut_names: people.slice(0, form.rut_persons).map((p) => p.name).filter(Boolean) }} />
         </div>
-        <button class="btn" type="button" onClick={() => setPreview(false)}>Tillbaka till formuläret</button>
+        <button class="btn" type="button" onClick={() => setPreview(false)}>Back to the form</button>
       </div>
     );
 
   return (
     <form onSubmit={submit} class="doc-editor">
-      <h3>{isQuote ? (value.id ? `Offert ${value.number}` : 'Ny offert') : value.id ? 'Fakturautkast' : 'Ny faktura'}</h3>
+      <h3>{isQuote ? (value.id ? `Quote ${value.number}` : 'New quote') : value.id ? 'Invoice draft' : 'New invoice'}</h3>
+      <p class="muted">The customer gets the document in Swedish, so write the line texts and the message in Swedish.</p>
 
       <fieldset class="cp-fieldset">
-        <legend>Kund</legend>
-        <input type="search" placeholder="Sök i kundregistret" aria-label="Sök kund" value={search} onInput={(e) => setSearch(e.currentTarget.value)} />
-        <select aria-label="Kund" value={form.customer_id ?? ''} onChange={(e) => pickCustomer(e.currentTarget.value)}>
-          <option value="">Ingen kund i registret</option>
+        <legend>Customer</legend>
+        <input type="search" placeholder="Search the customer register" aria-label="Search customer" value={search} onInput={(e) => setSearch(e.currentTarget.value)} />
+        <select aria-label="Customer" value={form.customer_id ?? ''} onChange={(e) => pickCustomer(e.currentTarget.value)}>
+          <option value="">No customer in the register</option>
           {shownCustomers.slice(0, 200).map((c) => <option value={c.id}>{c.name}{c.street ? `, ${c.street}` : ''}</option>)}
         </select>
         <div class="form-2">
           <div class="field">
-            <label for="b-name">Namn</label>
+            <label for="b-name">Name</label>
             <input id="b-name" type="text" required maxLength={200} value={form.buyer.name ?? ''} onInput={setBuyer('name')} />
           </div>
           <div class="field">
-            <label for="b-org">Org.nr (företag)</label>
+            <label for="b-org">Company reg. no.</label>
             <input id="b-org" type="text" maxLength={20} value={form.buyer.org_nr ?? ''} onInput={setBuyer('org_nr')} />
           </div>
         </div>
         <div class="form-3">
           <div class="field">
-            <label for="b-street">Adress</label>
+            <label for="b-street">Address</label>
             <input id="b-street" type="text" maxLength={200} value={form.buyer.street ?? ''} onInput={setBuyer('street')} />
           </div>
           <div class="field">
-            <label for="b-zip">Postnummer</label>
+            <label for="b-zip">Postcode</label>
             <input id="b-zip" type="text" maxLength={10} value={form.buyer.postal_code ?? ''} onInput={setBuyer('postal_code')} />
           </div>
           <div class="field">
-            <label for="b-city">Ort</label>
+            <label for="b-city">City</label>
             <input id="b-city" type="text" maxLength={100} value={form.buyer.city ?? ''} onInput={setBuyer('city')} />
           </div>
         </div>
         <div class="form-2">
           <div class="field">
-            <label for="b-email">Mejl</label>
+            <label for="b-email">Email</label>
             <input id="b-email" type="email" maxLength={254} value={form.buyer.email ?? ''} onInput={setBuyer('email')} />
           </div>
           <div class="field">
-            <label for="b-phone">Telefon</label>
+            <label for="b-phone">Phone</label>
             <input id="b-phone" type="tel" maxLength={40} value={form.buyer.phone ?? ''} onInput={setBuyer('phone')} />
           </div>
         </div>
         <label class="cp-check">
           <input type="checkbox" checked={!!form.buyer.company} onChange={(e) => { setBuyer('company')(e); switchIncl(!e.currentTarget.checked); if (e.currentTarget.checked) setForm((f) => ({ ...f, rut_persons: 0, buyer: { ...f.buyer, company: true } })); }} />
-          Företag (priser visas exklusive moms, inget RUT)
+          Company (prices shown excluding VAT, no RUT)
         </label>
       </fieldset>
 
       {isQuote ? (
         <div class="form-3">
           <div class="field">
-            <label for="q-service">Tjänst</label>
+            <label for="q-service">Service</label>
             <select id="q-service" value={form.service ?? 'annat'} onChange={set('service')}>
               {Object.entries(SERVICE_LABELS).map(([k, v]) => <option value={k}>{v}</option>)}
             </select>
           </div>
           <div class="field">
-            <label for="q-date">Önskat datum</label>
+            <label for="q-date">Wanted date</label>
             <input id="q-date" type="date" value={form.wanted_date ?? ''} onInput={set('wanted_date')} />
           </div>
           <div class="field">
-            <label for="q-valid">Giltig till</label>
+            <label for="q-valid">Valid until</label>
             <input id="q-valid" type="date" value={form.valid_until ?? ''} onInput={set('valid_until')} />
           </div>
         </div>
       ) : (
         <div class="form-3">
           <div class="field">
-            <label for="i-done">Utfört (datum)</label>
+            <label for="i-done">Work done (date)</label>
             <input id="i-done" type="date" required value={form.delivery_date ?? ''} onInput={set('delivery_date')} />
           </div>
           <div class="field">
-            <label for="i-ref">Er referens</label>
+            <label for="i-ref">Their reference</label>
             <input id="i-ref" type="text" maxLength={100} value={form.your_ref ?? ''} onInput={set('your_ref')} />
           </div>
           <div class="field">
-            <label for="i-due">Förfallodag (valfri)</label>
+            <label for="i-due">Due date (optional)</label>
             <input id="i-due" type="date" value={form.due_date ?? ''} onInput={set('due_date')} />
           </div>
         </div>
@@ -195,89 +197,89 @@ export default function DocEditor({ type, value, customers, company, onSave, onC
       {isQuote && (
         <div class="form-3">
           <div class="field">
-            <label for="q-street">Adress för jobbet</label>
+            <label for="q-street">Address of the job</label>
             <input id="q-street" type="text" maxLength={200} value={form.street ?? ''} onInput={set('street')} />
           </div>
           <div class="field">
-            <label for="q-zip">Postnummer</label>
+            <label for="q-zip">Postcode</label>
             <input id="q-zip" type="text" maxLength={10} value={form.postal_code ?? ''} onInput={set('postal_code')} />
           </div>
           <div class="field">
-            <label for="q-city">Ort</label>
+            <label for="q-city">City</label>
             <input id="q-city" type="text" maxLength={100} value={form.city ?? ''} onInput={set('city')} />
           </div>
         </div>
       )}
 
       <fieldset class="cp-fieldset">
-        <legend>Rader</legend>
-        <div class="cp-tabs" role="group" aria-label="Priser">
-          <button type="button" aria-pressed={incl} onClick={() => switchIncl(true)}>Priser inkl. moms</button>
-          <button type="button" aria-pressed={!incl} onClick={() => switchIncl(false)}>Priser exkl. moms</button>
+        <legend>Lines</legend>
+        <div class="cp-tabs" role="group" aria-label="Prices">
+          <button type="button" aria-pressed={incl} onClick={() => switchIncl(true)}>Prices incl. VAT</button>
+          <button type="button" aria-pressed={!incl} onClick={() => switchIncl(false)}>Prices excl. VAT</button>
         </div>
         {lines.map((l, i) => (
           <div class="doc-line">
-            <input class="doc-line-text" type="text" aria-label="Beskrivning" placeholder="Beskrivning" maxLength={300} value={l.text} onInput={setLine(i, 'text')} />
-            <input type="text" inputmode="decimal" aria-label="Antal" value={l.qty} onInput={setLine(i, 'qty')} />
-            <select aria-label="Enhet" value={l.unit} onChange={setLine(i, 'unit')}>{UNITS.map((u) => <option>{u}</option>)}</select>
-            <input type="text" inputmode="decimal" aria-label={incl ? 'À-pris inkl. moms' : 'À-pris exkl. moms'} placeholder="À-pris" value={l.input} onInput={setLine(i, 'input')} />
-            <select aria-label="Moms" value={l.vat ?? 25} onChange={setLine(i, 'vat')}>{[25, 12, 6, 0].map((v) => <option value={v}>{v} %</option>)}</select>
-            <label class="cp-check doc-line-rut"><input type="checkbox" checked={!!l.rut} onChange={setLine(i, 'rut')} /> Arbete (RUT)</label>
+            <input class="doc-line-text" type="text" aria-label="Description" placeholder="Description (Swedish)" maxLength={300} value={l.text} onInput={setLine(i, 'text')} />
+            <input type="text" inputmode="decimal" aria-label="Quantity" value={l.qty} onInput={setLine(i, 'qty')} />
+            <select aria-label="Unit" value={l.unit} onChange={setLine(i, 'unit')}>{UNITS.map((u) => <option>{u}</option>)}</select>
+            <input type="text" inputmode="decimal" aria-label={incl ? 'Unit price incl. VAT' : 'Unit price excl. VAT'} placeholder="Unit price" value={l.input} onInput={setLine(i, 'input')} />
+            <select aria-label="VAT" value={l.vat ?? 25} onChange={setLine(i, 'vat')}>{[25, 12, 6, 0].map((v) => <option value={v}>{v} %</option>)}</select>
+            <label class="cp-check doc-line-rut"><input type="checkbox" checked={!!l.rut} onChange={setLine(i, 'rut')} /> Labour (RUT)</label>
             <span class="doc-line-sum">{formatMoney(incl ? t.rows[i]?.gross : t.rows[i]?.net)}</span>
-            <button class="st-link" type="button" aria-label="Ta bort raden" onClick={() => removeLine(i)}>Ta bort</button>
+            <button class="st-link" type="button" aria-label="Remove the line" onClick={() => removeLine(i)}>Remove</button>
           </div>
         ))}
-        <button class="btn btn--ghost btn--sm" type="button" onClick={addLine}>Lägg till rad</button>
+        <button class="btn btn--ghost btn--sm" type="button" onClick={addLine}>Add line</button>
       </fieldset>
 
       {!form.buyer.company && (
         <fieldset class="cp-fieldset">
-          <legend>RUT-avdrag</legend>
-          <select aria-label="RUT-avdrag" value={form.rut_persons} onChange={(e) => setForm({ ...form, rut_persons: Number(e.currentTarget.value) })}>
-            <option value={0}>Inget RUT-avdrag</option>
-            <option value={1}>RUT för en person</option>
-            <option value={2}>RUT för två personer (till exempel ett par som delar)</option>
+          <legend>RUT deduction</legend>
+          <select aria-label="RUT deduction" value={form.rut_persons} onChange={(e) => setForm({ ...form, rut_persons: Number(e.currentTarget.value) })}>
+            <option value={0}>No RUT deduction</option>
+            <option value={1}>RUT for one person</option>
+            <option value={2}>RUT for two people (for example a couple who share)</option>
           </select>
           {!isQuote && form.rut_persons > 0 &&
             people.slice(0, form.rut_persons).map((p, i) => (
               <div class="form-2">
                 <div class="field">
-                  <label for={`rp-name${i}`}>Namn person {i + 1}</label>
+                  <label for={`rp-name${i}`}>Name of person {i + 1}</label>
                   <input id={`rp-name${i}`} type="text" maxLength={200} value={p.name} onInput={setPerson(i, 'name')} />
                 </div>
                 <div class="field">
-                  <label for={`rp-pnr${i}`}>Personnummer</label>
+                  <label for={`rp-pnr${i}`}>Personal identity number</label>
                   {p.edit ? (
                     <input id={`rp-pnr${i}`} type="text" inputmode="numeric" autocomplete="off" placeholder="ÅÅÅÅMMDD-NNNN" maxLength={13} value={p.pnr} onInput={setPerson(i, 'pnr')} />
                   ) : (
                     <span class="doc-pnr">
-                      {maskPnr(p.saved?.pnr_last4)} (sparat krypterat){' '}
-                      <button class="st-link" type="button" onClick={() => setPeople(people.map((x, j) => (j === i ? { ...x, edit: true } : x)))}>Ändra</button>
+                      {maskPnr(p.saved?.pnr_last4)} (saved encrypted){' '}
+                      <button class="st-link" type="button" onClick={() => setPeople(people.map((x, j) => (j === i ? { ...x, edit: true } : x)))}>Change</button>
                     </span>
                   )}
                 </div>
               </div>
             ))}
-          {!isQuote && form.rut_persons > 0 && <small class="muted">Personnumret sparas krypterat och visas aldrig för kunden eller personalen. Det behövs för att ansöka om RUT hos Skatteverket.</small>}
+          {!isQuote && form.rut_persons > 0 && <small class="muted">The personal identity number is saved encrypted and is never shown to the customer or the staff. It is needed to apply for RUT from Skatteverket.</small>}
         </fieldset>
       )}
 
       <div class="field">
-        <label for="d-msg">Meddelande till kunden</label>
+        <label for="d-msg">Message to the customer (Swedish)</label>
         <textarea id="d-msg" rows={3} maxLength={3000} value={form.message ?? ''} onInput={set('message')} />
       </div>
 
       <dl class="doc-editor-sum">
-        <dt>Summa inkl. moms</dt><dd>{formatMoney(t.total)}</dd>
-        {t.rut !== 0 && <><dt>RUT-avdrag</dt><dd>{formatMoney(-t.rut)}</dd></>}
-        <dt><strong>Kunden betalar</strong></dt><dd><strong>{formatKrWhole(t.toPay)}</strong></dd>
+        <dt>Total incl. VAT</dt><dd>{formatMoney(t.total)}</dd>
+        {t.rut !== 0 && <><dt>RUT deduction</dt><dd>{formatMoney(-t.rut)}</dd></>}
+        <dt><strong>The customer pays</strong></dt><dd><strong>{formatKrWhole(t.toPay)}</strong></dd>
       </dl>
 
       <ErrorMsg error={error} />
       <div class="cp-actions">
-        <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara utkast'}</button>
-        <button class="btn btn--ghost" type="button" onClick={() => setPreview(true)}>Förhandsvisa</button>
-        <button class="btn btn--ghost" type="button" onClick={onCancel}>Avbryt</button>
+        <button class="btn" type="submit" disabled={busy}>{busy ? 'Saving …' : 'Save draft'}</button>
+        <button class="btn btn--ghost" type="button" onClick={() => setPreview(true)}>Preview</button>
+        <button class="btn btn--ghost" type="button" onClick={onCancel}>Cancel</button>
       </div>
     </form>
   );

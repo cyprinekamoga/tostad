@@ -10,15 +10,15 @@ const secretKey = (() => {
 const db = createClient(Deno.env.get('SUPABASE_URL')!, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const SERVICES: Record<string, string> = {
-  flytt: 'Flytt',
-  flyttstadning: 'Flyttstädning',
-  paket: 'Flytt + flyttstädning',
-  hemstadning: 'Hemstädning',
-  storstadning: 'Storstädning',
-  fonsterputs: 'Fönsterputs',
-  kontor: 'Kontorsstädning',
-  pianoflytt: 'Pianoflytt / tunga lyft',
-  annat: 'Jobb',
+  flytt: 'Moving',
+  flyttstadning: 'Move-out cleaning',
+  paket: 'Moving + move-out cleaning',
+  hemstadning: 'Home cleaning',
+  storstadning: 'Deep cleaning',
+  fonsterputs: 'Window cleaning',
+  kontor: 'Office cleaning',
+  pianoflytt: 'Piano moving / heavy lifting',
+  annat: 'Job',
 };
 
 const stamp = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
@@ -37,7 +37,7 @@ function fold(line: string) {
   return out.join('\r\n');
 }
 
-const notFound = () => new Response('Hittades inte', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+const notFound = () => new Response('Not found', { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
 
 Deno.serve(async (req) => {
   if (req.method !== 'GET') return new Response(null, { status: 405 });
@@ -58,10 +58,10 @@ Deno.serve(async (req) => {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//TO Stad och Flytt//Schema//SV',
+    'PRODID:-//TO Stad och Flytt//Schedule//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:${esc('TO Städ & Flytt: mina jobb')}`,
+    `X-WR-CALNAME:${esc('TO Städ & Flytt: my jobs')}`,
     'X-WR-TIMEZONE:Europe/Stockholm',
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
     'X-PUBLISHED-TTL:PT1H',
@@ -70,10 +70,10 @@ Deno.serve(async (req) => {
     // deno-lint-ignore no-explicit-any
     const j = (row as any).jobs;
     if (!j) continue;
-    const service = SERVICES[j.service] ?? 'Jobb';
+    const service = SERVICES[j.service] ?? 'Job';
     const who = j.customers?.name || j.title;
     const place = [j.street, [j.postal_code, j.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-    const description = [j.to_street ? `Till: ${[j.to_street, j.to_city].filter(Boolean).join(', ')}` : '', j.staff_note ?? '', 'Detaljer: https://tostadflytt.se/app']
+    const description = [j.to_street ? `To: ${[j.to_street, j.to_city].filter(Boolean).join(', ')}` : '', j.staff_note ?? '', 'Details: https://tostadflytt.se/app']
       .filter(Boolean)
       .join('\n');
     lines.push(
@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
       `DTSTAMP:${stamp(j.updated_at)}`,
       `DTSTART:${stamp(j.starts_at)}`,
       `DTEND:${stamp(j.ends_at)}`,
-      fold(`SUMMARY:${esc(`${j.status === 'avbokad' ? 'AVBOKAT: ' : ''}${service}${who ? `: ${who}` : ''}`)}`),
+      fold(`SUMMARY:${esc(`${j.status === 'avbokad' ? 'CANCELLED: ' : ''}${service}${who ? `: ${who}` : ''}`)}`),
       ...(place ? [fold(`LOCATION:${esc(place)}`)] : []),
       fold(`DESCRIPTION:${esc(description)}`),
       `STATUS:${j.status === 'avbokad' ? 'CANCELLED' : 'CONFIRMED'}`,

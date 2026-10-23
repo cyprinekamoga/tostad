@@ -1,9 +1,11 @@
 // Jobb i planeringen: hämta, spara, flytta och ta bort, och hitta adresser på kartan.
 import { supabase } from '../../lib/supabase.js';
 import { toInstant, zoned, addDays, seriesDates } from '../../lib/planner.js';
-import { SERVICES } from './submission.js';
+import { SERVICES, SERVICES_SV } from './submission.js';
 
-export const SERVICE_LABELS = { ...SERVICES, annat: 'Annat' };
+export const SERVICE_LABELS = { ...SERVICES, annat: 'Other' };
+// Svenska namn för offerter och fakturor som kunden får.
+export const SERVICE_LABELS_SV = { ...SERVICES_SV, annat: 'Annat' };
 // En egen färg per tjänst så att jobben syns tydligt isär i planeringen.
 export const SERVICE_COLORS = {
   hemstadning: '#16a34a',
@@ -18,7 +20,7 @@ export const SERVICE_COLORS = {
 };
 export const serviceColor = (service) => SERVICE_COLORS[service] ?? SERVICE_COLORS.annat;
 
-export const JOB_STATUS = { planerad: 'Planerad', klar: 'Klar', avbokad: 'Avbokad' };
+export const JOB_STATUS = { planerad: 'Planned', klar: 'Done', avbokad: 'Cancelled' };
 
 // Ungefärlig längd i timmar när ett nytt jobb skapas. Går att ändra i formuläret.
 export const DEFAULT_HOURS = { flytt: 6, flyttstadning: 5, paket: 8, hemstadning: 3, storstadning: 5, fonsterputs: 3, kontor: 3, pianoflytt: 2, annat: 3 };
@@ -57,7 +59,7 @@ export async function loadJobs(fromDate, toDate) {
     .gte('starts_at', toInstant(fromDate).toISOString())
     .lt('starts_at', toInstant(addDays(toDate, 1)).toISOString())
     .order('starts_at');
-  if (error) throw new Error('Kunde inte hämta jobben.');
+  if (error) throw new Error('Could not load the jobs.');
   return data.map(shape);
 }
 
@@ -66,7 +68,7 @@ export async function loadJob(id) {
   return data ? shape(data) : null;
 }
 
-export const jobLabel = (job) => job.customerName || job.title || SERVICE_LABELS[job.service] || 'Jobb';
+export const jobLabel = (job) => job.customerName || job.title || SERVICE_LABELS[job.service] || 'Job';
 
 export function jobAddress(job, to = false) {
   const street = to ? job.to_street : job.street;
@@ -113,10 +115,10 @@ function row(form, date) {
 async function setStaff(jobIds, staff) {
   const sb = supabase();
   const { error } = await sb.from('job_staff').delete().in('job_id', jobIds);
-  if (error) throw new Error('Kunde inte spara personalen.');
+  if (error) throw new Error('Could not save the staff.');
   if (!staff.length) return;
   const { error: insertError } = await sb.from('job_staff').insert(jobIds.flatMap((job_id) => staff.map((profile_id) => ({ job_id, profile_id }))));
-  if (insertError) throw new Error('Kunde inte spara personalen.');
+  if (insertError) throw new Error('Could not save the staff.');
 }
 
 /** Skapar ett jobb, eller en serie om form.repeat är antal veckor mellan tillfällena. Returnerar id:n. */
@@ -126,13 +128,13 @@ export async function createJobs(form) {
   let dates = [form.date];
   if (Number(form.repeat) > 0) {
     const { data: series, error } = await sb.from('job_series').insert({ interval_weeks: Number(form.repeat), until: form.until }).select('id').single();
-    if (error) throw new Error('Kunde inte skapa serien.');
+    if (error) throw new Error('Could not create the series.');
     seriesId = series.id;
     dates = seriesDates(form.date, Number(form.repeat), form.until);
   }
   const rows = dates.map((d) => ({ ...row(form, d), series_id: seriesId, submission_id: d === form.date ? form.submission_id || null : null }));
   const { data, error } = await sb.from('jobs').insert(rows).select('id');
-  if (error) throw new Error(/submission_id/.test(error.message) ? 'Det finns redan ett jobb för den här bokningen.' : 'Kunde inte spara jobbet.');
+  if (error) throw new Error(/submission_id/.test(error.message) ? 'There is already a job for this booking.' : 'Could not save the job.');
   const ids = data.map((r) => r.id);
   await setStaff(ids, form.staff);
   return ids;
@@ -156,7 +158,7 @@ export async function updateJobs(job, form, scope = 'one') {
       if (values.checklist) values.checklist = values.checklist.map((i) => ({ ...i, done: false }));
     }
     const { error } = await sb.from('jobs').update(values).eq('id', t.id);
-    if (error) throw new Error('Kunde inte spara jobbet.');
+    if (error) throw new Error('Could not save the job.');
   }
   await setStaff(targets.map((t) => t.id), form.staff);
   return targets.map((t) => t.id);
@@ -167,7 +169,7 @@ export async function deleteJobs(job, scope = 'one') {
   let query = sb.from('jobs').delete();
   query = scope === 'following' && job.series_id ? query.eq('series_id', job.series_id).gte('starts_at', job.starts_at) : query.eq('id', job.id);
   const { error } = await query;
-  if (error) throw new Error('Kunde inte ta bort jobbet.');
+  if (error) throw new Error('Could not remove the job.');
 }
 
 /** Flyttar ett jobb till ett annat datum eller klockslag och byter person (dra och släpp). */
@@ -179,16 +181,16 @@ export async function moveJob(job, { date = job.date, startTime = job.startTime,
       .from('jobs')
       .update({ starts_at: new Date(start).toISOString(), ends_at: new Date(start + job.end - job.start).toISOString() })
       .eq('id', job.id);
-    if (error) throw new Error('Kunde inte flytta jobbet.');
+    if (error) throw new Error('Could not move the job.');
   }
   if (from === to) return;
   if (from) {
     const { error } = await sb.from('job_staff').delete().eq('job_id', job.id).eq('profile_id', from);
-    if (error) throw new Error('Kunde inte byta person.');
+    if (error) throw new Error('Could not change the person.');
   }
   if (to && !job.staff.includes(to)) {
     const { error } = await sb.from('job_staff').insert({ job_id: job.id, profile_id: to });
-    if (error) throw new Error('Kunde inte byta person.');
+    if (error) throw new Error('Could not change the person.');
   }
 }
 

@@ -1,11 +1,12 @@
 // Rekrytering: ansökningar (brev, CV, status, anteckning) och annonser på /jobb.
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, formatDateTime } from '../../lib/supabase.js';
-import { EMPLOYMENT, slugify } from '../../lib/careers.js';
+import { slugify } from '../../lib/careers.js';
 import { ErrorMsg, Modal, Phone, Email } from '../ui.jsx';
 
-const STATUS = { ny: 'Ny', intervju: 'Intervju', anstalld: 'Anställd', nej: 'Nej tack' };
-const VSTATUS = { utkast: 'Utkast', publicerad: 'Publicerad', stangd: 'Stängd' };
+const STATUS = { ny: 'New', intervju: 'Interview', anstalld: 'Hired', nej: 'Rejected' };
+const VSTATUS = { utkast: 'Draft', publicerad: 'Published', stangd: 'Closed' };
+const EMPLOYMENT = { heltid: 'Full time', deltid: 'Part time', timanstallning: 'Hourly', visstid: 'Fixed term' };
 
 export default function Careers({ onInboxChange }) {
   const sb = supabase();
@@ -22,7 +23,7 @@ export default function Careers({ onInboxChange }) {
       sb.from('applications').select('*').order('created_at', { ascending: false }).limit(500),
       sb.from('vacancies').select('*').order('created_at', { ascending: false }),
     ]);
-    if (a.error || v.error) setError('Kunde inte hämta allt.');
+    if (a.error || v.error) setError('Could not load everything.');
     setApps(a.data ?? []);
     setVacancies(v.data ?? []);
     if (selected) setSelected((a.data ?? []).find((x) => x.id === selected.id) ?? null);
@@ -33,16 +34,16 @@ export default function Careers({ onInboxChange }) {
     load();
   }, []);
 
-  const title = (id) => vacancies.find((v) => v.id === id)?.title ?? 'Spontanansökan';
+  const title = (id) => vacancies.find((v) => v.id === id)?.title ?? 'Open application';
   const shown = (apps ?? []).filter((a) => (filter === 'aktiva' ? ['ny', 'intervju'].includes(a.status) : filter === 'alla' ? true : a.status === filter));
 
   return (
     <>
       <div class="cp-head">
-        <h2>Rekrytering</h2>
-        <div class="cp-tabs" role="group" aria-label="Visa">
-          <button type="button" aria-pressed={tab === 'ansokningar'} onClick={() => setTab('ansokningar')}>Ansökningar</button>
-          <button type="button" aria-pressed={tab === 'annonser'} onClick={() => setTab('annonser')}>Annonser</button>
+        <h2>Recruitment</h2>
+        <div class="cp-tabs" role="group" aria-label="Show">
+          <button type="button" aria-pressed={tab === 'ansokningar'} onClick={() => setTab('ansokningar')}>Applications</button>
+          <button type="button" aria-pressed={tab === 'annonser'} onClick={() => setTab('annonser')}>Job ads</button>
         </div>
       </div>
       <ErrorMsg error={error} />
@@ -50,14 +51,14 @@ export default function Careers({ onInboxChange }) {
       {tab === 'ansokningar' ? (
         <>
           <div class="cp-tabs" role="group" aria-label="Filter" style="margin-bottom:14px">
-            {[['aktiva', 'Nya och intervju'], ['anstalld', 'Anställda'], ['nej', 'Nej tack'], ['alla', 'Alla']].map(([k, l]) => (
+            {[['aktiva', 'New and interview'], ['anstalld', 'Hired'], ['nej', 'Rejected'], ['alla', 'All']].map(([k, l]) => (
               <button type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>{l}</button>
             ))}
           </div>
           <div class="cp-split">
             <div>
-              {apps === null && <p class="muted">Laddar …</p>}
-              {apps && shown.length === 0 && <p class="cp-panel cp-empty">Inga ansökningar här.</p>}
+              {apps === null && <p class="muted">Loading …</p>}
+              {apps && shown.length === 0 && <p class="cp-panel cp-empty">No applications here.</p>}
               <ul class="cp-list">
                 {shown.map((a) => (
                   <li>
@@ -67,7 +68,7 @@ export default function Careers({ onInboxChange }) {
                         <span class={`badge ${a.status === 'ny' ? 'badge--ny' : a.status === 'nej' ? 'badge--muted' : ''}`}>{STATUS[a.status]}</span>
                       </span>
                       <p>{title(a.vacancy_id)}</p>
-                      <small>{formatDateTime(a.created_at)}{a.cv_path ? ' · CV bifogat' : ''}</small>
+                      <small>{formatDateTime(a.created_at)}{a.cv_path ? ' · CV attached' : ''}</small>
                     </button>
                   </li>
                 ))}
@@ -76,18 +77,18 @@ export default function Careers({ onInboxChange }) {
             {selected ? (
               <ApplicationDetail key={selected.id} app={selected} vacancyTitle={title(selected.vacancy_id)} onChanged={load} onDeleted={() => { setSelected(null); load(); }} />
             ) : (
-              apps?.length > 0 && <p class="cp-panel cp-empty">Välj en ansökan i listan.</p>
+              apps?.length > 0 && <p class="cp-panel cp-empty">Choose an application in the list.</p>
             )}
           </div>
-          <p class="muted" style="margin-top:12px">Ansökningar som får nej raderas automatiskt två år efter beslutet, tillsammans med CV:t.</p>
+          <p class="muted" style="margin-top:12px">Rejected applications are deleted automatically two years after the decision, together with the CV.</p>
         </>
       ) : (
         <>
           <div class="cp-actions" style="margin-bottom:14px">
-            <button class="btn btn--sm" type="button" onClick={() => setEditing({ title: '', location: 'Stockholm', employment: 'timanstallning', description: '', status: 'utkast' })}>Ny annons</button>
+            <button class="btn btn--sm" type="button" onClick={() => setEditing({ title: '', location: 'Stockholm', employment: 'timanstallning', description: '', status: 'utkast' })}>New job ad</button>
           </div>
           <div class="cp-panel">
-            {vacancies.length === 0 && <p class="cp-empty">Inga annonser ännu.</p>}
+            {vacancies.length === 0 && <p class="cp-empty">No job ads yet.</p>}
             <ul class="cp-list">
               {vacancies.map((v) => {
                 const count = (apps ?? []).filter((a) => a.vacancy_id === v.id).length;
@@ -97,21 +98,21 @@ export default function Careers({ onInboxChange }) {
                       <strong>{v.title}</strong>
                       <span class={`badge ${v.status === 'publicerad' ? '' : 'badge--muted'}`}>{VSTATUS[v.status]}</span>
                     </span>
-                    <p>{EMPLOYMENT[v.employment]} · {v.location}{v.valid_through ? ` · sista dag ${v.valid_through}` : ''} · {count} ansökningar</p>
+                    <p>{EMPLOYMENT[v.employment]} · {v.location}{v.valid_through ? ` · last day ${v.valid_through}` : ''} · {count} {count === 1 ? 'application' : 'applications'}</p>
                     <span class="cp-actions">
-                      <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(v)}>Ändra</button>
-                      {v.status === 'publicerad' && <a class="btn btn--ghost btn--sm" href={`/jobb/annons?a=${v.slug}`} target="_blank" rel="noopener">Visa annonsen</a>}
+                      <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(v)}>Edit</button>
+                      {v.status === 'publicerad' && <a class="btn btn--ghost btn--sm" href={`/jobb/annons?a=${v.slug}`} target="_blank" rel="noopener">Show the ad</a>}
                     </span>
                   </li>
                 );
               })}
             </ul>
           </div>
-          <p class="muted" style="margin-top:12px">Publicerade annonser syns direkt på tostadflytt.se/jobb och kan visas i Googles jobbsök.</p>
+          <p class="muted" style="margin-top:12px">Published ads show up right away on tostadflytt.se/jobb and can appear in Google's job search.</p>
         </>
       )}
 
-      <Modal open={!!editing} label="Annons" onClose={() => setEditing(null)}>
+      <Modal open={!!editing} label="Job ad" onClose={() => setEditing(null)}>
         {editing && <VacancyForm value={editing} onDone={() => { setEditing(null); load(); }} />}
       </Modal>
     </>
@@ -139,24 +140,24 @@ function ApplicationDetail({ app, vacancyTitle, onChanged, onDeleted }) {
   const setStatus = (status) =>
     run(async () => {
       const { error: e } = await sb.from('applications').update({ status }).eq('id', app.id);
-      if (e) throw new Error('Kunde inte spara.');
+      if (e) throw new Error('Could not save.');
     });
 
   // CV:t laddas ner via en länk som gäller i en minut. Sidan står kvar.
   async function openCv() {
     const { data, error: e } = await sb.storage.from('cv').createSignedUrl(app.cv_path, 60, { download: app.cv_name || true });
-    if (e) return setError('Kunde inte hämta CV:t.');
+    if (e) return setError('Could not get the CV.');
     window.location.assign(data.signedUrl);
   }
 
   async function remove() {
-    if (!window.confirm(`Radera ansökan från ${app.name} och CV:t för alltid?`)) return;
+    if (!window.confirm(`Delete the application from ${app.name} and the CV for good?`)) return;
     setBusy(true);
     if (app.cv_path) await sb.storage.from('cv').remove([app.cv_path]);
     const { error: e } = await sb.from('applications').delete().eq('id', app.id);
     if (e) {
       setBusy(false);
-      return setError('Kunde inte radera.');
+      return setError('Could not delete.');
     }
     onDeleted();
   }
@@ -164,43 +165,43 @@ function ApplicationDetail({ app, vacancyTitle, onChanged, onDeleted }) {
   const staffLink = `/admin/personal?ny=1&namn=${encodeURIComponent(app.name)}&epost=${encodeURIComponent(app.email)}&tel=${encodeURIComponent(app.phone ?? '')}`;
 
   return (
-    <article class="cp-panel cp-detail" aria-label="Ansökan">
+    <article class="cp-panel cp-detail" aria-label="Application">
       <div class="cp-row-top">
         <h3>{app.name}</h3>
         <span class="badge">{STATUS[app.status]}</span>
       </div>
-      <p class="muted">{vacancyTitle} · inkom {formatDateTime(app.created_at)}{app.decided_at ? ` · ${STATUS[app.status].toLowerCase()} ${formatDateTime(app.decided_at)}` : ''}</p>
+      <p class="muted">{vacancyTitle} · received {formatDateTime(app.created_at)}{app.decided_at ? ` · ${STATUS[app.status].toLowerCase()} ${formatDateTime(app.decided_at)}` : ''}</p>
       <p><Phone value={app.phone} /> {app.phone && ' · '} <Email value={app.email} /></p>
       <dl class="cp-dl">
-        {app.licence !== null && <><dt>B-körkort</dt><dd>{app.licence ? 'Ja' : 'Nej'}</dd></>}
-        {app.start_date && <><dt>Kan börja</dt><dd>{app.start_date}</dd></>}
-        {app.experience && <><dt>Erfarenhet</dt><dd>{app.experience}</dd></>}
-        <dt>Personligt brev</dt><dd>{app.letter}</dd>
+        {app.licence !== null && <><dt>Driving licence (B)</dt><dd>{app.licence ? 'Yes' : 'No'}</dd></>}
+        {app.start_date && <><dt>Can start</dt><dd>{app.start_date}</dd></>}
+        {app.experience && <><dt>Experience</dt><dd>{app.experience}</dd></>}
+        <dt>Cover letter</dt><dd>{app.letter}</dd>
       </dl>
       {app.cv_path ? (
-        <button class="btn btn--ghost btn--sm" type="button" onClick={openCv}>Ladda ner CV ({app.cv_name || 'fil'})</button>
+        <button class="btn btn--ghost btn--sm" type="button" onClick={openCv}>Download CV ({app.cv_name || 'file'})</button>
       ) : (
-        <p class="muted">Inget CV bifogat.</p>
+        <p class="muted">No CV attached.</p>
       )}
       <div class="field">
-        <label for="ap-note">Anteckning (syns bara för administratörer)</label>
+        <label for="ap-note">Note (only admins see it)</label>
         <textarea id="ap-note" rows={3} maxLength={4000} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
         <div>
           <button class="btn btn--ghost btn--sm" type="button" disabled={busy || note === (app.note ?? '')} onClick={() => run(async () => {
             const { error: e } = await sb.from('applications').update({ note: note.trim() || null }).eq('id', app.id);
-            if (e) throw new Error('Kunde inte spara anteckningen.');
-          })}>Spara anteckning</button>
+            if (e) throw new Error('Could not save the note.');
+          })}>Save note</button>
         </div>
       </div>
       <ErrorMsg error={error} />
       <div class="cp-actions">
-        {app.status !== 'intervju' && <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('intervju')}>Kalla till intervju</button>}
-        {app.status !== 'anstalld' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('anstalld')}>Anställd</button>}
-        {app.status !== 'nej' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('nej')}>Nej tack</button>}
-        {app.status !== 'ny' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('ny')}>Markera som ny</button>}
-        <a class="btn btn--ghost btn--sm" href={`mailto:${app.email}?subject=${encodeURIComponent(`Din ansökan till TO Städ & Flytt`)}`}>Mejla</a>
-        {app.status === 'anstalld' && <a class="btn btn--sm" href={staffLink}>Lägg till som personal</a>}
-        <button class="btn btn--danger btn--sm" type="button" disabled={busy} onClick={remove}>Radera</button>
+        {app.status !== 'intervju' && <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('intervju')}>Invite to interview</button>}
+        {app.status !== 'anstalld' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('anstalld')}>Hired</button>}
+        {app.status !== 'nej' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('nej')}>Reject</button>}
+        {app.status !== 'ny' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('ny')}>Mark as new</button>}
+        <a class="btn btn--ghost btn--sm" href={`mailto:${app.email}?subject=${encodeURIComponent(`Din ansökan till TO Städ & Flytt`)}`}>Email</a>
+        {app.status === 'anstalld' && <a class="btn btn--sm" href={staffLink}>Add as staff</a>}
+        <button class="btn btn--danger btn--sm" type="button" disabled={busy} onClick={remove}>Delete</button>
       </div>
     </article>
   );
@@ -223,8 +224,8 @@ function VacancyForm({ value, onDone }) {
     e.preventDefault();
     setError('');
     const slug = slugify(form.slug || form.title);
-    if (!slug) return setError('Skriv en rubrik.');
-    if (form.status === 'publicerad' && form.description.trim().length < 40) return setError('Skriv en beskrivning av jobbet innan du publicerar.');
+    if (!slug) return setError('Write a title.');
+    if (form.status === 'publicerad' && form.description.trim().length < 40) return setError('Write a description of the job before you publish.');
     const values = {
       title: form.title.trim(),
       slug,
@@ -241,57 +242,58 @@ function VacancyForm({ value, onDone }) {
     setBusy(true);
     const { error: err } = value.id ? await sb.from('vacancies').update(values).eq('id', value.id) : await sb.from('vacancies').insert(values);
     setBusy(false);
-    if (err) return setError(/slug|duplicate|unique/.test(err.message) ? 'Det finns redan en annons med samma webbadress. Ändra rubriken eller adressen.' : 'Kunde inte spara.');
+    if (err) return setError(/slug|duplicate|unique/.test(err.message) ? 'There is already an ad with the same web address. Change the title or the address.' : 'Could not save.');
     onDone();
   }
 
   return (
     <form onSubmit={submit}>
-      <h3>{value.id ? 'Ändra annons' : 'Ny annons'}</h3>
+      <h3>{value.id ? 'Edit job ad' : 'New job ad'}</h3>
+      <p class="muted">The ad is published in Swedish on tostadflytt.se/jobb, so write the text in Swedish.</p>
       <div class="field">
-        <label for="v-title">Rubrik</label>
+        <label for="v-title">Title</label>
         <input id="v-title" type="text" required minLength={3} maxLength={120} placeholder="Till exempel Städare till hemstädning, deltid" value={form.title} onInput={set('title')} />
       </div>
       <div class="field">
-        <label for="v-slug">Webbadress</label>
+        <label for="v-slug">Web address</label>
         <input id="v-slug" type="text" maxLength={80} value={form.slug} onInput={(e) => { setSlugTouched(true); set('slug')(e); }} />
         <small class="muted">tostadflytt.se/jobb/annons?a={slugify(form.slug || form.title) || '…'}</small>
       </div>
       <div class="form-3">
         <div class="field">
-          <label for="v-loc">Ort</label>
+          <label for="v-loc">City</label>
           <input id="v-loc" type="text" maxLength={120} value={form.location} onInput={set('location')} />
         </div>
         <div class="field">
-          <label for="v-emp">Anställning</label>
+          <label for="v-emp">Employment</label>
           <select id="v-emp" value={form.employment} onChange={set('employment')}>
             {Object.entries(EMPLOYMENT).map(([k, v]) => <option value={k}>{v}</option>)}
           </select>
         </div>
         <div class="field">
-          <label for="v-until">Sista ansökningsdag</label>
+          <label for="v-until">Last day to apply</label>
           <input id="v-until" type="date" value={form.valid_through ?? ''} onInput={set('valid_through')} />
         </div>
       </div>
       <div class="field">
-        <label for="v-intro">Ingress (kort, syns i listan)</label>
+        <label for="v-intro">Introduction (short, shown in the list)</label>
         <input id="v-intro" type="text" maxLength={500} value={form.intro} onInput={set('intro')} />
       </div>
       <div class="field">
-        <label for="v-desc">Om jobbet</label>
+        <label for="v-desc">About the job</label>
         <textarea id="v-desc" rows={7} maxLength={8000} value={form.description} onInput={set('description')} placeholder={'Tom rad ger nytt stycke.\nRader som börjar med - blir en punktlista.'} />
       </div>
       <div class="field">
-        <label for="v-req">Vi söker dig som (valfritt)</label>
+        <label for="v-req">Requirements, "Vi söker dig som" (optional)</label>
         <textarea id="v-req" rows={4} maxLength={4000} value={form.requirements} onInput={set('requirements')} placeholder={'- Har B-körkort\n- Pratar svenska eller engelska'} />
       </div>
       <div class="form-2">
         <div class="field">
-          <label for="v-sal">Lön (valfritt)</label>
+          <label for="v-sal">Salary (optional)</label>
           <input id="v-sal" type="text" maxLength={200} value={form.salary} onInput={set('salary')} placeholder="Till exempel timlön enligt överenskommelse" />
         </div>
         <div class="field">
-          <label for="v-start">Start (valfritt)</label>
+          <label for="v-start">Start (optional)</label>
           <input id="v-start" type="text" maxLength={200} value={form.start_text} onInput={set('start_text')} placeholder="Till exempel snarast" />
         </div>
       </div>
@@ -303,8 +305,8 @@ function VacancyForm({ value, onDone }) {
       </div>
       <ErrorMsg error={error} />
       <div class="cp-actions">
-        <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara'}</button>
-        <button class="btn btn--ghost" type="button" onClick={onDone}>Avbryt</button>
+        <button class="btn" type="submit" disabled={busy}>{busy ? 'Saving …' : 'Save'}</button>
+        <button class="btn btn--ghost" type="button" onClick={onDone}>Cancel</button>
       </div>
     </form>
   );

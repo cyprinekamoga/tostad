@@ -5,7 +5,7 @@ import { formatKrWhole, formatMoney, maskPnr } from '../../lib/money.js';
 import { ErrorMsg } from '../ui.jsx';
 import { loadInvoices, isOverdue, updateInvoice, revealPnr } from './docs.js';
 
-const monthFmt = new Intl.DateTimeFormat('sv-SE', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+const monthFmt = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 const monthName = (m) => monthFmt.format(new Date(`${m}-15T12:00:00Z`));
 
 function lastMonths(n) {
@@ -55,65 +55,65 @@ export default function Money() {
   return (
     <>
       <div class="cp-head">
-        <h2>Ekonomi</h2>
-        <a class="btn btn--ghost btn--sm" href="/admin/fakturor">Till fakturorna</a>
+        <h2>Finances</h2>
+        <a class="btn btn--ghost btn--sm" href="/admin/fakturor">Go to invoices</a>
       </div>
       <ErrorMsg error={error} />
       <div class="cp-stats">
         <a class="cp-panel cp-stat" href="/admin/fakturor">
           <strong>{rows ? formatKrWhole(sum(unpaid)) : '…'}</strong>
-          <span>Obetalt ({unpaid.length} fakturor)</span>
+          <span>Unpaid ({unpaid.length} {unpaid.length === 1 ? 'invoice' : 'invoices'})</span>
         </a>
         <a class="cp-panel cp-stat" href="/admin/fakturor">
           <strong style={overdue.length ? 'color:var(--danger)' : ''}>{rows ? formatKrWhole(sum(overdue)) : '…'}</strong>
-          <span>Förfallet ({overdue.length})</span>
+          <span>Overdue ({overdue.length})</span>
         </a>
         <div class="cp-panel cp-stat">
           <strong>{rows ? formatKrWhole(sum(paidThisMonth, 'paid_amount')) : '…'}</strong>
-          <span>Betalt denna månad</span>
+          <span>Paid this month</span>
         </div>
         <div class="cp-panel cp-stat">
           <strong>{rows ? formatKrWhole(sum(rutWaiting, 'rut')) : '…'}</strong>
-          <span>RUT som väntar från Skatteverket</span>
+          <span>RUT waiting from Skatteverket</span>
         </div>
       </div>
 
       {toApply.length > 0 && (
         <section class="cp-panel" style="margin-bottom:16px">
-          <h3 class="cp-subhead">Betalda fakturor att ansöka om RUT för</h3>
-          <p class="muted">Ansök hos Skatteverket (e-tjänsten Rot och rut, företag). Markera sedan fakturan som ansökt.</p>
+          <h3 class="cp-subhead">Paid invoices to apply for RUT for</h3>
+          <p class="muted">Apply at Skatteverket (the e-service "Rot och rut, företag"). Then mark the invoice as applied.</p>
           <ul class="cp-list">
             {toApply.map((inv) => (
               <li class="cp-row cp-row--static">
                 <span class="cp-row-top">
-                  <strong>Faktura {inv.number} · {inv.buyer?.name}</strong>
+                  <strong>Invoice {inv.number} · {inv.buyer?.name}</strong>
                   <span>RUT {formatMoney(inv.rut)}</span>
                 </span>
                 <p>
-                  Betald {inv.paid_at} · arbetskostnad och betalt belopp finns på fakturan
+                  Paid {inv.paid_at} · the labour cost and the paid amount are on the invoice
                 </p>
                 {inv.rut_people.map((p) => (
                   <small>
                     {p.name}: {shownPnr[p.id] ? `${shownPnr[p.id].slice(0, 8)}-${shownPnr[p.id].slice(8)}` : maskPnr(p.pnr_last4)}{' '}
-                    {!shownPnr[p.id] && <button class="st-link" type="button" onClick={() => show(p)}>Visa personnummer</button>}
+                    {!shownPnr[p.id] && <button class="st-link" type="button" onClick={() => show(p)}>Show personal identity number</button>}
                   </small>
                 ))}
                 <span class="cp-actions">
-                  <button class="btn btn--sm" type="button" onClick={async () => { await updateInvoice(inv.id, { rut_status: 'ansokt' }); load(); }}>Markera som ansökt</button>
+                  <button class="btn btn--sm" type="button" onClick={async () => { await updateInvoice(inv.id, { rut_status: 'ansokt' }); load(); }}>Mark as applied</button>
                 </span>
               </li>
             ))}
           </ul>
-          <small class="muted">Varje gång ett personnummer visas sparas det i ändringsloggen.</small>
+          <small class="muted">Every time a personal identity number is shown, it is saved in the change log.</small>
         </section>
       )}
 
       <section class="cp-panel">
-        <h3 class="cp-subhead">Månad för månad</h3>
+        <h3 class="cp-subhead">Month by month</h3>
         <div class="cp-scroll">
           <table class="cp-table">
             <thead>
-              <tr><th>Månad</th><th>Fakturor</th><th>Fakturerat exkl. moms</th><th>Moms</th><th>RUT</th><th>Betalt</th></tr>
+              <tr><th>Month</th><th>Invoices</th><th>Invoiced excl. VAT</th><th>VAT</th><th>RUT</th><th>Paid</th></tr>
             </thead>
             <tbody>
               {months.map((r) => (
@@ -129,7 +129,7 @@ export default function Money() {
             </tbody>
           </table>
         </div>
-        <p class="muted" style="margin:10px 0 0">Kreditfakturor räknas med minus i den månad de skickades. Bokföringen sköts av er redovisningskonsult.</p>
+        <p class="muted" style="margin:10px 0 0">Credit notes count as minus in the month they were sent. The bookkeeping is handled by your accountant.</p>
       </section>
     </>
   );

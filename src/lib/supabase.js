@@ -10,7 +10,7 @@ export function supabase() {
   return client;
 }
 
-/** Anropar en edge function med den inloggades token. Kastar fel med svenskt meddelande. */
+/** Anropar en edge function med den inloggades token. Kastar fel med ett läsbart meddelande. */
 export async function callFunction(name, body) {
   const { data } = await supabase().auth.getSession();
   const token = data.session?.access_token;
@@ -20,7 +20,7 @@ export async function callFunction(name, body) {
     body: JSON.stringify(body),
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json.error || 'Något gick fel. Försök igen.');
+  if (!res.ok) throw new Error(json.error || (appLocale() === 'en-GB' ? 'Something went wrong. Try again.' : 'Något gick fel. Försök igen.'));
   return json;
 }
 
@@ -46,5 +46,13 @@ export function go(path) {
   window.location.assign(path);
 }
 
-const dateTime = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Stockholm' });
-export const formatDateTime = (iso) => (iso ? dateTime.format(new Date(iso)) : '');
+// Administrationen och personalappen är på engelska, sidor för kunder på svenska.
+export const appLocale = () => (typeof document !== 'undefined' && document.documentElement.lang === 'en' ? 'en-GB' : 'sv-SE');
+
+const dateTimes = {};
+export function formatDateTime(iso) {
+  if (!iso) return '';
+  const locale = appLocale();
+  dateTimes[locale] ??= new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Stockholm' });
+  return dateTimes[locale].format(new Date(iso));
+}

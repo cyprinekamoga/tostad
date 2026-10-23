@@ -1,7 +1,7 @@
 {
-  "name": "TO Städ & Flytt: personal",
-  "short_name": "TO Personal",
-  "lang": "sv",
+  "name": "TO Städ & Flytt: staff",
+  "short_name": "TO Staff",
+  "lang": "en",
   "id": "/app",
   "start_url": "/app",
   "scope": "/",

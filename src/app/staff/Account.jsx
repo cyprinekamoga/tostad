@@ -18,7 +18,7 @@ export default function Account({ me }) {
   const webcal = url.replace(/^https:/, 'webcal:');
 
   async function renew() {
-    if (!window.confirm('Den gamla länken slutar fungera. Du behöver lägga till den nya i kalendern. Fortsätta?')) return;
+    if (!window.confirm('The old link will stop working. You need to add the new one to your calendar. Continue?')) return;
     try {
       setToken(await newCalendarToken());
       setCopied(false);
@@ -37,43 +37,43 @@ export default function Account({ me }) {
       <section class="st-card">
         <h3>{me.profile.full_name}</h3>
         <p class="muted">{me.profile.email}{me.profile.phone ? ` · ${me.profile.phone}` : ''}</p>
-        <p class="muted">Vill du byta lösenord? Säg till din chef så får du en länk där du väljer ett nytt.</p>
-        {isAdminRole(me.profile.role) && <a class="btn btn--block" href="/admin">Till administrationen</a>}
+        <p class="muted">Want a new password? Ask your manager and you will get a link where you choose a new one.</p>
+        {isAdminRole(me.profile.role) && <a class="btn btn--block" href="/admin">Go to the admin dashboard</a>}
       </section>
 
       <section class="st-card">
-        <h3>Jobben i telefonens kalender</h3>
-        <p class="muted">Dina jobb visas i kalendern på telefonen och uppdateras automatiskt. Kundens telefonnummer och pris visas inte där.</p>
+        <h3>Your jobs in your phone's calendar</h3>
+        <p class="muted">Your jobs show up in your phone's calendar and update automatically. The customer's phone number and the price are not shown there.</p>
         <ErrorMsg error={error} />
         {token && (
           <div class="st-actions st-actions--stack">
-            <a class="btn" href={webcal}>{ios ? 'Lägg till i iPhone-kalendern' : 'Lägg till i kalendern'}</a>
-            <a class="btn btn--ghost" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`} target="_blank" rel="noopener">Lägg till i Google Kalender</a>
-            <button class="btn btn--ghost" type="button" onClick={async () => setCopied(await copyText(url))}>{copied ? 'Länken är kopierad' : 'Kopiera länken'}</button>
-            <button class="st-link" type="button" onClick={renew}>Skapa en ny länk (om någon annan har fått din)</button>
+            <a class="btn" href={webcal}>{ios ? 'Add to iPhone calendar' : 'Add to calendar'}</a>
+            <a class="btn btn--ghost" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`} target="_blank" rel="noopener">Add to Google Calendar</a>
+            <button class="btn btn--ghost" type="button" onClick={async () => setCopied(await copyText(url))}>{copied ? 'The link is copied' : 'Copy the link'}</button>
+            <button class="st-link" type="button" onClick={renew}>Create a new link (if someone else has yours)</button>
           </div>
         )}
       </section>
 
       <section class="st-card">
-        <h3>Appen på hemskärmen</h3>
+        <h3>The app on your home screen</h3>
         {ios ? (
           <ol class="auth-steps">
-            <li>Öppna tostadflytt.se/app i Safari.</li>
-            <li>Tryck på dela-knappen (fyrkanten med en pil uppåt).</li>
-            <li>Välj <strong>Lägg till på hemskärmen</strong>.</li>
+            <li>Open tostadflytt.se/app in Safari.</li>
+            <li>Tap the share button (the square with an arrow pointing up).</li>
+            <li>Choose <strong>Add to Home Screen</strong>.</li>
           </ol>
         ) : (
           <ol class="auth-steps">
-            <li>Öppna tostadflytt.se/app i Chrome.</li>
-            <li>Tryck på menyn med tre prickar uppe till höger.</li>
-            <li>Välj <strong>Lägg till på startskärmen</strong> eller <strong>Installera app</strong>.</li>
+            <li>Open tostadflytt.se/app in Chrome.</li>
+            <li>Tap the menu with three dots in the top right corner.</li>
+            <li>Choose <strong>Add to Home screen</strong> or <strong>Install app</strong>.</li>
           </ol>
         )}
-        <p class="muted">Du förblir inloggad på telefonen tills du loggar ut.</p>
+        <p class="muted">You stay logged in on your phone until you log out.</p>
       </section>
 
-      <button class="btn btn--ghost btn--block" type="button" onClick={signOut}>Logga ut</button>
+      <button class="btn btn--ghost btn--block" type="button" onClick={signOut}>Log out</button>
     </div>
   );
 }

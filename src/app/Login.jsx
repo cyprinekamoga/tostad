@@ -17,7 +17,7 @@ export default function Login() {
     if (!me) return setStep('password');
     if (!me.profile || !me.profile.active) {
       await sb.auth.signOut();
-      setError('Kontot är inte aktivt. Kontakta en administratör.');
+      setError('This account is not active. Contact an admin.');
       return setStep('password');
     }
     // Tvåstegsverifiering används inte. Koder som registrerades tidigare tas bort.
@@ -37,30 +37,30 @@ export default function Login() {
     const { error: signInError } = await sb.auth.signInWithPassword({ email: email.trim(), password });
     if (signInError) {
       setBusy(false);
-      setError(/confirm/i.test(signInError.message) ? 'Kontot är inte aktiverat ännu. Använd länken du fick.' : 'Fel e-post eller lösenord.');
+      setError(/confirm/i.test(signInError.message) ? 'This account is not activated yet. Use the link you got.' : 'Wrong email or password.');
       return;
     }
     await proceed();
     setBusy(false);
   }
 
-  if (step === 'loading') return <div class="auth-card" aria-busy="true"><p>Laddar …</p></div>;
+  if (step === 'loading') return <div class="auth-card" aria-busy="true"><p>Loading …</p></div>;
 
   return (
     <div class="auth-card">
       {error && <p class="msg msg--error" role="alert">{error}</p>}
       <form class="form-grid" onSubmit={signIn}>
-        <h2>Logga in</h2>
+        <h2>Log in</h2>
         <div class="field">
-          <label for="li-email">E-post</label>
+          <label for="li-email">Email</label>
           <input id="li-email" type="email" autocomplete="username" required value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
         </div>
         <div class="field">
-          <label for="li-pw">Lösenord</label>
+          <label for="li-pw">Password</label>
           <input id="li-pw" type="password" autocomplete="current-password" required value={password} onInput={(e) => setPassword(e.currentTarget.value)} />
         </div>
-        <button class="btn btn--block" type="submit" disabled={busy}>{busy ? 'Loggar in …' : 'Logga in'}</button>
-        <p class="muted">Glömt lösenordet? Be en administratör om en ny inloggningslänk.</p>
+        <button class="btn btn--block" type="submit" disabled={busy}>{busy ? 'Logging in …' : 'Log in'}</button>
+        <p class="muted">Forgot your password? Ask an admin for a new login link.</p>
       </form>
     </div>
   );

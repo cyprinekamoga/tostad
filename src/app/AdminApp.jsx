@@ -17,27 +17,27 @@ import Careers from './admin/Careers.jsx';
 import logo from '../assets/brand/logo.png';
 
 const PAGES = {
-  oversikt: { href: '/admin', label: 'Översikt', Page: Overview },
-  planering: { href: '/admin/planering', label: 'Planering', Page: Planner },
-  karta: { href: '/admin/karta', label: 'Karta', Page: MapPage },
-  inkorg: { href: '/admin/inkorg', label: 'Inkorg', Page: Inbox },
-  kunder: { href: '/admin/kunder', label: 'Kunder', Page: Customers },
-  offerter: { href: '/admin/offerter', label: 'Offerter', Page: Quotes },
-  fakturor: { href: '/admin/fakturor', label: 'Fakturor', Page: Invoices },
-  ekonomi: { href: '/admin/ekonomi', label: 'Ekonomi', Page: Money },
-  ledighet: { href: '/admin/ledighet', label: 'Ledighet', Page: Absences },
-  tider: { href: '/admin/tider', label: 'Tider', Page: TimeReport },
-  rekrytering: { href: '/admin/rekrytering', label: 'Rekrytering', Page: Careers },
-  personal: { href: '/admin/personal', label: 'Personal', Page: Staff },
-  installningar: { href: '/admin/installningar', label: 'Inställningar', Page: Settings },
+  oversikt: { href: '/admin', label: 'Overview', Page: Overview },
+  planering: { href: '/admin/planering', label: 'Planner', Page: Planner },
+  karta: { href: '/admin/karta', label: 'Map', Page: MapPage },
+  inkorg: { href: '/admin/inkorg', label: 'Inbox', Page: Inbox },
+  kunder: { href: '/admin/kunder', label: 'Customers', Page: Customers },
+  offerter: { href: '/admin/offerter', label: 'Quotes', Page: Quotes },
+  fakturor: { href: '/admin/fakturor', label: 'Invoices', Page: Invoices },
+  ekonomi: { href: '/admin/ekonomi', label: 'Finances', Page: Money },
+  ledighet: { href: '/admin/ledighet', label: 'Time off', Page: Absences },
+  tider: { href: '/admin/tider', label: 'Hours', Page: TimeReport },
+  rekrytering: { href: '/admin/rekrytering', label: 'Recruitment', Page: Careers },
+  personal: { href: '/admin/personal', label: 'Staff', Page: Staff },
+  installningar: { href: '/admin/installningar', label: 'Settings', Page: Settings },
 };
 
 // Menyn i grupper, så att den går att överblicka.
 const GROUPS = [
   ['', ['oversikt']],
-  ['Planering', ['planering', 'karta', 'ledighet', 'tider']],
-  ['Kunder och ekonomi', ['inkorg', 'kunder', 'offerter', 'fakturor', 'ekonomi']],
-  ['Företaget', ['personal', 'rekrytering', 'installningar']],
+  ['Planning', ['planering', 'karta', 'ledighet', 'tider']],
+  ['Customers and finances', ['inkorg', 'kunder', 'offerter', 'fakturor', 'ekonomi']],
+  ['Company', ['personal', 'rekrytering', 'installningar']],
 ];
 const MENU_KEY = 'tostad-meny';
 const readMenuHidden = () => {
@@ -96,7 +96,7 @@ export default function AdminApp({ page }) {
     go('/logga-in');
   }
 
-  if (!me) return <p class="muted adm-loading" aria-busy="true">Laddar …</p>;
+  if (!me) return <p class="muted adm-loading" aria-busy="true">Loading …</p>;
   const current = PAGES[page] ?? PAGES.oversikt;
   const { Page } = current;
   const badge = { inkorg: newCount, ledighet: pendingCount, rekrytering: appCount };
@@ -116,18 +116,18 @@ export default function AdminApp({ page }) {
   return (
     <div class={`adm${menuHidden ? ' is-menu-hidden' : ''}${drawer ? ' is-drawer-open' : ''}`}>
       <header class="adm-top">
-        <button class="adm-burger" type="button" aria-label={menuHidden ? 'Visa menyn' : 'Dölj menyn'} aria-expanded={!menuHidden || drawer} onClick={toggleMenu}>
+        <button class="adm-burger" type="button" aria-label={menuHidden ? 'Show menu' : 'Hide menu'} aria-expanded={!menuHidden || drawer} onClick={toggleMenu}>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
         </button>
-        <a class="adm-brand" href="/admin" aria-label="Översikt">
+        <a class="adm-brand" href="/admin" aria-label="Overview">
           <img src={logo.src} alt="" width="32" height="32" />
           <span>TO Städ &amp; Flytt</span>
         </a>
         <h1 class="adm-title">{current.label}</h1>
         <div class="adm-user">
           <span class="adm-name">{me.profile.full_name}</span>
-          <a href="/app">Mina jobb</a>
-          <button type="button" onClick={signOut}>Logga ut</button>
+          <a href="/app">My jobs</a>
+          <button type="button" onClick={signOut}>Log out</button>
         </div>
       </header>
       <div class="adm-body">
@@ -145,11 +145,11 @@ export default function AdminApp({ page }) {
           ))}
           <div class="adm-group adm-nav-me">
             <p class="adm-group-title">{me.profile.full_name}</p>
-            <a href="/app">Mina jobb</a>
-            <button type="button" onClick={signOut}>Logga ut</button>
+            <a href="/app">My jobs</a>
+            <button type="button" onClick={signOut}>Log out</button>
           </div>
         </nav>
-        <button class="adm-scrim" type="button" aria-label="Stäng menyn" tabIndex={-1} onClick={() => setDrawer(false)} />
+        <button class="adm-scrim" type="button" aria-label="Close menu" tabIndex={-1} onClick={() => setDrawer(false)} />
         <section class="adm-page">
           <PageBoundary>
             <Page me={me} onInboxChange={refreshCount} />
@@ -163,6 +163,6 @@ export default function AdminApp({ page }) {
 // Visar felet på skärmen i stället för en tom sida om en sida kraschar.
 function PageBoundary({ children }) {
   const [error] = useErrorBoundary((e) => console.error(e));
-  if (error) return <p class="msg msg--error" role="alert">Sidan kunde inte visas: {String(error.message || error)}. Ladda om sidan.</p>;
+  if (error) return <p class="msg msg--error" role="alert">This page could not be shown: {String(error.message || error)}. Reload the page.</p>;
   return children;
 }

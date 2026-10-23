@@ -6,10 +6,10 @@ import { KIND, STATUS, FIELDS, fieldValue, summary, ensureCustomer } from './sub
 import { describeCalc } from '../../lib/calcSummary.js';
 
 const FILTERS = [
-  ['ny', 'Nya'],
-  ['hanterad', 'Hanterade'],
-  ['arkiverad', 'Arkiverade'],
-  ['alla', 'Alla'],
+  ['ny', 'New'],
+  ['hanterad', 'Handled'],
+  ['arkiverad', 'Archived'],
+  ['alla', 'All'],
 ];
 const COLUMNS = 'id, kind, status, name, email, phone, data, files, note, customer_id, handled_by, handled_at, created_at';
 
@@ -25,7 +25,7 @@ export default function Inbox({ onInboxChange }) {
     let query = sb.from('submissions').select(COLUMNS).order('created_at', { ascending: false }).limit(200);
     if (filter !== 'alla') query = query.eq('status', filter);
     const { data, error: loadError } = await query;
-    if (loadError) return setError('Kunde inte hämta inkorgen.');
+    if (loadError) return setError('Could not load the inbox.');
     setItems(data);
     const wanted = keepId ?? window.location.hash.slice(1);
     if (wanted) {
@@ -62,7 +62,7 @@ export default function Inbox({ onInboxChange }) {
   return (
     <>
       <div class="cp-head">
-        <h2>Inkorg</h2>
+        <h2>Inbox</h2>
         <div class="cp-tabs" role="group" aria-label="Filter">
           {FILTERS.map(([key, label]) => (
             <button type="button" aria-pressed={filter === key} onClick={() => setFilter(key)}>
@@ -74,17 +74,17 @@ export default function Inbox({ onInboxChange }) {
       <ErrorMsg error={error} />
       <div class="cp-split">
         <div>
-          {items === null && <p class="muted">Laddar …</p>}
-          {items?.length === 0 && <p class="cp-panel cp-empty">Inget här just nu.</p>}
+          {items === null && <p class="muted">Loading …</p>}
+          {items?.length === 0 && <p class="cp-panel cp-empty">Nothing here right now.</p>}
           {items?.length > 0 && (
             <ul class="cp-list">
               {items.map((s) => (
                 <li>
                   <button type="button" class="cp-row" aria-current={selected?.id === s.id ? 'true' : undefined} onClick={() => open(s)}>
                     <span class="cp-row-top">
-                      <strong>{s.name || 'Utan namn'}</strong>
+                      <strong>{s.name || 'No name'}</strong>
                       <span>
-                        {s.status === 'ny' && <span class="badge badge--ny">Ny</span>}{' '}
+                        {s.status === 'ny' && <span class="badge badge--ny">New</span>}{' '}
                         <span class={`badge badge--${s.kind}`}>{KIND[s.kind]}</span>
                       </span>
                     </span>
@@ -99,7 +99,7 @@ export default function Inbox({ onInboxChange }) {
         {selected ? (
           <Detail key={selected.id} item={selected} names={names} onChanged={changed} onDeleted={() => { setSelected(null); window.history.replaceState(null, '', window.location.pathname); changed(); }} />
         ) : (
-          items?.length > 0 && <p class="cp-panel cp-empty">Välj ett ärende i listan.</p>
+          items?.length > 0 && <p class="cp-panel cp-empty">Choose an item in the list.</p>
         )}
       </div>
     </>
@@ -136,7 +136,7 @@ function Detail({ item, names, onChanged, onDeleted }) {
     try {
       await task();
     } catch (e) {
-      setError(e.message || 'Något gick fel.');
+      setError(e.message || 'Something went wrong.');
     }
     setBusy(false);
   }
@@ -144,15 +144,15 @@ function Detail({ item, names, onChanged, onDeleted }) {
   const setStatus = (status) =>
     run(async () => {
       const { error: e } = await sb.from('submissions').update({ status }).eq('id', item.id);
-      if (e) throw new Error('Kunde inte spara.');
+      if (e) throw new Error('Could not save.');
       await onChanged(item.id);
     });
 
   const saveNote = () =>
     run(async () => {
       const { error: e } = await sb.from('submissions').update({ note: note.trim() || null }).eq('id', item.id);
-      if (e) throw new Error('Kunde inte spara anteckningen.');
-      setInfo('Anteckningen är sparad.');
+      if (e) throw new Error('Could not save the note.');
+      setInfo('The note is saved.');
       await onChanged(item.id);
     });
 
@@ -160,32 +160,32 @@ function Detail({ item, names, onChanged, onDeleted }) {
   const toCustomer = () =>
     run(async () => {
       const customer = await ensureCustomer(sb, item);
-      setInfo(customer.existed ? `Kopplat till befintlig kund: ${customer.name}.` : 'Kunden är skapad.');
+      setInfo(customer.existed ? `Linked to existing customer: ${customer.name}.` : 'The customer is created.');
       await onChanged(item.id);
     });
 
   const remove = () => {
-    if (!window.confirm('Ta bort ärendet och eventuella bilder för alltid?')) return;
+    if (!window.confirm('Remove this item and any photos for good?')) return;
     run(async () => {
       if (item.files?.length) await sb.storage.from('inbox').remove(item.files);
       const { error: e } = await sb.from('submissions').delete().eq('id', item.id);
-      if (e) throw new Error('Kunde inte ta bort.');
+      if (e) throw new Error('Could not remove.');
       onDeleted();
     });
   };
 
   return (
-    <article class="cp-panel cp-detail" aria-label="Ärende">
+    <article class="cp-panel cp-detail" aria-label="Item">
       <div class="cp-row-top">
-        <h3>{item.name || 'Utan namn'}</h3>
+        <h3>{item.name || 'No name'}</h3>
         <span>
           <span class={`badge badge--${item.kind}`}>{KIND[item.kind]}</span>{' '}
           <span class={item.status === 'ny' ? 'badge badge--ny' : 'badge badge--muted'}>{STATUS[item.status]}</span>
         </span>
       </div>
       <p class="muted">
-        Inkom {formatDateTime(item.created_at)}
-        {item.handled_at && ` · ${STATUS[item.status]} ${formatDateTime(item.handled_at)}${names[item.handled_by] ? ` av ${names[item.handled_by]}` : ''}`}
+        Received {formatDateTime(item.created_at)}
+        {item.handled_at && ` · ${STATUS[item.status]} ${formatDateTime(item.handled_at)}${names[item.handled_by] ? ` by ${names[item.handled_by]}` : ''}`}
       </p>
       <p>
         <Phone value={item.phone} /> {item.phone && item.email && ' · '} <Email value={item.email} />
@@ -200,7 +200,7 @@ function Detail({ item, names, onChanged, onDeleted }) {
       </dl>
       {data.kalkyl && describeCalc(data.kalkyl).length > 0 && (
         <section class="cp-calc">
-          <h4>Kundens val i priskalkylatorn</h4>
+          <h4>The customer's choices in the price calculator</h4>
           <dl class="cp-dl">
             {describeCalc(data.kalkyl).map(([label, value]) => (
               <>
@@ -218,44 +218,44 @@ function Detail({ item, names, onChanged, onDeleted }) {
             const isImage = /\.(jpe?g|png|webp)$/i.test(path);
             return url ? (
               <a href={url} target="_blank" rel="noopener">
-                {isImage ? <img src={url} alt="Bild från kunden" /> : <span style="display:block;padding:30px 6px">Öppna fil</span>}
+                {isImage ? <img src={url} alt="Photo from the customer" /> : <span style="display:block;padding:30px 6px">Open file</span>}
               </a>
             ) : (
-              <span class="muted">Laddar bild …</span>
+              <span class="muted">Loading photo …</span>
             );
           })}
         </div>
       )}
       <div class="field">
-        <label for="note">Intern anteckning</label>
+        <label for="note">Internal note</label>
         <textarea id="note" maxLength={5000} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
         <div>
           <button class="btn btn--ghost btn--sm" type="button" disabled={busy || note === (item.note ?? '')} onClick={saveNote}>
-            Spara anteckning
+            Save note
           </button>
         </div>
       </div>
       <ErrorMsg error={error} />
       {info && <p class="msg msg--ok">{info}</p>}
       <div class="cp-actions">
-        {jobId && <a class="btn btn--sm" href={`/admin/planering?jobb=${jobId}`}>Visa jobbet</a>}
-        {jobId === null && <a class="btn btn--sm" href={`/admin/planering?fran=${item.id}`}>Skapa jobb</a>}
-        {item.kind !== 'skadeanmalan' && <a class="btn btn--ghost btn--sm" href={`/admin/offerter?fran=${item.id}`}>Skapa offert</a>}
+        {jobId && <a class="btn btn--sm" href={`/admin/planering?jobb=${jobId}`}>Show the job</a>}
+        {jobId === null && <a class="btn btn--sm" href={`/admin/planering?fran=${item.id}`}>Create job</a>}
+        {item.kind !== 'skadeanmalan' && <a class="btn btn--ghost btn--sm" href={`/admin/offerter?fran=${item.id}`}>Create quote</a>}
         {item.status !== 'hanterad' && (
-          <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('hanterad')}>Markera som hanterad</button>
+          <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('hanterad')}>Mark as handled</button>
         )}
         {item.status !== 'arkiverad' && (
-          <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('arkiverad')}>Arkivera</button>
+          <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('arkiverad')}>Archive</button>
         )}
         {item.status !== 'ny' && (
-          <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('ny')}>Markera som ny</button>
+          <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('ny')}>Mark as new</button>
         )}
         {item.customer_id ? (
-          <a class="btn btn--ghost btn--sm" href={`/admin/kunder#${item.customer_id}`}>Visa kunden</a>
+          <a class="btn btn--ghost btn--sm" href={`/admin/kunder#${item.customer_id}`}>Show the customer</a>
         ) : (
-          <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={toCustomer}>Skapa kund</button>
+          <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={toCustomer}>Create customer</button>
         )}
-        <button class="btn btn--danger btn--sm" type="button" disabled={busy} onClick={remove}>Ta bort</button>
+        <button class="btn btn--danger btn--sm" type="button" disabled={busy} onClick={remove}>Remove</button>
       </div>
     </article>
   );

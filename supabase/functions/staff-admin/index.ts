@@ -59,7 +59,7 @@ async function createStaff(req: Request, input: { full_name: string; email: stri
   const error = created.error;
   if (error || !data.user) {
     const taken = /already|registered|exists/i.test(error?.message ?? '');
-    return reply(req, taken ? 409 : 400, { error: taken ? 'E-postadressen används redan' : 'Kunde inte skapa kontot' });
+    return reply(req, taken ? 409 : 400, { error: taken ? 'The email address is already in use' : 'Could not create the account' });
   }
   const { error: profileError } = await db.from('profiles').insert({
     id: data.user.id,
@@ -71,7 +71,7 @@ async function createStaff(req: Request, input: { full_name: string; email: stri
   });
   if (profileError) {
     await db.auth.admin.deleteUser(data.user.id);
-    return reply(req, 400, { error: /administratörer/.test(profileError.message) ? 'Högst tre administratörer' : 'Kunde inte spara profilen' });
+    return reply(req, 400, { error: /three admins|administratörer/.test(profileError.message) ? 'At most three admins' : 'Could not save the profile' });
   }
   if (input.password) return reply(req, 200, { ok: true, user_id: data.user.id });
   return reply(req, 200, { ok: true, user_id: data.user.id, link: activationLink(req, data.properties!.hashed_token, 'invite') });
@@ -79,13 +79,13 @@ async function createStaff(req: Request, input: { full_name: string; email: stri
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders(req) });
-  if (req.method !== 'POST') return reply(req, 405, { error: 'Fel metod' });
+  if (req.method !== 'POST') return reply(req, 405, { error: 'Wrong method' });
 
   let body: Record<string, unknown>;
   try {
     body = await req.json();
   } catch {
-    return reply(req, 400, { error: 'Ogiltig begäran' });
+    return reply(req, 400, { error: 'Invalid request' });
   }
   const action = String(body.action ?? '');
 
@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
   // Testkonton på den reserverade domänen test.invalid tas bort när den riktiga ägaren skapas.
   if (action === 'bootstrap') {
     const token = clean(body.token, 200);
-    if (!token || (await sha256(token)) !== BOOTSTRAP_HASH) return reply(req, 403, { error: 'Nekad' });
+    if (!token || (await sha256(token)) !== BOOTSTRAP_HASH) return reply(req, 403, { error: 'Denied' });
     const { data: owners } = await db.from('profiles').select('id, email').eq('role', 'owner');
     const email = clean(body.email, 254).toLowerCase();
     const full_name = clean(body.full_name, 120);
@@ -106,14 +106,14 @@ Deno.serve(async (req) => {
     if (realOwner) {
       // Ny länk till ägaren går bara att få innan ägaren har loggat in första gången.
       const { data: user } = await db.auth.admin.getUserById(realOwner.id);
-      if (realOwner.email !== email || user?.user?.last_sign_in_at) return reply(req, 403, { error: 'Ägaren finns redan' });
+      if (realOwner.email !== email || user?.user?.last_sign_in_at) return reply(req, 403, { error: 'The owner already exists' });
       let result = await db.auth.admin.generateLink({ type: 'invite', email });
       if (result.error) result = await db.auth.admin.generateLink({ type: 'recovery', email });
-      if (result.error) return reply(req, 400, { error: 'Kunde inte skapa länken' });
+      if (result.error) return reply(req, 400, { error: 'Could not create the link' });
       const used = result.data.properties.verification_type === 'invite' ? 'invite' : 'recovery';
       return reply(req, 200, { ok: true, user_id: realOwner.id, link: activationLink(req, result.data.properties.hashed_token, used) });
     }
-    if (!isEmail(email) || !full_name) return reply(req, 400, { error: 'Namn och e-post krävs' });
+    if (!isEmail(email) || !full_name) return reply(req, 400, { error: 'Name and email are required' });
     const { data: testAccounts } = await db.from('profiles').select('id').like('email', '%@test.invalid');
     for (const t of testAccounts ?? []) await db.auth.admin.deleteUser(t.id);
     return createStaff(req, { full_name, email, phone: '', color: '#14532d', role: 'owner' });
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
 
   if (action === 'cleanup') {
     const token = clean(body.token, 200);
-    if (!token || (await sha256(token)) !== BOOTSTRAP_HASH) return reply(req, 403, { error: 'Nekad' });
+    if (!token || (await sha256(token)) !== BOOTSTRAP_HASH) return reply(req, 403, { error: 'Denied' });
     const { data: testAccounts } = await db.from('profiles').select('id').like('email', '%@test.invalid');
     for (const t of testAccounts ?? []) await db.auth.admin.deleteUser(t.id);
     return reply(req, 200, { ok: true, removed: testAccounts?.length ?? 0 });
@@ -129,9 +129,9 @@ Deno.serve(async (req) => {
 
   // Alla andra åtgärder kräver inloggad administratör.
   const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
-  if (!token) return reply(req, 401, { error: 'Logga in' });
+  if (!token) return reply(req, 401, { error: 'Please log in' });
   const { data: auth, error: authError } = await db.auth.getUser(token);
-  if (authError || !auth.user) return reply(req, 401, { error: 'Logga in igen' });
+  if (authError || !auth.user) return reply(req, 401, { error: 'Please log in again' });
   // Tvåstegsverifiering används inte längre. Gamla registrerade koder tas bort vid inloggning.
   if (action === 'remove_mfa') {
     const { data: factors } = await db.auth.admin.mfa.listFactors({ userId: auth.user.id });
@@ -139,68 +139,68 @@ Deno.serve(async (req) => {
     return reply(req, 200, { ok: true });
   }
   const { data: me } = await db.from('profiles').select('id, role, active').eq('id', auth.user.id).maybeSingle();
-  if (!me || !me.active || !['owner', 'admin'].includes(me.role)) return reply(req, 403, { error: 'Bara administratörer' });
+  if (!me || !me.active || !['owner', 'admin'].includes(me.role)) return reply(req, 403, { error: 'Admins only' });
 
   if (action === 'invite') {
     const role = clean(body.role, 20) || 'employee';
     const email = clean(body.email, 254).toLowerCase();
     const full_name = clean(body.full_name, 120);
-    if (!ROLES.includes(role)) return reply(req, 400, { error: 'Ogiltig roll' });
-    if (role === 'admin' && me.role !== 'owner') return reply(req, 403, { error: 'Bara ägaren kan lägga till administratörer' });
-    if (!isEmail(email) || !full_name) return reply(req, 400, { error: 'Namn och e-post krävs' });
-    if (body.password !== undefined && body.password !== null && !validPassword(body.password)) return reply(req, 400, { error: 'Lösenordet behöver minst 10 tecken' });
+    if (!ROLES.includes(role)) return reply(req, 400, { error: 'Invalid role' });
+    if (role === 'admin' && me.role !== 'owner') return reply(req, 403, { error: 'Only the owner can add admins' });
+    if (!isEmail(email) || !full_name) return reply(req, 400, { error: 'Name and email are required' });
+    if (body.password !== undefined && body.password !== null && !validPassword(body.password)) return reply(req, 400, { error: 'The password needs at least 10 characters' });
     return createStaff(req, { full_name, email, phone: clean(body.phone, 40), color: clean(body.color, 7), role, password: validPassword(body.password) ? body.password : undefined });
   }
 
   const userId = clean(body.user_id, 36);
   const { data: target } = await db.from('profiles').select('id, role, active, email').eq('id', userId).maybeSingle();
-  if (!target) return reply(req, 404, { error: 'Hittar inte personen' });
+  if (!target) return reply(req, 404, { error: 'Could not find the person' });
   const touchesAdmin = target.role !== 'employee';
-  if (touchesAdmin && me.role !== 'owner' && target.id !== me.id) return reply(req, 403, { error: 'Bara ägaren kan ändra administratörer' });
+  if (touchesAdmin && me.role !== 'owner' && target.id !== me.id) return reply(req, 403, { error: 'Only the owner can change admins' });
 
   if (action === 'link') {
     const { data: user } = await db.auth.admin.getUserById(userId);
     const type = user?.user?.last_sign_in_at ? 'recovery' : 'invite';
     let result = await db.auth.admin.generateLink({ type, email: target.email });
     if (result.error && type === 'invite') result = await db.auth.admin.generateLink({ type: 'recovery', email: target.email });
-    if (result.error) return reply(req, 400, { error: 'Kunde inte skapa länken' });
+    if (result.error) return reply(req, 400, { error: 'Could not create the link' });
     const used = result.data.properties.verification_type === 'invite' ? 'invite' : 'recovery';
     return reply(req, 200, { ok: true, link: activationLink(req, result.data.properties.hashed_token, used) });
   }
 
   if (action === 'set_password') {
-    if (!validPassword(body.password)) return reply(req, 400, { error: 'Lösenordet behöver minst 10 tecken' });
+    if (!validPassword(body.password)) return reply(req, 400, { error: 'The password needs at least 10 characters' });
     const { error } = await db.auth.admin.updateUserById(userId, { password: body.password, email_confirm: true });
-    if (error) return reply(req, 400, { error: /weak|pwned|leaked/i.test(error.message) ? 'Lösenordet är för svagt. Välj ett annat.' : 'Kunde inte spara lösenordet' });
+    if (error) return reply(req, 400, { error: /weak|pwned|leaked/i.test(error.message) ? 'The password is too weak. Choose another one.' : 'Could not save the password' });
     return reply(req, 200, { ok: true });
   }
 
   if (action === 'set_active') {
     const active = body.active === true;
-    if (target.role === 'owner') return reply(req, 403, { error: 'Ägarkontot kan inte stängas av' });
-    if (target.id === me.id) return reply(req, 403, { error: 'Du kan inte stänga av dig själv' });
+    if (target.role === 'owner') return reply(req, 403, { error: 'The owner account cannot be deactivated' });
+    if (target.id === me.id) return reply(req, 403, { error: 'You cannot deactivate yourself' });
     const { error } = await db.from('profiles').update({ active }).eq('id', userId);
-    if (error) return reply(req, 400, { error: /administratörer/.test(error.message) ? 'Högst tre administratörer' : 'Kunde inte spara' });
+    if (error) return reply(req, 400, { error: /three admins|administratörer/.test(error.message) ? 'At most three admins' : 'Could not save' });
     await db.auth.admin.updateUserById(userId, { ban_duration: active ? 'none' : '876000h' });
     return reply(req, 200, { ok: true });
   }
 
   if (action === 'set_role') {
     const role = clean(body.role, 20);
-    if (me.role !== 'owner') return reply(req, 403, { error: 'Bara ägaren kan ändra roller' });
-    if (!ROLES.includes(role) || target.role === 'owner') return reply(req, 400, { error: 'Ogiltig roll' });
+    if (me.role !== 'owner') return reply(req, 403, { error: 'Only the owner can change roles' });
+    if (!ROLES.includes(role) || target.role === 'owner') return reply(req, 400, { error: 'Invalid role' });
     const { error } = await db.from('profiles').update({ role }).eq('id', userId);
-    if (error) return reply(req, 400, { error: /administratörer/.test(error.message) ? 'Högst tre administratörer' : 'Kunde inte spara' });
+    if (error) return reply(req, 400, { error: /three admins|administratörer/.test(error.message) ? 'At most three admins' : 'Could not save' });
     return reply(req, 200, { ok: true });
   }
 
   if (action === 'delete') {
-    if (me.role !== 'owner') return reply(req, 403, { error: 'Bara ägaren kan ta bort konton' });
-    if (target.role === 'owner' || target.id === me.id) return reply(req, 403, { error: 'Ägarkontot kan inte tas bort' });
+    if (me.role !== 'owner') return reply(req, 403, { error: 'Only the owner can delete accounts' });
+    if (target.role === 'owner' || target.id === me.id) return reply(req, 403, { error: 'The owner account cannot be deleted' });
     const { error } = await db.auth.admin.deleteUser(userId);
-    if (error) return reply(req, 400, { error: 'Kunde inte ta bort kontot' });
+    if (error) return reply(req, 400, { error: 'Could not delete the account' });
     return reply(req, 200, { ok: true });
   }
 
-  return reply(req, 400, { error: 'Okänd åtgärd' });
+  return reply(req, 400, { error: 'Unknown action' });
 });

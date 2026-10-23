@@ -9,8 +9,8 @@ import { loadJobs, jobLabel, jobAddress, locateJobs, SERVICE_LABELS } from './jo
 import { ErrorMsg } from '../ui.jsx';
 
 const OFFICE = `${site.address.street}, ${site.address.postalCode} ${site.address.city}`;
-const UNASSIGNED = { id: '', full_name: 'Ej bemannade', color: '#6b7280' };
-const longDate = new Intl.DateTimeFormat('sv-SE', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+const UNASSIGNED = { id: '', full_name: 'Unassigned', color: '#6b7280' };
+const longDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
 // Hela adressen till rutten: till-adressen räknas med för flyttar.
 const stopsFor = (job) => [jobAddress(job), jobAddress(job, true)].filter(Boolean);
@@ -98,20 +98,20 @@ export default function MapPage() {
   return (
     <>
       <div class="cp-head">
-        <h2>Karta</h2>
+        <h2>Map</h2>
         <div class="pl-nav">
-          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(addDays(date, -1))} aria-label="Föregående dag">‹</button>
-          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(today())}>Idag</button>
-          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(addDays(date, 1))} aria-label="Nästa dag">›</button>
-          <input type="date" aria-label="Datum" value={date} onInput={(e) => e.currentTarget.value && setDate(e.currentTarget.value)} />
+          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(addDays(date, -1))} aria-label="Previous day">‹</button>
+          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(today())}>Today</button>
+          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setDate(addDays(date, 1))} aria-label="Next day">›</button>
+          <input type="date" aria-label="Date" value={date} onInput={(e) => e.currentTarget.value && setDate(e.currentTarget.value)} />
         </div>
       </div>
-      <p class="pl-title"><strong>{longDate.format(new Date(`${date}T12:00:00Z`))}</strong>{locating && <span class="muted"> · hittar adresser på kartan …</span>}</p>
+      <p class="pl-title"><strong>{longDate.format(new Date(`${date}T12:00:00Z`))}</strong>{locating && <span class="muted"> · finding addresses on the map …</span>}</p>
       <ErrorMsg error={error} />
       <div class="map-layout">
-        <div ref={mapEl} class="map-canvas" role="region" aria-label="Karta över dagens jobb" />
+        <div ref={mapEl} class="map-canvas" role="region" aria-label="Map of the day's jobs" />
         <div class="map-teams">
-          {jobs !== null && teams.length === 0 && <p class="cp-panel cp-empty">Inga jobb den här dagen.</p>}
+          {jobs !== null && teams.length === 0 && <p class="cp-panel cp-empty">No jobs on this day.</p>}
           {teams.map(({ person, jobs: list }) => {
             const link = routeLink(OFFICE, list.flatMap(stopsFor));
             return (
@@ -123,26 +123,26 @@ export default function MapPage() {
                   {list.map((j) => (
                     <li>
                       <a href={`/admin/planering?jobb=${j.id}`}>
-                        <strong>{j.startTime} till {j.endTime}</strong> {jobLabel(j)}
+                        <strong>{j.startTime} to {j.endTime}</strong> {jobLabel(j)}
                       </a>
                       <br />
                       <small class="muted">
-                        {jobAddress(j) || 'Adress saknas'}
+                        {jobAddress(j) || 'No address'}
                         {j.to_street && ` → ${jobAddress(j, true)}`}
-                        {j.street && j.lat == null && !locating && ' · hittades inte på kartan'}
+                        {j.street && j.lat == null && !locating && ' · not found on the map'}
                       </small>
                     </li>
                   ))}
                 </ol>
                 {link && (
                   <a class="btn btn--ghost btn--sm" href={link} target="_blank" rel="noopener">
-                    Öppna rutten i Google Maps
+                    Open the route in Google Maps
                   </a>
                 )}
               </section>
             );
           })}
-          <p class="muted pl-legend">Rutten börjar på kontoret ({OFFICE}) och följer jobben i tidsordning.</p>
+          <p class="muted pl-legend">The route starts at the office ({OFFICE}) and follows the jobs in time order.</p>
         </div>
       </div>
     </>
