@@ -64,7 +64,9 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 ## Administration och personal
 
 - **Logga in:** `https://tostadflytt.se/logga-in`. Alla loggar in med e-post och lösenord. Administratörer kommer till `/admin` och personal till `/app`.
-- **Lägg till personal:** Administration, Personal, Lägg till person. Skicka länken via SMS eller mejl. Den gäller i en timme.
+- **Lägg till personal:** Administration, Personal, Lägg till person. Som standard väljer du lösenordet (ett förslag fylls i) och skickar inloggningen via SMS eller mejl. Lösenordet visas bara en gång. Vill personen välja själv, välj "Skicka en länk" (gäller i en timme).
+- **Byta lösenord:** "Nytt lösenord" på raden under Personal sätter ett nytt direkt. "Inloggningslänk" ger en länk där personen väljer själv.
+- **Menyn** till vänster döljs och visas med knappen uppe till vänster. På mobilen glider den in. I Planering finns Normal och Stor för större kalenderrutor. Båda valen sparas i webbläsaren.
 - **Planering** (`/admin/planering`): vecka med en rad per person, dag med tidslinje och månad. Dra jobb mellan personer, dagar och klockslag. Återkommande jobb (varje, varannan, var tredje eller var fjärde vecka). Varningar för dubbelbokning, under 11 timmars dygnsvila och under 36 timmars veckovila. En bokning i inkorgen blir ett jobb med knappen *Skapa jobb*.
 - **Karta** (`/admin/karta`): dagens jobb på kartan per person, i tidsordning, med en rutt i Google Maps som börjar på kontoret. Adresserna slås upp hos OpenStreetMap och sparas på jobbet.
 - **Personalens app** (`/app`): byggd för mobilen och kan läggas på hemskärmen. Dagens jobb med adress, navigering och kundens telefon, jobbsida med checklista, foton före och efter, "Vi är på väg" och "Klart", stämpling in och ut (tiden sätts av systemet, platsen sparas bara vid stämplingen), mina tider per månad, ledighet, sjukanmälan, dagar man inte kan jobba, passbyten och en kalenderlänk till telefonens kalender.

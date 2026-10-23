@@ -139,7 +139,7 @@ For comparison: Planday alone is about 3 to 7 EUR per user per month, before inv
 - `/logga-in`: email and password for everyone. Two step verification was removed at your request.
 - `/admin`: overview, inbox (bookings, messages and damage reports from the website, with photos), customers, staff.
 - `/app`: staff start page (schedule and jobs come in phase 3).
-- Staff are added under Personal. The person gets a one time link (valid for 1 hour) to choose a password. Only the owner can add admins (max 3) and delete accounts.
+- Staff are added under Personal. By default the admin sets the password and sends the login by SMS or email; a one time link (valid for 1 hour) to choose a password is still an option, and "Nytt lösenord" sets a new one. Only the owner can add admins (max 3) and delete accounts.
 - Website forms go to the inbox first and then to Netlify Forms as a backup copy.
 - Tested end to end: activation, login, every admin page, staff invites, employee access limits, form submissions with photos.
 
