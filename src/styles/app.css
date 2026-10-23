@@ -1783,3 +1783,20 @@ input[type='search'] {
   margin: 0 0 8px;
   font-size: 0.95rem;
 }
+.pw-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.pw-row input {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.02em;
+}
+.cp-creds code {
+  font-size: 1.1rem;
+  font-weight: 700;
+  background: var(--green-50);
+  padding: 2px 8px;
+  border-radius: 6px;
+}

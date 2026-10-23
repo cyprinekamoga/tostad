@@ -37,6 +37,7 @@ export default function Account({ me }) {
       <section class="st-card">
         <h3>{me.profile.full_name}</h3>
         <p class="muted">{me.profile.email}{me.profile.phone ? ` · ${me.profile.phone}` : ''}</p>
+        <p class="muted">Vill du byta lösenord? Säg till din chef så får du en länk där du väljer ett nytt.</p>
         {isAdminRole(me.profile.role) && <a class="btn btn--block" href="/admin">Till administrationen</a>}
       </section>
 

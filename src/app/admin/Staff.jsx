@@ -14,6 +14,8 @@ export default function Staff({ me }) {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState(null);
   const [link, setLink] = useState(null);
+  const [credentials, setCredentials] = useState(null);
+  const [pwFor, setPwFor] = useState(null);
   const [busyId, setBusyId] = useState('');
   const [error, setError] = useState('');
   const isOwner = me.profile.role === 'owner';
@@ -89,6 +91,7 @@ export default function Staff({ me }) {
                               Inloggningslänk
                             </button>
                           )}
+                          {p.active && <button class="btn btn--ghost btn--sm" type="button" onClick={() => setPwFor(p)}>Nytt lösenord</button>}
                           <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(p)}>Ändra</button>
                           {isOwner && p.role !== 'owner' && p.active && (
                             <button
@@ -134,15 +137,22 @@ export default function Staff({ me }) {
           usedColors={(rows ?? []).filter((p) => p.active).map((p) => p.color.toLowerCase())}
           canAddAdmin={isOwner && admins < 3}
           onCancel={() => setAdding(false)}
-          onCreated={(person, url) => {
+          onCreated={(person, url, password) => {
             setAdding(false);
-            setLink({ person, url, isNew: true });
+            if (password) setCredentials({ person, password, isNew: true });
+            else setLink({ person, url, isNew: true });
             load();
           }}
         />
       </Modal>
       <Modal open={!!editing} label="Ändra uppgifter" onClose={() => setEditing(null)}>
         {editing && <EditForm person={editing} canDelete={isOwner && editing.role !== 'owner'} onDone={() => { setEditing(null); load(); }} />}
+      </Modal>
+      <Modal open={!!pwFor} label="Nytt lösenord" onClose={() => setPwFor(null)}>
+        {pwFor && <PasswordForm person={pwFor} onCancel={() => setPwFor(null)} onSaved={(password) => { const person = pwFor; setPwFor(null); setCredentials({ person, password, isNew: false }); }} />}
+      </Modal>
+      <Modal open={!!credentials} label="Inloggningsuppgifter" onClose={() => setCredentials(null)}>
+        {credentials && <CredentialsBox {...credentials} onClose={() => setCredentials(null)} />}
       </Modal>
       <Modal open={!!link} label="Inloggningslänk" onClose={() => setLink(null)}>
         {link && <LinkBox {...link} onClose={() => setLink(null)} />}
@@ -153,17 +163,20 @@ export default function Staff({ me }) {
 
 function AddForm({ prefill, usedColors, canAddAdmin, onCancel, onCreated }) {
   const [form, setForm] = useState({ full_name: '', email: '', phone: '', role: 'employee', color: COLORS.find((c) => !usedColors.includes(c)) ?? COLORS[0], ...(prefill ?? {}) });
+  const [usePassword, setUsePassword] = useState(true);
+  const [password, setPassword] = useState(makePassword);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (key) => (e) => setForm({ ...form, [key]: e.currentTarget.value });
 
   async function submit(e) {
     e.preventDefault();
+    if (usePassword && password.length < 10) return setError('Lösenordet behöver minst 10 tecken.');
     setBusy(true);
     setError('');
     try {
-      const result = await callFunction('staff-admin', { action: 'invite', ...form });
-      onCreated({ ...form, id: result.user_id }, result.link);
+      const result = await callFunction('staff-admin', { action: 'invite', ...form, password: usePassword ? password : undefined });
+      onCreated({ ...form, id: result.user_id }, result.link, usePassword ? password : null);
     } catch (err) {
       setError(err.message);
     }
@@ -173,7 +186,6 @@ function AddForm({ prefill, usedColors, canAddAdmin, onCancel, onCreated }) {
   return (
     <form onSubmit={submit}>
       <h3>Lägg till person</h3>
-      <p class="muted">Du får en länk som du skickar till personen. Med den väljer hen sitt lösenord.</p>
       <div class="field">
         <label for="s-name">Namn</label>
         <input id="s-name" type="text" required maxLength={120} value={form.full_name} onInput={set('full_name')} />
@@ -201,9 +213,15 @@ function AddForm({ prefill, usedColors, canAddAdmin, onCancel, onCreated }) {
           <input id="s-color" type="color" value={form.color} onInput={set('color')} style="min-height:48px;padding:4px" />
         </div>
       </div>
+      <fieldset class="cp-fieldset">
+        <legend>Inloggning</legend>
+        <label class="cp-check"><input type="radio" name="pwmode" checked={usePassword} onChange={() => setUsePassword(true)} /> Jag väljer lösenordet</label>
+        <label class="cp-check"><input type="radio" name="pwmode" checked={!usePassword} onChange={() => setUsePassword(false)} /> Skicka en länk så väljer personen själv</label>
+        {usePassword && <PasswordField value={password} onChange={setPassword} id="s-pw" />}
+      </fieldset>
       <ErrorMsg error={error} />
       <div class="cp-actions">
-        <button class="btn" type="submit" disabled={busy}>{busy ? 'Skapar …' : 'Skapa och få länk'}</button>
+        <button class="btn" type="submit" disabled={busy}>{busy ? 'Skapar …' : usePassword ? 'Skapa konto' : 'Skapa och få länk'}</button>
         <button class="btn btn--ghost" type="button" onClick={onCancel}>Avbryt</button>
       </div>
     </form>
@@ -285,6 +303,87 @@ function LinkBox({ person, url, isNew, onClose }) {
             Skicka som mejl
           </a>
         )}
+      </div>
+      <button class="btn btn--ghost" type="button" onClick={onClose}>Klar</button>
+    </div>
+  );
+}
+
+// Lättläst förslag på lösenord: tre ord och två siffror, till exempel "SolHavSkog47".
+const WORDS = ['Sol', 'Hav', 'Skog', 'Berg', 'Moln', 'Regn', 'Vind', 'Sten', 'Sand', 'Gran', 'Ek', 'Lind', 'Rosa', 'Gul', 'Bla', 'Gron', 'Vit', 'Mild', 'Snabb', 'Stark', 'Lugn', 'Glad', 'Varm', 'Klar', 'Hus', 'Bil', 'Buss', 'Tag', 'Bat', 'Kopp', 'Lampa', 'Stol', 'Bord', 'Dorr', 'Kudde', 'Mops', 'Kvast', 'Hink', 'Svamp', 'Trasa'];
+export function makePassword() {
+  const r = new Uint32Array(5);
+  crypto.getRandomValues(r);
+  let p = '';
+  do {
+    p = [0, 1, 2].map((i) => WORDS[r[i] % WORDS.length]).join('') + String(r[3] % 90 + 10);
+    if (p.length < 10) r[2] = (r[2] + 7) >>> 0;
+  } while (p.length < 10);
+  return p;
+}
+
+function PasswordField({ value, onChange, id }) {
+  return (
+    <div class="field">
+      <label for={id}>Lösenord (minst 10 tecken)</label>
+      <div class="pw-row">
+        <input id={id} type="text" autocomplete="off" spellcheck={false} minLength={10} maxLength={72} required value={value} onInput={(e) => onChange(e.currentTarget.value)} />
+        <button class="btn btn--ghost btn--sm" type="button" onClick={() => onChange(makePassword())}>Nytt förslag</button>
+      </div>
+    </div>
+  );
+}
+
+function PasswordForm({ person, onCancel, onSaved }) {
+  const [password, setPassword] = useState(makePassword);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  async function submit(e) {
+    e.preventDefault();
+    if (password.length < 10) return setError('Lösenordet behöver minst 10 tecken.');
+    setBusy(true);
+    setError('');
+    try {
+      await callFunction('staff-admin', { action: 'set_password', user_id: person.id, password });
+      onSaved(password);
+    } catch (err) {
+      setError(err.message);
+      setBusy(false);
+    }
+  }
+  return (
+    <form onSubmit={submit}>
+      <h3>Nytt lösenord för {person.full_name}</h3>
+      <p class="muted">Det gamla lösenordet slutar fungera direkt. Vill personen hellre välja själv kan du skicka en inloggningslänk i stället.</p>
+      <PasswordField value={password} onChange={setPassword} id="np-pw" />
+      <ErrorMsg error={error} />
+      <div class="cp-actions">
+        <button class="btn" type="submit" disabled={busy}>{busy ? 'Sparar …' : 'Spara lösenordet'}</button>
+        <button class="btn btn--ghost" type="button" onClick={onCancel}>Avbryt</button>
+      </div>
+    </form>
+  );
+}
+
+// Visar e-post och lösenord en gång, med text att skicka till personen.
+function CredentialsBox({ person, password, isNew, onClose }) {
+  const [copied, setCopied] = useState(false);
+  const login = `${window.location.origin}/logga-in`;
+  const text = `Hej ${person.full_name.split(' ')[0]}! ${isNew ? 'Här är din inloggning till TO Städ & Flytt' : 'Här är ditt nya lösenord till TO Städ & Flytt'}.\n\nLogga in här: ${login}\nE-post: ${person.email}\nLösenord: ${password}\n\nVill du byta lösenord, säg till så skickar jag en länk.`;
+  const phone = (person.phone ?? '').replace(/[^\d+]/g, '');
+  return (
+    <div class="cp-modal-body">
+      <h3>{isNew ? `${person.full_name} är tillagd` : 'Lösenordet är bytt'}</h3>
+      <p>Skicka uppgifterna till {person.full_name}. Lösenordet visas bara nu, så spara eller skicka det innan du stänger.</p>
+      <dl class="cp-dl cp-creds">
+        <dt>Logga in på</dt><dd>{login}</dd>
+        <dt>E-post</dt><dd>{person.email}</dd>
+        <dt>Lösenord</dt><dd><code>{password}</code></dd>
+      </dl>
+      <div class="cp-actions">
+        <button class="btn btn--sm" type="button" onClick={async () => setCopied(await copyText(text))}>{copied ? 'Kopierat' : 'Kopiera uppgifterna'}</button>
+        {phone && <a class="btn btn--ghost btn--sm" href={`sms:${phone}?body=${encodeURIComponent(text)}`}>Skicka som SMS</a>}
+        {person.email && <a class="btn btn--ghost btn--sm" href={`mailto:${person.email}?subject=${encodeURIComponent('Din inloggning till TO Städ & Flytt')}&body=${encodeURIComponent(text)}`}>Skicka som mejl</a>}
       </div>
       <button class="btn btn--ghost" type="button" onClick={onClose}>Klar</button>
     </div>
