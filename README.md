@@ -63,6 +63,8 @@ Låt också någon gå igenom `src/pages/villkor.astro` och `src/pages/integrite
 
 ## Administration och personal
 
+- **Job assistant** (`/admin/assistent`): klistra in ett meddelande från en hyresvärd, kund eller anställd. Claude (AI från Anthropic, nyckeln `ANTHROPIC_API_KEY` ligger som hemlighet i Supabase) föreslår nya jobb, ändringar, avbokningar, klara jobb, timmar, frånvaro och uppföljningar. Priser räknas med priskalkylatorn. Inget sparas förrän du har kontrollerat och tryckt Save. Personnummer tas bort innan texten skickas till AI-tjänsten. Varje meddelande kostar ungefär 0,2 till 1 kr.
+- **WhatsApp** (funktionen `whatsapp`): personal och administratörer som skriver till företagsnumret känns igen på mobilnumret under Staff, läses direkt av assistenten och får ett kort svar. Kunders meddelanden sparas och visas under Job assistant, där du väljer om assistenten ska läsa dem. Kunder får aldrig svar från AI:n. Webhook-adress, verifieringsnyckel och vilka nycklar som saknas visas under "WhatsApp and AI setup" på sidan Job assistant. Meddelanden och utkast raderas efter sex månader.
 - **Logga in:** `https://tostadflytt.se/logga-in`. Alla loggar in med e-post och lösenord. Administratörer kommer till `/admin` och personal till `/app`.
 - **Lägg till personal:** Administration, Personal, Lägg till person. Som standard väljer du lösenordet (ett förslag fylls i) och skickar inloggningen via SMS eller mejl. Lösenordet visas bara en gång. Vill personen välja själv, välj "Skicka en länk" (gäller i en timme).
 - **Byta lösenord:** "Nytt lösenord" på raden under Personal sätter ett nytt direkt. "Inloggningslänk" ger en länk där personen väljer själv.

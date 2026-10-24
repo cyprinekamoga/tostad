@@ -2249,3 +2249,137 @@ a.cp-stat:hover {
   outline: 3px solid var(--green-600);
   outline-offset: 2px;
 }
+
+/* Jobbassistenten */
+.as-input textarea {
+  min-height: 220px;
+  font-size: 0.95rem;
+}
+.as-summary p {
+  margin: 0 0 8px;
+}
+.as-cards {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+}
+.as-card {
+  display: grid;
+  gap: 10px;
+  border-left: 5px solid var(--green-600);
+}
+.as-card.is-unsure {
+  border-left-color: #d97706;
+}
+.as-card.is-error {
+  border-left-color: var(--danger, #b91c1c);
+}
+.as-card.is-done {
+  opacity: 0.75;
+}
+.as-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.as-card-head .cp-check {
+  margin: 0;
+}
+.as-kind {
+  background: var(--green-50);
+  color: var(--green-900);
+}
+.as-kind--cancel_jobs {
+  background: #fee2e2;
+  color: #7f1d1d;
+}
+.as-kind--follow_up {
+  background: #fef3c7;
+  color: #78350f;
+}
+.as-questions {
+  margin: 0;
+  padding: 10px 12px 10px 28px;
+  border-radius: 10px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  font-size: 0.92rem;
+}
+.as-questions li + li {
+  margin-top: 4px;
+}
+.as-quote {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  font-style: italic;
+  white-space: pre-wrap;
+}
+.as-fields {
+  display: grid;
+  gap: 10px;
+}
+.as-fields .field {
+  margin: 0;
+}
+.as-pair,
+.as-time span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.as-pair > input,
+.as-pair > select {
+  min-width: 0;
+}
+.as-time input[type='text'],
+.as-hours input[type='text'] {
+  width: 5em;
+  flex: none;
+}
+.as-hours select {
+  flex: 1;
+}
+.as-job {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+.as-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 0;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.as-chat {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0;
+}
+.as-chat p {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--bg);
+  max-width: 85%;
+  white-space: pre-wrap;
+  font-size: 0.92rem;
+}
+.as-chat p.is-out {
+  justify-self: end;
+  background: var(--green-50);
+}
+.as-chat small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 0.75rem;
+}
+.as-setup summary {
+  cursor: pointer;
+}
+.as-setup code {
+  font-size: 0.85rem;
+}

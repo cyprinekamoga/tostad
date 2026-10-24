@@ -1,0 +1,304 @@
+// Jobbassistenten: gör om assistentens förslag till redigerbara kort och genomför de godkända.
+import { supabase, callFunction } from '../../lib/supabase.js';
+import { addMinutes, addDays, today } from '../../lib/planner.js';
+import { suggestPrice } from '../../lib/assistantPrice.js';
+import { createJobs, updateJobs, loadJob } from './jobs.js';
+
+const sb = () => supabase();
+
+export const KIND_LABEL = {
+  create_job: 'New job',
+  update_job: 'Change job',
+  cancel_jobs: 'Cancel',
+  mark_done: 'Mark done',
+  report_hours: 'Hours',
+  add_absence: 'Absence',
+  follow_up: 'Follow-up',
+};
+
+/** Läser en text. Returnerar det sparade utkastet. */
+export async function readText(text, fromProfile) {
+  const r = await callFunction('assistant', { text, from_profile: fromProfile || null });
+  return r.draft;
+}
+
+/** Kunders WhatsApp-meddelanden de senaste två veckorna, grupperade per telefonnummer. */
+export async function conversations() {
+  const since = new Date(Date.now() - 14 * 864e5).toISOString();
+  const { data } = await sb()
+    .from('whatsapp_messages')
+    .select('id, phone, name, direction, kind, body, handled, profile_id, created_at')
+    .is('profile_id', null)
+    .gte('created_at', since)
+    .order('created_at', { ascending: true })
+    .limit(1000);
+  const byPhone = new Map();
+  for (const m of data ?? []) {
+    if (!byPhone.has(m.phone)) byPhone.set(m.phone, { phone: m.phone, name: null, messages: [] });
+    const c = byPhone.get(m.phone);
+    if (m.name) c.name = m.name;
+    c.messages.push(m);
+  }
+  return [...byPhone.values()]
+    .map((c) => ({ ...c, unread: c.messages.filter((m) => m.direction === 'in' && !m.handled).length, last: c.messages.at(-1).created_at }))
+    .sort((a, b) => (a.last < b.last ? 1 : -1));
+}
+
+/** Låter assistenten läsa kundens olästa meddelanden (eller de senaste) och markerar dem som lästa. */
+export async function readConversation(c) {
+  const unread = c.messages.filter((m) => m.direction === 'in' && !m.handled);
+  const chosen = (unread.length ? unread : c.messages.filter((m) => m.direction === 'in').slice(-5)).filter((m) => m.body);
+  if (!chosen.length) throw new Error('There is no text to read in this conversation.');
+  const text = `WhatsApp from ${c.name ?? 'customer'} (+${c.phone}):\n${chosen.map((m) => m.body).join('\n')}`;
+  const draft = await readText(text, null);
+  await sb().from('whatsapp_messages').update({ handled: true, draft_id: draft.id }).in('id', chosen.map((m) => m.id));
+  return draft;
+}
+
+export const whatsappSetup = () => callFunction('assistant', { action: 'whatsapp_setup' });
+
+export async function openDrafts() {
+  const { data } = await sb().from('assistant_drafts').select('id, source, input, result, sender_phone, from_profile, created_at').eq('status', 'ny').order('created_at', { ascending: false }).limit(50);
+  return data ?? [];
+}
+
+export async function loadDraft(id) {
+  const { data } = await sb().from('assistant_drafts').select('*').eq('id', id).maybeSingle();
+  return data;
+}
+
+export async function closeDraft(id, status, meId) {
+  await sb().from('assistant_drafts').update({ status, applied_by: meId, applied_at: new Date().toISOString() }).eq('id', id);
+}
+
+export async function referenceData() {
+  const [c, p] = await Promise.all([
+    sb().from('customers').select('id, kind, name, phone, street, city').order('name').limit(2000),
+    sb().from('profiles').select('id, full_name, color').eq('active', true).order('full_name'),
+  ]);
+  return { customers: c.data ?? [], staff: p.data ?? [] };
+}
+
+/** Jobben som förslagen pekar på, med id som nyckel. */
+export async function jobsFor(actions) {
+  const ids = [...new Set(actions.flatMap((a) => [a.job_id, ...(a.job_ids ?? [])]).filter(Boolean))];
+  const jobs = await Promise.all(ids.map((id) => loadJob(id)));
+  return Object.fromEntries(jobs.filter(Boolean).map((j) => [j.id, j]));
+}
+
+/** Senaste priset för kunden och tjänsten, för "samma pris som förra". */
+export async function lastPrice(customerId, service) {
+  if (!customerId) return null;
+  let q = sb().from('jobs').select('price, starts_at').eq('customer_id', customerId).not('price', 'is', null).order('starts_at', { ascending: false }).limit(1);
+  if (service) q = q.eq('service', service);
+  const { data } = await q;
+  return data?.[0]?.price ?? null;
+}
+
+const hoursOf = (job) => (job ? Math.round(((job.end - job.start) / 3600000) * 4) / 4 : null);
+
+/** Redigerbart kort för ett förslag. */
+export function toCard(a, i, { customers, jobs }) {
+  const customer = customers.find((c) => c.id === a.customer_id);
+  const company = customer ? customer.kind === 'company' : a.new_customer?.kind === 'company' || !!a.price_basis?.company;
+  const hours = a.hours ?? null;
+  const price = a.kind === 'create_job' ? suggestPrice(a, { company }) : null;
+  const job = a.job_id ? jobs[a.job_id] : null;
+  return {
+    key: i,
+    action: a,
+    include: true,
+    status: '',
+    message: '',
+    e: {
+      customer_id: a.customer_id ?? '',
+      new_customer: a.new_customer ? { ...a.new_customer, kind: a.new_customer.kind || (company ? 'company' : 'private') } : null,
+      service: a.service ?? (job?.service || 'annat'),
+      date: a.date ?? '',
+      start: a.start ?? (a.kind === 'create_job' ? (['flyttstadning', 'flytt', 'paket'].includes(a.service) ? '08:00' : '09:00') : ''),
+      hours: hours ?? (job ? hoursOf(job) : ''),
+      street: a.street ?? '',
+      apartment: a.apartment ?? '',
+      postal_code: a.postal_code ?? '',
+      city: a.city ?? '',
+      to_street: a.to_street ?? '',
+      to_postal_code: a.to_postal_code ?? '',
+      to_city: a.to_city ?? '',
+      staff: [...(a.staff_ids ?? [])],
+      remove_staff: [...(a.remove_staff_ids ?? [])],
+      price: price ? String(price.price) : '',
+      price_basis: price?.basis ?? (a.price_basis?.same_as_last_time ? 'Same price as last time' : ''),
+      staff_note: a.staff_note ?? '',
+      internal_note: a.internal_note ?? '',
+      repeat: String(a.repeat_weeks ?? 0),
+      until: a.repeat_until ?? '',
+      job_id: a.job_id ?? '',
+      job_ids: [...(a.job_ids ?? [])],
+      entries: (a.hours_entries ?? []).map((h) => ({ profile_id: h.profile_id, hours: String(h.hours), note: h.note ?? '' })),
+      absence: a.absence ? { ...a.absence, kind: a.absence.kind || 'sjuk' } : { profile_id: '', kind: 'sjuk', from: a.date ?? today(), to: a.date ?? today(), note: '' },
+      title: a.title,
+    },
+  };
+}
+
+const hoursNum = (v) => {
+  const n = Number(String(v ?? '').replace(',', '.'));
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 4) / 4 : null;
+};
+const append = (old, extra) => [old, extra].filter((s) => s && String(s).trim()).join('\n');
+
+// Nya kunder skapas en gång per namn, även om flera förslag nämner samma kund.
+async function ensureCustomer(e, created) {
+  if (e.customer_id) return e.customer_id;
+  const n = e.new_customer;
+  if (!n?.name?.trim()) return null;
+  const key = n.name.trim().toLowerCase();
+  if (created[key]) return created[key];
+  const notes = [n.contact_person && `Contact: ${n.contact_person}`, n.notes].filter(Boolean).join('\n') || null;
+  const { data, error } = await sb()
+    .from('customers')
+    .insert({ kind: n.kind === 'company' ? 'company' : 'private', name: n.name.trim(), phone: n.phone || null, email: n.email || null, notes })
+    .select('id')
+    .single();
+  if (error) throw new Error(`Could not create the customer ${n.name}.`);
+  created[key] = data.id;
+  return data.id;
+}
+
+/** Genomför ett kort. Returnerar en kort text om vad som gjordes. */
+export async function applyCard(card, ctx) {
+  const { e, action } = card;
+  const kind = action.kind;
+
+  if (kind === 'create_job') {
+    const h = hoursNum(e.hours);
+    if (!e.date) throw new Error('Choose a date.');
+    if (!/^\d{2}:\d{2}$/.test(e.start)) throw new Error('Choose a start time.');
+    if (!h) throw new Error('Write how many hours the job takes.');
+    const customerId = await ensureCustomer(e, ctx.created);
+    const street = e.street.trim();
+    const form = {
+      customer_id: customerId,
+      service: e.service,
+      title: e.apartment ? `${street} lgh ${e.apartment}`.trim() : null,
+      status: 'planerad',
+      date: e.date,
+      start: e.start,
+      end: addMinutes(e.start, h * 60),
+      street,
+      postal_code: e.postal_code,
+      city: e.city,
+      to_street: e.to_street,
+      to_postal_code: e.to_postal_code,
+      to_city: e.to_city,
+      price: e.price,
+      staff_note: e.staff_note,
+      internal_note: e.internal_note,
+      staff: e.staff,
+      repeat: e.repeat,
+      until: e.until || addDays(e.date, 7 * 13),
+    };
+    const ids = await createJobs(form);
+    return ids.length > 1 ? `${ids.length} jobs created` : 'Job created';
+  }
+
+  if (kind === 'update_job') {
+    const job = ctx.jobs[e.job_id];
+    if (!job) throw new Error('Choose the job to change.');
+    const h = hoursNum(e.hours) ?? hoursOf(job);
+    const start = e.start || job.startTime;
+    const staff = [...new Set([...job.staff.filter((id) => !e.remove_staff.includes(id)), ...e.staff])];
+    const form = {
+      customer_id: job.customer_id ?? '',
+      service: e.service || job.service,
+      title: job.title ?? '',
+      status: job.status,
+      date: e.date || job.date,
+      start,
+      end: addMinutes(start, h * 60),
+      street: job.street ?? '',
+      postal_code: job.postal_code ?? '',
+      city: job.city ?? '',
+      to_street: job.to_street ?? '',
+      to_postal_code: job.to_postal_code ?? '',
+      to_city: job.to_city ?? '',
+      price: e.price || job.price || '',
+      staff_note: append(job.staff_note, e.staff_note),
+      internal_note: append(job.internal_note, e.internal_note),
+      staff,
+    };
+    await updateJobs(job, form, 'one');
+    return 'Job changed';
+  }
+
+  if (kind === 'cancel_jobs') {
+    if (!e.job_ids.length) throw new Error('Tick the jobs to cancel.');
+    const { error } = await sb().from('jobs').update({ status: 'avbokad' }).in('id', e.job_ids);
+    if (error) throw new Error('Could not cancel the jobs.');
+    if (e.internal_note) {
+      for (const id of e.job_ids) {
+        const job = ctx.jobs[id];
+        await sb().from('jobs').update({ internal_note: append(job?.internal_note, e.internal_note) }).eq('id', id);
+      }
+    }
+    return e.job_ids.length === 1 ? '1 job cancelled' : `${e.job_ids.length} jobs cancelled`;
+  }
+
+  if (kind === 'mark_done') {
+    const job = ctx.jobs[e.job_id];
+    if (!job) throw new Error('Choose the job.');
+    const { error } = await sb()
+      .from('jobs')
+      .update({ status: 'klar', done_at: new Date().toISOString(), done_by: ctx.fromProfile || null, internal_note: append(job.internal_note, e.internal_note) })
+      .eq('id', job.id);
+    if (error) throw new Error('Could not mark the job as done.');
+    return 'Marked as done';
+  }
+
+  if (kind === 'report_hours') {
+    const date = e.date || (ctx.jobs[e.job_id]?.date ?? today());
+    let saved = 0;
+    for (const entry of e.entries) {
+      const h = hoursNum(entry.hours);
+      if (!entry.profile_id || !h) continue;
+      const row = { profile_id: entry.profile_id, job_id: e.job_id || null, work_date: date, hours: h, note: entry.note || null, reported_by: ctx.fromProfile || ctx.meId, updated_at: new Date().toISOString() };
+      let existing = null;
+      if (row.job_id) {
+        const { data } = await sb().from('work_hours').select('id').eq('profile_id', row.profile_id).eq('job_id', row.job_id).maybeSingle();
+        existing = data;
+      }
+      const { error } = existing ? await sb().from('work_hours').update(row).eq('id', existing.id) : await sb().from('work_hours').insert(row);
+      if (error) throw new Error('Could not save the hours.');
+      saved++;
+    }
+    if (!saved) throw new Error('Add at least one person with hours.');
+    return saved === 1 ? 'Hours saved for 1 person' : `Hours saved for ${saved} people`;
+  }
+
+  if (kind === 'add_absence') {
+    const a = e.absence;
+    if (!a.profile_id) throw new Error('Choose the person.');
+    if (!a.from || !a.to || a.to < a.from) throw new Error('Check the dates.');
+    const { error } = await sb().from('absences').insert({ profile_id: a.profile_id, kind: a.kind, starts_on: a.from, ends_on: a.to, note: a.note || null, status: 'godkand' });
+    if (error) throw new Error('Could not save the absence.');
+    return 'Absence saved';
+  }
+
+  if (kind === 'follow_up') {
+    const customer = ctx.customers.find((c) => c.id === e.customer_id);
+    const lines = [e.title, ...(action.questions ?? []).map((q) => `- ${q}`), action.source_quote && `\nFrom the message: "${action.source_quote}"`].filter(Boolean);
+    const { error } = await sb().from('submissions').insert({
+      kind: 'kontakt',
+      status: 'ny',
+      name: customer?.name ?? e.new_customer?.name ?? 'Job assistant',
+      phone: e.new_customer?.phone ?? customer?.phone ?? null,
+      customer_id: customer?.id ?? null,
+      data: { meddelande: lines.join('\n'), kalla: 'Jobbassistenten' },
+    });
+    if (error) throw new Error('Could not add the follow-up to the inbox.');
+    return 'Added to the inbox';
+  }
+
+  throw new Error('Unknown suggestion');
+}
+
