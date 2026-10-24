@@ -127,6 +127,17 @@ export async function saveInvoice(form, people) {
   return data;
 }
 
+/** En faktura via OCR-nummer, även om den inte finns bland de senast hämtade. */
+export async function invoiceByOcr(ocr) {
+  const { data } = await sb()
+    .from('invoices')
+    .select('*, rut_people(id, slot, name, pnr_last4)')
+    .eq('ocr', ocr)
+    .not('rut_people.pnr_last4', 'is', null)
+    .maybeSingle();
+  return data ? { ...data, rut_people: (data.rut_people ?? []).sort((a, b) => a.slot - b.slot) } : null;
+}
+
 export async function finalizeInvoice(id) {
   const { data, error } = await sb().rpc('finalize_invoice', { p_id: id });
   if (error) fail(error, 'Could not send the invoice.');

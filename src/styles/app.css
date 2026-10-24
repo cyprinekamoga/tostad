@@ -2205,3 +2205,47 @@ input.pl-date {
 .st-with-hours .st-link {
   color: var(--green-700);
 }
+
+/* Element med hidden ska döljas även om de har en egen display. */
+[hidden] {
+  display: none !important;
+}
+
+/* RUT-uppföljning */
+button.cp-stat {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+button.cp-stat:hover,
+a.cp-stat:hover {
+  border-color: var(--green-600);
+}
+.rut-tools,
+.inv-tools {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.rut-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px 16px;
+  margin: 6px 0;
+}
+.rut-facts div {
+  display: grid;
+  gap: 1px;
+}
+.rut-facts dt {
+  font-size: 0.78rem;
+  color: var(--ink-3);
+}
+.rut-facts dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.inv-hit {
+  outline: 3px solid var(--green-600);
+  outline-offset: 2px;
+}

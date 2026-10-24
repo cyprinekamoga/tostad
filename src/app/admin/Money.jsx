@@ -1,9 +1,9 @@
-// Ekonomi: obetalt, förfallet, betalt och RUT som väntar, månad för månad.
+// Ekonomi: obetalt, förfallet, betalt och RUT som väntar, månad för månad. RUT följs upp på sidan RUT.
 import { useEffect, useState } from 'preact/hooks';
 import { today } from '../../lib/planner.js';
-import { formatKrWhole, formatMoney, maskPnr } from '../../lib/money.js';
+import { formatKrWhole } from '../../lib/money.js';
 import { ErrorMsg } from '../ui.jsx';
-import { loadInvoices, isOverdue, updateInvoice, revealPnr } from './docs.js';
+import { loadInvoices, isOverdue } from './docs.js';
 
 const monthFmt = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 const monthName = (m) => monthFmt.format(new Date(`${m}-15T12:00:00Z`));
@@ -15,7 +15,6 @@ function lastMonths(n) {
 
 export default function Money() {
   const [rows, setRows] = useState(null);
-  const [shownPnr, setShownPnr] = useState({});
   const [error, setError] = useState('');
 
   async function load() {
@@ -35,22 +34,14 @@ export default function Money() {
   const overdue = unpaid.filter(isOverdue);
   const thisMonth = today().slice(0, 7);
   const paidThisMonth = sent.filter((i) => i.paid_at?.startsWith(thisMonth));
-  const rutWaiting = sent.filter((i) => ['ej_ansokt', 'ansokt'].includes(i.rut_status) && i.status !== 'krediterad' && !(i.kind === 'kredit'));
-  const toApply = sent.filter((i) => i.status === 'betald' && i.rut_status === 'ej_ansokt');
+  const rutWaiting = sent.filter((i) => ['ej_ansokt', 'ansokt'].includes(i.rut_status) && i.status !== 'krediterad' && i.kind === 'faktura' && Number(i.rut) > 0);
+  const toApply = sent.filter((i) => i.status === 'betald' && i.kind === 'faktura' && i.rut_status === 'ej_ansokt' && Number(i.rut) > 0);
 
   const months = lastMonths(12).map((m) => {
     const issued = sent.filter((i) => i.issue_date?.startsWith(m));
     return { m, net: sum(issued, 'net'), vat: sum(issued, 'vat'), rut: sum(issued, 'rut'), paid: sum(sent.filter((i) => i.paid_at?.startsWith(m)), 'paid_amount'), count: issued.filter((i) => i.kind === 'faktura').length };
   });
 
-  async function show(person) {
-    try {
-      const pnr = await revealPnr(person.id);
-      setShownPnr({ ...shownPnr, [person.id]: pnr });
-    } catch (e) {
-      setError(e.message);
-    }
-  }
 
   return (
     <>
@@ -72,40 +63,16 @@ export default function Money() {
           <strong>{rows ? formatKrWhole(sum(paidThisMonth, 'paid_amount')) : '…'}</strong>
           <span>Paid this month</span>
         </div>
-        <div class="cp-panel cp-stat">
+        <a class="cp-panel cp-stat" href="/admin/rut">
           <strong>{rows ? formatKrWhole(sum(rutWaiting, 'rut')) : '…'}</strong>
           <span>RUT waiting from Skatteverket</span>
-        </div>
+        </a>
       </div>
 
       {toApply.length > 0 && (
-        <section class="cp-panel" style="margin-bottom:16px">
-          <h3 class="cp-subhead">Paid invoices to apply for RUT for</h3>
-          <p class="muted">Apply at Skatteverket (the e-service "Rot och rut, företag"). Then mark the invoice as applied.</p>
-          <ul class="cp-list">
-            {toApply.map((inv) => (
-              <li class="cp-row cp-row--static">
-                <span class="cp-row-top">
-                  <strong>Invoice {inv.number} · {inv.buyer?.name}</strong>
-                  <span>RUT {formatMoney(inv.rut)}</span>
-                </span>
-                <p>
-                  Paid {inv.paid_at} · the labour cost and the paid amount are on the invoice
-                </p>
-                {inv.rut_people.map((p) => (
-                  <small>
-                    {p.name}: {shownPnr[p.id] ? `${shownPnr[p.id].slice(0, 8)}-${shownPnr[p.id].slice(8)}` : maskPnr(p.pnr_last4)}{' '}
-                    {!shownPnr[p.id] && <button class="st-link" type="button" onClick={() => show(p)}>Show personal identity number</button>}
-                  </small>
-                ))}
-                <span class="cp-actions">
-                  <button class="btn btn--sm" type="button" onClick={async () => { await updateInvoice(inv.id, { rut_status: 'ansokt' }); load(); }}>Mark as applied</button>
-                </span>
-              </li>
-            ))}
-          </ul>
-          <small class="muted">Every time a personal identity number is shown, it is saved in the change log.</small>
-        </section>
+        <a class="msg msg--ok" href="/admin/rut" style="display:block;margin-bottom:16px">
+          {toApply.length === 1 ? '1 paid invoice' : `${toApply.length} paid invoices`} with {formatKrWhole(sum(toApply, 'rut'))} in RUT to apply for. Open the RUT tracker.
+        </a>
       )}
 
       <section class="cp-panel">

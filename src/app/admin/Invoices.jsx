@@ -3,11 +3,13 @@ import { useEffect, useState } from 'preact/hooks';
 import { formatDateTime } from '../../lib/supabase.js';
 import { today } from '../../lib/planner.js';
 import { formatKrWhole, formatMoney } from '../../lib/money.js';
+import { searchInvoices, ocrQuery, formatOcr } from '../../lib/invoiceSearch.js';
 import { ErrorMsg, Modal } from '../ui.jsx';
 import {
   INVOICE_STATUS,
   RUT_STATUS,
   loadInvoices,
+  invoiceByOcr,
   saveInvoice,
   finalizeInvoice,
   creditInvoice,
@@ -45,6 +47,8 @@ const match = {
 export default function Invoices() {
   const [rows, setRows] = useState(null);
   const [filter, setFilter] = useState('obetalda');
+  const [query, setQuery] = useState('');
+  const [extra, setExtra] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [settings, setSettings] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -66,6 +70,7 @@ export default function Invoices() {
     loadCustomers().then(setCustomers);
     loadSettings().then(setSettings);
     const params = new URLSearchParams(window.location.search);
+    if (params.get('q')) setQuery(params.get('q'));
     if (params.get('jobb')) invoiceFromJob(params.get('jobb')).then((draft) => draft && setEditing(draft));
     if (params.get('offert'))
       supabase().from('quotes').select('*').eq('id', params.get('offert')).maybeSingle().then(({ data }) => data && setEditing(invoiceFromQuote(data)));
@@ -115,9 +120,19 @@ export default function Invoices() {
   };
 
   const unpay = (inv) => run(inv.id, () => updateInvoice(inv.id, { status: 'skickad', paid_at: null, paid_amount: null }));
-  const setRut = (inv, rut_status) => run(inv.id, () => updateInvoice(inv.id, { rut_status }));
 
-  const shown = (rows ?? []).filter(match[filter]);
+  // Sökningen gäller alla fakturor, oavsett filter. Bästa träffen först.
+  const searching = !!query.trim();
+  const found = searchInvoices(searching ? rows ?? [] : (rows ?? []).filter(match[filter]), query);
+  const shown = extra ? [...found, extra] : found;
+
+  // Ett OCR-nummer som inte finns bland de hämtade fakturorna slås upp i databasen.
+  useEffect(() => {
+    setExtra(null);
+    const ocr = ocrQuery(query);
+    if (!ocr || !rows || found.length) return;
+    invoiceByOcr(ocr).then((inv) => setExtra(inv ?? false));
+  }, [query, rows]);
   const sum = shown.filter((i) => i.status !== 'utkast').reduce((s, i) => s + Number(i.to_pay), 0);
 
   return (
@@ -129,7 +144,11 @@ export default function Invoices() {
       {settings && !settings.bankgiro && (
         <p class="msg msg--error">The bankgiro number is missing. <a href="/admin/installningar">Add it under Settings</a> before you send the first invoice.</p>
       )}
-      <div class="cp-tabs" role="group" aria-label="Filter" style="margin-bottom:14px">
+      <div class="inv-tools">
+        <label class="visually-hidden" for="inv-search">Search invoices</label>
+        <input id="inv-search" type="search" placeholder="Search by OCR number, invoice number, amount or name" value={query} onInput={(e) => setQuery(e.currentTarget.value)} />
+      </div>
+      <div class="cp-tabs" role="group" aria-label="Filter" style="margin-bottom:14px" hidden={searching}>
         {FILTERS.map(([k, l]) => (
           <button type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>
             {l}
@@ -140,13 +159,14 @@ export default function Invoices() {
       <ErrorMsg error={error} />
       <div class="cp-panel">
         {rows === null && <p class="muted">Loading …</p>}
-        {rows && shown.length === 0 && <p class="cp-empty">No invoices here.</p>}
+        {rows && shown.length === 0 && <p class="cp-empty">{searching ? (extra === false ? 'No invoice has that OCR number.' : 'No invoice matches the search.') : 'No invoices here.'}</p>}
+        {searching && shown.length > 0 && <p class="muted" style="margin-top:0">{shown.length === 1 ? '1 invoice found' : `${shown.length} invoices found`}, searched among all invoices.</p>}
         <ul class="cp-list">
           {shown.map((inv) => {
             const overdue = isOverdue(inv);
             const kredit = inv.kind === 'kredit';
             return (
-              <li class="cp-row cp-row--static">
+              <li class={`cp-row cp-row--static${searching && inv.ocr && inv.ocr === ocrQuery(query) ? ' inv-hit' : ''}`}>
                 <span class="cp-row-top">
                   <strong>
                     {kredit ? 'Credit note' : 'Invoice'} {inv.number ?? '(draft)'} · {inv.buyer?.name || 'No name'}
@@ -162,7 +182,7 @@ export default function Invoices() {
                   <strong>{formatKrWhole(inv.to_pay)}</strong>
                   {Number(inv.rut) !== 0 && ` (RUT ${formatMoney(inv.rut)})`}
                   {inv.due_date && !kredit && ` · due ${inv.due_date}`}
-                  {inv.ocr && ` · OCR ${inv.ocr}`}
+                  {inv.ocr && <> · OCR <strong class="inv-ocr">{formatOcr(inv.ocr)}</strong></>}
                 </p>
                 <small>
                   {inv.sent_at ? `Sent ${formatDateTime(inv.sent_at)}` : `Created ${formatDateTime(inv.created_at)}`}
@@ -190,10 +210,10 @@ export default function Invoices() {
                     <button class="btn btn--ghost btn--sm" type="button" disabled={busy === inv.id} onClick={() => credit(inv)}>Credit</button>
                   )}
                   {kredit && inv.status === 'skickad' && <button class="btn btn--ghost btn--sm" type="button" onClick={() => setSending({ inv, reminder: false })}>Send</button>}
-                  {inv.status !== 'utkast' && inv.rut_status !== 'ej_aktuell' && (
-                    <select aria-label="RUT status" value={inv.rut_status} disabled={busy === inv.id} onChange={(e) => setRut(inv, e.currentTarget.value)}>
-                      {Object.entries(RUT_STATUS).filter(([k]) => k !== 'ej_aktuell').map(([k, v]) => <option value={k}>RUT: {v}</option>)}
-                    </select>
+                  {inv.status !== 'utkast' && !kredit && inv.rut_status !== 'ej_aktuell' && Number(inv.rut) > 0 && (
+                    <a class={`badge ${inv.rut_status === 'ej_ansokt' && inv.status === 'betald' ? 'badge--ny' : ''}`} href={`/admin/rut?q=${inv.number}`} title="Open in the RUT tracker">
+                      RUT: {RUT_STATUS[inv.rut_status]}
+                    </a>
                   )}
                 </span>
               </li>

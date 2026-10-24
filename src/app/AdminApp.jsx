@@ -14,6 +14,7 @@ import Invoices from './admin/Invoices.jsx';
 import Money from './admin/Money.jsx';
 import Settings from './admin/Settings.jsx';
 import Careers from './admin/Careers.jsx';
+import Rut from './admin/Rut.jsx';
 import logo from '../assets/brand/logo.png';
 
 const PAGES = {
@@ -24,6 +25,7 @@ const PAGES = {
   kunder: { href: '/admin/kunder', label: 'Customers', Page: Customers },
   offerter: { href: '/admin/offerter', label: 'Quotes', Page: Quotes },
   fakturor: { href: '/admin/fakturor', label: 'Invoices', Page: Invoices },
+  rut: { href: '/admin/rut', label: 'RUT', Page: Rut },
   ekonomi: { href: '/admin/ekonomi', label: 'Finances', Page: Money },
   ledighet: { href: '/admin/ledighet', label: 'Time off', Page: Absences },
   tider: { href: '/admin/tider', label: 'Hours', Page: TimeReport },
@@ -36,7 +38,7 @@ const PAGES = {
 const GROUPS = [
   ['', ['oversikt']],
   ['Planning', ['planering', 'karta', 'ledighet', 'tider']],
-  ['Customers and finances', ['inkorg', 'kunder', 'offerter', 'fakturor', 'ekonomi']],
+  ['Customers and finances', ['inkorg', 'kunder', 'offerter', 'fakturor', 'rut', 'ekonomi']],
   ['Company', ['personal', 'rekrytering', 'installningar']],
 ];
 const MENU_KEY = 'tostad-meny';
@@ -55,17 +57,21 @@ export default function AdminApp({ page }) {
   const [newCount, setNewCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [appCount, setAppCount] = useState(0);
+  const [rutCount, setRutCount] = useState(0);
 
   // Siffror i menyn: nya ärenden i inkorgen och ledighet eller passbyten som väntar på beslut.
   async function refreshCount() {
     const sb = supabase();
     const head = { count: 'exact', head: true };
-    const [inbox, leave, swaps, apps] = await Promise.all([
+    const [inbox, leave, swaps, apps, rut] = await Promise.all([
       sb.from('submissions').select('id', head).eq('status', 'ny'),
       sb.from('absences').select('id', head).eq('status', 'begard'),
       sb.from('swap_requests').select('id', head).eq('status', 'vantar'),
       sb.from('applications').select('id', head).eq('status', 'ny'),
+      // Betalda fakturor med RUT som inte är ansökta än.
+      sb.from('invoices').select('id', head).eq('kind', 'faktura').eq('status', 'betald').eq('rut_status', 'ej_ansokt').gt('rut', 0),
     ]);
+    setRutCount(rut.count ?? 0);
     setAppCount(apps.count ?? 0);
     setNewCount(inbox.count ?? 0);
     setPendingCount((leave.count ?? 0) + (swaps.count ?? 0));
@@ -99,7 +105,7 @@ export default function AdminApp({ page }) {
   if (!me) return <p class="muted adm-loading" aria-busy="true">Loading …</p>;
   const current = PAGES[page] ?? PAGES.oversikt;
   const { Page } = current;
-  const badge = { inkorg: newCount, ledighet: pendingCount, rekrytering: appCount };
+  const badge = { inkorg: newCount, ledighet: pendingCount, rekrytering: appCount, rut: rutCount };
 
   function toggleMenu() {
     // På mobilen glider menyn in över sidan. På datorn kan den döljas och valet sparas.
