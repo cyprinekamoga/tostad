@@ -24,6 +24,19 @@ const FORMS: Record<string, { fields: string[]; required: string[]; files?: stri
 const LONG = new Set(['ovrigt', 'meddelande', 'beskrivning', 'kalkyl']);
 const FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'application/pdf'];
 const MAX_FILE = 10 * 1024 * 1024;
+
+// Filtypen avgörs av innehållet, inte bara av vad webbläsaren säger.
+async function sniff(file: File) {
+  const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const hex = [...head].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const ascii = String.fromCharCode(...head);
+  if (hex.startsWith('ffd8ff')) return 'image/jpeg';
+  if (hex.startsWith('89504e47')) return 'image/png';
+  if (ascii.startsWith('RIFF') && ascii.slice(8, 12) === 'WEBP') return 'image/webp';
+  if (ascii.slice(4, 8) === 'ftyp' && /^(heic|heix|hevc|heim|heis|mif1|msf1)$/.test(ascii.slice(8, 12))) return file.type === 'image/heif' ? 'image/heif' : 'image/heic';
+  if (hex.startsWith('25504446')) return 'application/pdf';
+  return null;
+}
 const RATE_LIMIT = 8;
 const RATE_WINDOW_MIN = 10;
 
@@ -105,9 +118,11 @@ Deno.serve(async (req) => {
   for (const [i, key] of (spec.files ?? []).entries()) {
     const file = form.get(key);
     if (!(file instanceof File) || file.size === 0) continue;
-    if (file.size > MAX_FILE || !FILE_TYPES.includes(file.type)) continue;
+    if (file.size > MAX_FILE) continue;
+    const type = await sniff(file);
+    if (!type || !FILE_TYPES.includes(type)) continue;
     const path = `${id}/${i + 1}-${safeName(file.name)}`;
-    const { error } = await db.storage.from('inbox').upload(path, file, { contentType: file.type });
+    const { error } = await db.storage.from('inbox').upload(path, file, { contentType: type });
     if (!error) files.push(path);
   }
 
