@@ -10,6 +10,7 @@ import MapPage from './admin/MapPage.jsx';
 import Absences from './admin/Absences.jsx';
 import TimeReport from './admin/TimeReport.jsx';
 import CustomerHours from './admin/CustomerHours.jsx';
+import Sms from './admin/Sms.jsx';
 import Quotes from './admin/Quotes.jsx';
 import Invoices from './admin/Invoices.jsx';
 import Money from './admin/Money.jsx';
@@ -35,6 +36,7 @@ const PAGES = {
   kundtimmar: { href: '/admin/kundtimmar', label: 'Customer hours', Page: CustomerHours },
   rekrytering: { href: '/admin/rekrytering', label: 'Recruitment', Page: Careers },
   personal: { href: '/admin/personal', label: 'Staff', Page: Staff },
+  sms: { href: '/admin/sms', label: 'SMS', Page: Sms },
   installningar: { href: '/admin/installningar', label: 'Settings', Page: Settings },
 };
 
@@ -43,7 +45,7 @@ const GROUPS = [
   ['', ['oversikt', 'assistent']],
   ['Planning', ['planering', 'karta', 'ledighet', 'tider', 'kundtimmar']],
   ['Customers and finances', ['inkorg', 'kunder', 'offerter', 'fakturor', 'rut', 'ekonomi']],
-  ['Company', ['personal', 'rekrytering', 'installningar']],
+  ['Company', ['personal', 'rekrytering', 'sms', 'installningar']],
 ];
 const MENU_KEY = 'tostad-meny';
 const readMenuHidden = () => {
