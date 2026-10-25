@@ -143,7 +143,7 @@ const ACTION = {
     },
     hours_entries: {
       type: 'array',
-      description: 'For report_hours: one entry per person.',
+      description: 'For report_hours, and for create_job when the text reports hours for a job that is not in the job list: one entry per person.',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -193,10 +193,20 @@ Matching:
 - Match existing jobs by address, customer, date and staff from the job list. Staff write short names ("holm", "kvicksund", "fröslunda trapphus", "storgatan"): match them to today's or the most recent jobs. If several jobs could match, pick the most likely and add a question.
 - Match staff by first name or nickname from the staff list. Never invent ids: every id you return must come from the lists. If you cannot match, leave the id out and ask in questions.
 
+How the company's WhatsApp group writes (learn these formats):
+- Staff hours reports, one block per job: a date line "26/9/26" (day/month/year), then the address, often with the size in brackets ("Baranstigen 8[160kvm]", "Atlasgatan 9(60kvm"), then one line per person "Name_hours" or "Name _3hrs" ("Mukwaya_9", "Hajara _3.5", "John__6"). "Address_5" on one line means that address, 5 hours, for the person the list belongs to.
+- A personal list: many "date / Address_hours" lines and "Total=44.5hrs". The person is named on the first line ("Edgar"), in the total ("Total hours for Massy=25hrs"), or in a separate message right after the list ("☝ mukwaya", "☝ john"). Lists like "26 sept, Franzéngatan 28, 5h" are the same thing. A sender writing "Sophia_3" or a list with no name is reporting their own hours unless another name is given. Check that the lines add up to the stated total; if not, add a question.
+- Tags: "[moving]" or a list headed "FLYTT" means a move (service flytt). "[spic and span]" means the job came from the partner company Spic and Span: use that customer (kind company) and service hemstadning; put the end customer in internal_note. A size in kvm without a tag usually means move-out cleaning (flyttstadning). "#paid per hour(21hrs)#" means invoiced by the hour; put it in internal_note. Repeated addresses with the same person (e.g. weekly) are home cleaning (hemstadning).
+- Bookings lists: "date / customer first name / address[size]" blocks, or numbered lists like "9.Olga - +46762667141 / Datum - 19/10 kl 09.00 / Skogängsvägen 13B Spånga (72 kvm)". One create_job per booking with the time, phone (write Swedish numbers as 07..., "+4607..." is a typo for "+467...") and size. A list numbered from 9 means earlier items are missing; say so in summary.
+- Forwarded booking platform texts ("Regular Basic Cleaning 2026-10-16 09:00:00 3h x 1 person ... Name on the doorbell ... 80 sq.m."): service hemstadning, the date and time as given, hours from "3h x 1 person".
+- Forwarded moving orders ("FLYTT / Datum / Från / Till / Bostad: 2 rok, 46 kvm / Att flytta: ..."; "Flytt IMORGON kl 09:00 ... Swish 7117kr ... 8 hours + transport"): service flytt with from and to addresses; the furniture list goes in staff_note; a stated amount goes in price_explicit.
+- Hours for work that is in the job list: report_hours with job_id. Hours for work that is not in the job list (usually a past job that was never planned): create_job for that date and address with staff_ids and hours_entries, hours = the longest time anyone worked, and the size in internal_note. Never create the same job twice when several messages report the same address and date: merge the people into one job. The same address on two dates is two jobs.
+- Typos are common: a date like "2/9/26" inside a list of October dates, "21/19/26" or "5/10=26" is probably the date the lists around it suggest; use it and add a question. Street names may be misspelled ("Fungfrudansen", "Junfrudansens" = Jungfrudansen 5): match them to the job list.
+
 Dates and times:
 - Today is given below with a calendar. "v.45" or "vecka 46" means that ISO week; for move-out cleaning in a week, use the Monday unless the text says otherwise and add a question. "avflytt 31/10" means the tenant moves out then, so the cleaning is after that date and before the inspection ("besiktning"); suggest the first working day after move-out and put the inspection in internal_note.
 - "fredag", "nästa vecka", "innan visning på fredag" etc. are relative to today. If the work must be done before a deadline, pick a date before it and say so in questions.
-- A date that is in the past or has an odd year (for example 2025 when it is now 2026) is probably a typo: suggest the next sensible date and add a question.
+- A new booking with a date in the past or an odd year (for example 2025 when it is now 2026) is probably a typo: suggest the next sensible date and add a question. Hours reports are about work already done, so past dates there are normal.
 - Keep date_text exactly as written.
 - If no time is given, use 08:00 for move-out cleaning and moving, 09:00 otherwise, and add nothing to questions just for that.
 
@@ -223,7 +233,7 @@ function compactCalendar(today: string) {
 }
 
 async function context(today: string) {
-  const from = `${addDays(today, -21)}T00:00:00Z`;
+  const from = `${addDays(today, -60)}T00:00:00Z`;
   const to = `${addDays(today, 150)}T00:00:00Z`;
   const [customers, staff, jobs] = await Promise.all([
     db.from('customers').select('id, kind, name, phone, email, street, postal_code, city').order('name').limit(1500),
@@ -254,7 +264,7 @@ async function context(today: string) {
       .join(' | ');
   });
   return {
-    text: `CUSTOMERS (id | type | name | phone | email | address)\n${customerLines.join('\n') || '(none)'}\n\nSTAFF (id | name | phone | role)\n${staffLines.join('\n') || '(none)'}\n\nJOBS from 3 weeks ago to 5 months ahead (id | date time | service | status | customer | title | address | staff)\n${jobLines.join('\n') || '(none)'}`,
+    text: `CUSTOMERS (id | type | name | phone | email | address)\n${customerLines.join('\n') || '(none)'}\n\nSTAFF (id | name | phone | role)\n${staffLines.join('\n') || '(none)'}\n\nJOBS from 2 months ago to 5 months ahead (id | date time | service | status | customer | title | address | staff)\n${jobLines.join('\n') || '(none)'}`,
     ids: {
       customers: new Set((customers.data ?? []).map((c) => c.id)),
       staff: new Set((staff.data ?? []).map((p) => p.id)),

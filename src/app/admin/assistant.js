@@ -165,6 +165,25 @@ async function ensureCustomer(e, created) {
   return data.id;
 }
 
+/** Sparar timmar per person, en rad per person och jobb. Returnerar antalet sparade. */
+async function saveHours(jobId, date, entries, ctx) {
+  let saved = 0;
+  for (const entry of entries) {
+    const h = hoursNum(entry.hours);
+    if (!entry.profile_id || !h) continue;
+    const row = { profile_id: entry.profile_id, job_id: jobId, work_date: date, hours: h, note: entry.note || null, reported_by: ctx.fromProfile || ctx.meId, updated_at: new Date().toISOString() };
+    let existing = null;
+    if (jobId) {
+      const { data } = await sb().from('work_hours').select('id').eq('profile_id', row.profile_id).eq('job_id', jobId).maybeSingle();
+      existing = data;
+    }
+    const { error } = existing ? await sb().from('work_hours').update(row).eq('id', existing.id) : await sb().from('work_hours').insert(row);
+    if (error) throw new Error('Could not save the hours.');
+    saved++;
+  }
+  return saved;
+}
+
 /** Genomför ett kort. Returnerar en kort text om vad som gjordes. */
 export async function applyCard(card, ctx) {
   const { e, action } = card;
@@ -194,12 +213,19 @@ export async function applyCard(card, ctx) {
       price: e.price,
       staff_note: e.staff_note,
       internal_note: e.internal_note,
-      staff: e.staff,
+      staff: [...new Set([...e.staff, ...e.entries.filter((x) => x.profile_id && hoursNum(x.hours)).map((x) => x.profile_id)])],
       repeat: e.repeat,
       until: e.until || addDays(e.date, 7 * 13),
     };
     const ids = await createJobs(form);
-    return ids.length > 1 ? `${ids.length} jobs created` : 'Job created';
+    // Rapporterade timmar för ett jobb som inte fanns i planeringen: sparas på jobbet, och ett passerat jobb markeras som klart.
+    const saved = await saveHours(ids[0], e.date, e.entries, ctx);
+    if (saved && e.date < today() && !(Number(e.repeat) > 0)) {
+      const { error } = await sb().from('jobs').update({ status: 'klar', done_at: new Date(`${e.date}T${addMinutes(e.start, h * 60)}:00`).toISOString(), done_by: ctx.fromProfile || null }).eq('id', ids[0]);
+      if (error) throw new Error('The job was created, but could not be marked as done.');
+    }
+    const what = ids.length > 1 ? `${ids.length} jobs created` : 'Job created';
+    return saved ? `${what}, hours saved for ${saved === 1 ? '1 person' : `${saved} people`}` : what;
   }
 
   if (kind === 'update_job') {
@@ -257,20 +283,7 @@ export async function applyCard(card, ctx) {
 
   if (kind === 'report_hours') {
     const date = e.date || (ctx.jobs[e.job_id]?.date ?? today());
-    let saved = 0;
-    for (const entry of e.entries) {
-      const h = hoursNum(entry.hours);
-      if (!entry.profile_id || !h) continue;
-      const row = { profile_id: entry.profile_id, job_id: e.job_id || null, work_date: date, hours: h, note: entry.note || null, reported_by: ctx.fromProfile || ctx.meId, updated_at: new Date().toISOString() };
-      let existing = null;
-      if (row.job_id) {
-        const { data } = await sb().from('work_hours').select('id').eq('profile_id', row.profile_id).eq('job_id', row.job_id).maybeSingle();
-        existing = data;
-      }
-      const { error } = existing ? await sb().from('work_hours').update(row).eq('id', existing.id) : await sb().from('work_hours').insert(row);
-      if (error) throw new Error('Could not save the hours.');
-      saved++;
-    }
+    const saved = await saveHours(e.job_id || null, date, e.entries, ctx);
     if (!saved) throw new Error('Add at least one person with hours.');
     return saved === 1 ? 'Hours saved for 1 person' : `Hours saved for ${saved} people`;
   }

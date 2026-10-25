@@ -175,6 +175,21 @@ Deno.serve(async (req) => {
     return reply(req, 200, { ok: true });
   }
 
+  // Byter inloggningsmejl, t.ex. när personalen lades in med en tillfällig adress.
+  if (action === 'set_email') {
+    const email = clean(body.email, 254).toLowerCase();
+    if (!isEmail(email)) return reply(req, 400, { error: 'Invalid email address' });
+    if (email === target.email) return reply(req, 200, { ok: true });
+    const { error } = await db.auth.admin.updateUserById(userId, { email, email_confirm: true });
+    if (error) {
+      const taken = /already|registered|exists/i.test(error.message);
+      return reply(req, taken ? 409 : 400, { error: taken ? 'The email address is already in use' : 'Could not change the email' });
+    }
+    const { error: profileError } = await db.from('profiles').update({ email }).eq('id', userId);
+    if (profileError) return reply(req, 400, { error: 'Could not change the email' });
+    return reply(req, 200, { ok: true });
+  }
+
   if (action === 'set_active') {
     const active = body.active === true;
     if (target.role === 'owner') return reply(req, 403, { error: 'The owner account cannot be deactivated' });

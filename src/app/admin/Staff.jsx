@@ -230,7 +230,7 @@ function AddForm({ prefill, usedColors, canAddAdmin, onCancel, onCreated }) {
 
 function EditForm({ person, canDelete, onDone }) {
   const sb = supabase();
-  const [form, setForm] = useState({ full_name: person.full_name, phone: person.phone ?? '', color: person.color });
+  const [form, setForm] = useState({ full_name: person.full_name, email: person.email, phone: person.phone ?? '', color: person.color });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const set = (key) => (e) => setForm({ ...form, [key]: e.currentTarget.value });
@@ -239,8 +239,20 @@ function EditForm({ person, canDelete, onDone }) {
     e.preventDefault();
     setBusy(true);
     const { error: saveError } = await sb.from('profiles').update({ full_name: form.full_name.trim(), phone: form.phone.trim() || null, color: form.color }).eq('id', person.id);
+    if (saveError) {
+      setBusy(false);
+      return setError('Could not save.');
+    }
+    // Inloggningsmejlet byts via servern, eftersom det också gäller själva kontot.
+    if (form.email.trim().toLowerCase() !== person.email) {
+      try {
+        await callFunction('staff-admin', { action: 'set_email', user_id: person.id, email: form.email.trim() });
+      } catch (err) {
+        setBusy(false);
+        return setError(err.message);
+      }
+    }
     setBusy(false);
-    if (saveError) return setError('Could not save.');
     onDone();
   }
 
@@ -263,6 +275,10 @@ function EditForm({ person, canDelete, onDone }) {
         <label for="e-name">Name</label>
         <input id="e-name" type="text" required maxLength={120} value={form.full_name} onInput={set('full_name')} />
       </div>
+      <div class="field">
+        <label for="e-email">Email (used to log in)</label>
+        <input id="e-email" type="email" required maxLength={254} value={form.email} onInput={set('email')} />
+      </div>
       <div class="form-2">
         <div class="field">
           <label for="e-phone">Mobile number</label>
@@ -273,7 +289,7 @@ function EditForm({ person, canDelete, onDone }) {
           <input id="e-color" type="color" value={form.color} onInput={set('color')} style="min-height:48px;padding:4px" />
         </div>
       </div>
-      <p class="muted">The email address is used to log in and cannot be changed here.</p>
+      <p class="muted">Changing the email changes the login. Send the person a new login afterwards.</p>
       <ErrorMsg error={error} />
       <div class="cp-actions">
         <button class="btn" type="submit" disabled={busy}>Save</button>

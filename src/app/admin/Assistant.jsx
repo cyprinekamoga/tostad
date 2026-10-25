@@ -1,6 +1,7 @@
 // Jobbassistenten: klistra in en text, kontrollera förslagen och genomför de som stämmer.
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { formatDateTime } from '../../lib/supabase.js';
+import { today } from '../../lib/planner.js';
 import { ErrorMsg, copyText } from '../ui.jsx';
 import { SERVICE_LABELS, jobLabel } from './jobs.js';
 import { ABSENCE_KIND } from '../staff/api.js';
@@ -344,6 +345,13 @@ function Card({ card, refs, jobs, onToggle, onChange }) {
                 )}
               </div>
               <StaffPicker label="Staff" staff={refs.staff} chosen={e.staff} onToggle={(id) => onChange({ staff: toggleIn(e.staff, id) })} />
+              {e.entries.length > 0 && (
+                <fieldset class="cp-fieldset">
+                  <legend>Hours worked</legend>
+                  <HoursRows e={e} staff={refs.staff} onChange={onChange} />
+                  <small class="hint">{e.date && e.date < today() ? 'Saved with the job, and the job is marked as done.' : 'Saved with the job.'}</small>
+                </fieldset>
+              )}
               <Notes e={e} onChange={onChange} />
             </>
           )}
@@ -388,17 +396,7 @@ function Card({ card, refs, jobs, onToggle, onChange }) {
             <>
               <JobLine job={job} empty="Not linked to a job" />
               <div class="field"><label>Date</label><input type="date" value={e.date} onInput={set('date')} /></div>
-              {e.entries.map((entry, i) => (
-                <div class="as-pair as-hours">
-                  <select aria-label="Person" value={entry.profile_id} onChange={(ev) => onChange({ entries: e.entries.map((x, j) => (j === i ? { ...x, profile_id: ev.currentTarget.value } : x)) })}>
-                    <option value="">Choose person</option>
-                    {refs.staff.map((p) => <option value={p.id}>{p.full_name}</option>)}
-                  </select>
-                  <input type="text" inputMode="decimal" aria-label="Hours" value={entry.hours} onInput={(ev) => onChange({ entries: e.entries.map((x, j) => (j === i ? { ...x, hours: ev.currentTarget.value } : x)) })} />
-                  <small>h</small>
-                </div>
-              ))}
-              <button class="st-link" type="button" onClick={() => onChange({ entries: [...e.entries, { profile_id: '', hours: '', note: '' }] })}>Add person</button>
+              <HoursRows e={e} staff={refs.staff} onChange={onChange} />
             </>
           )}
 
@@ -439,6 +437,26 @@ function Card({ card, refs, jobs, onToggle, onChange }) {
       {card.message && <p class={`msg ${card.status === 'done' ? 'msg--ok' : 'msg--error'}`}>{card.message}</p>}
       {done && kind === 'create_job' && e.staff.length > 0 && <small class="muted">Booked: {e.staff.map(staffName).join(', ')}</small>}
     </article>
+  );
+}
+
+/** Timmar per person: en rad per person. */
+function HoursRows({ e, staff, onChange }) {
+  const setEntry = (i, patch) => onChange({ entries: e.entries.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
+  return (
+    <>
+      {e.entries.map((entry, i) => (
+        <div class="as-pair as-hours">
+          <select aria-label="Person" value={entry.profile_id} onChange={(ev) => setEntry(i, { profile_id: ev.currentTarget.value })}>
+            <option value="">Choose person</option>
+            {staff.map((p) => <option value={p.id}>{p.full_name}</option>)}
+          </select>
+          <input type="text" inputMode="decimal" aria-label="Hours" value={entry.hours} onInput={(ev) => setEntry(i, { hours: ev.currentTarget.value })} />
+          <small>h</small>
+        </div>
+      ))}
+      <button class="st-link" type="button" onClick={() => onChange({ entries: [...e.entries, { profile_id: '', hours: '', note: '' }] })}>Add person</button>
+    </>
   );
 }
 
