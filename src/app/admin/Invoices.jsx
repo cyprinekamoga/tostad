@@ -24,7 +24,7 @@ import {
   invoiceFromJob,
   invoiceFromQuote,
 } from './docs.js';
-import { supabase } from '../../lib/supabase.js';
+import { supabase, callFunction } from '../../lib/supabase.js';
 import DocEditor from './DocEditor.jsx';
 import SendBox from './SendBox.jsx';
 
@@ -256,6 +256,8 @@ function PayForm({ inv, onDone }) {
     e.preventDefault();
     try {
       await updateInvoice(inv.id, { status: 'betald', paid_at: date, paid_amount: Number(amount.replace(/\s/g, '').replace(',', '.')) || 0 });
+      // Frågan om ett omdöme på Google skickas direkt (bara när mejl är påslaget).
+      callFunction('email', { action: 'run_now' }).catch(() => {});
       onDone();
     } catch (err) {
       setError(err.message);

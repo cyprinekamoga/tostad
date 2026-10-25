@@ -179,6 +179,20 @@ export function applicantMail({ name, title, company }) {
   });
 }
 
+/** Svar till den som inte fick jobbet. */
+export function rejectionMail({ name, title, company }) {
+  return mail(`Angående din ansökan${title ? ` till ${title}` : ''}`, {
+    preheader: 'Tack för ditt intresse för TO Städ & Flytt',
+    blocks: [
+      hello(name),
+      `Tack för att du sökte${title ? ` tjänsten ${title}` : ' jobb'} hos oss och för tiden du lade på din ansökan.`,
+      'Vi har nu gått igenom ansökningarna och har tyvärr valt att gå vidare med andra kandidater den här gången.',
+      'Du är välkommen att söka igen när vi har nya tjänster ute på tostadflytt.se/jobb. Vi önskar dig lycka till framöver!',
+    ],
+    company,
+  });
+}
+
 /** Länk till Mina sidor när kunden ber om den själv. */
 export function portalLinkMail({ name, url, company }) {
   return mail('Din länk till Mina sidor', {

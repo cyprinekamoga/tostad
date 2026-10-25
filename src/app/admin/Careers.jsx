@@ -1,6 +1,6 @@
 // Rekrytering: ansökningar (brev, CV, status, anteckning) och annonser på /jobb.
 import { useEffect, useState } from 'preact/hooks';
-import { supabase, formatDateTime } from '../../lib/supabase.js';
+import { supabase, formatDateTime, callFunction } from '../../lib/supabase.js';
 import { slugify } from '../../lib/careers.js';
 import { ErrorMsg, Modal, Phone, Email } from '../ui.jsx';
 
@@ -124,6 +124,15 @@ function ApplicationDetail({ app, vacancyTitle, onChanged, onDeleted }) {
   const [note, setNote] = useState(app.note ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [mails, setMails] = useState([]);
+
+  // Mejl som har skickats till den sökande (bekräftelse och avslag).
+  const loadMails = () =>
+    sb.from('email_log').select('kind, status, created_at').eq('ref_id', app.id).in('kind', ['ansokan', 'avslag']).order('created_at').then(({ data }) => setMails(data ?? []));
+  useEffect(() => {
+    loadMails();
+  }, [app.id]);
+  const sentKind = (kind) => mails.find((m) => m.kind === kind && m.status === 'skickat');
 
   async function run(fn) {
     setBusy(true);
@@ -141,6 +150,23 @@ function ApplicationDetail({ app, vacancyTitle, onChanged, onDeleted }) {
     run(async () => {
       const { error: e } = await sb.from('applications').update({ status }).eq('id', app.id);
       if (e) throw new Error('Could not save.');
+    });
+
+  // Avslag: status och ett vänligt mejl om att personen inte fick jobbet.
+  const reject = (withEmail) =>
+    run(async () => {
+      if (withEmail && !window.confirm(`Reject ${app.name} and send an email saying they did not get the job this time?`)) return;
+      const { error: e } = await sb.from('applications').update({ status: 'nej' }).eq('id', app.id);
+      if (e) throw new Error('Could not save.');
+      if (withEmail) {
+        await callFunction('email', { action: 'reject', id: app.id });
+        await loadMails();
+      }
+    });
+  const sendRejection = () =>
+    run(async () => {
+      await callFunction('email', { action: 'reject', id: app.id });
+      await loadMails();
     });
 
   // CV:t laddas ner via en länk som gäller i en minut. Sidan står kvar.
@@ -193,11 +219,17 @@ function ApplicationDetail({ app, vacancyTitle, onChanged, onDeleted }) {
           })}>Save note</button>
         </div>
       </div>
+      <p class="muted" style="margin:0">
+        {sentKind('ansokan') ? `Confirmation emailed ${formatDateTime(sentKind('ansokan').created_at)}.` : 'No confirmation email sent.'}
+        {sentKind('avslag') && ` Rejection emailed ${formatDateTime(sentKind('avslag').created_at)}.`}
+      </p>
       <ErrorMsg error={error} />
       <div class="cp-actions">
         {app.status !== 'intervju' && <button class="btn btn--sm" type="button" disabled={busy} onClick={() => setStatus('intervju')}>Invite to interview</button>}
         {app.status !== 'anstalld' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('anstalld')}>Hired</button>}
-        {app.status !== 'nej' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('nej')}>Reject</button>}
+        {app.status !== 'nej' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => reject(true)}>Reject and send email</button>}
+        {app.status !== 'nej' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => reject(false)}>Reject without email</button>}
+        {app.status === 'nej' && !sentKind('avslag') && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={sendRejection}>Send rejection email</button>}
         {app.status !== 'ny' && <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setStatus('ny')}>Mark as new</button>}
         <a class="btn btn--ghost btn--sm" href={`mailto:${app.email}?subject=${encodeURIComponent(`Din ansökan till TO Städ & Flytt`)}`}>Email</a>
         {app.status === 'anstalld' && <a class="btn btn--sm" href={staffLink}>Add as staff</a>}

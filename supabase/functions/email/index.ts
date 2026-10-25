@@ -4,7 +4,7 @@
 // om sin egen länk till Mina sidor eller ett nytt lösenord, och svaret avslöjar aldrig om adressen finns.
 // Utan RESEND_API_KEY, eller när mejl är avstängt, skickas inget.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, portalLinkMail, passwordMail, urls, serviceName } from './templates.js';
+import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, rejectionMail, portalLinkMail, passwordMail, urls, serviceName } from './templates.js';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
 const PREVIEW = /^https:\/\/[a-z0-9-]+--tostadflytt-preview\.netlify\.app$/;
@@ -39,6 +39,24 @@ function zoned(when: string | number | Date) {
 const isEmail = (v: unknown): v is string => typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) && v.length <= 254;
 const placeholder = (email: string) => /\.byt-mejl@|@test\.invalid$/i.test(email);
 const apiKey = () => Deno.env.get('RESEND_API_KEY') ?? '';
+
+// Nyckel för anrop från andra funktioner (t.ex. jobbansökan), räknad ur projektets hemliga nyckel.
+async function derived(label: string) {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${secretKey}:${label}`));
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+}
+
+/** Skickar allt som väntar. Används av schemat och direkt efter att något har hänt i administrationen. */
+async function sendDue(s: Settings, now: Date) {
+  let sent = 0;
+  let failed = 0;
+  for (const item of await due(s, now)) {
+    if (item.skip || !item.go) continue;
+    if (await item.go()) failed++;
+    else sent++;
+  }
+  return { sent, failed };
+}
 
 type Settings = Record<string, unknown> & {
   email_enabled: boolean;
@@ -292,14 +310,18 @@ Deno.serve(async (req) => {
     const { data: ok } = await db.rpc('check_cron_token', { p_token: cronToken });
     if (!ok) return reply(req, 403, { error: 'Denied' });
     if (!ready) return reply(req, 200, { skipped: s.email_enabled ? 'Resend is not connected' : 'Email is turned off' });
-    let sent = 0;
-    let failed = 0;
-    for (const item of await due(s, now)) {
-      if (item.skip || !item.go) continue;
-      if (await item.go()) failed++;
-      else sent++;
-    }
-    return reply(req, 200, { sent, failed });
+    return reply(req, 200, await sendDue(s, now));
+  }
+
+  // Från jobbansökan: svara den sökande direkt i stället för vid nästa timme.
+  if (req.headers.get('x-internal-key')) {
+    if (req.headers.get('x-internal-key') !== (await derived('email-internal'))) return reply(req, 403, { error: 'Denied' });
+    if (!ready || !s.email_applicant || body.action !== 'application' || typeof body.id !== 'string') return reply(req, 200, { skipped: true });
+    const { data: a } = await db.from('applications').select('id, name, email, vacancies(title)').eq('id', body.id).maybeSingle();
+    if (!a || !isEmail(a.email) || (await sentRefs('ansokan', [a.id])).size) return reply(req, 200, { skipped: true });
+    // deno-lint-ignore no-explicit-any
+    const error = await send(s, { kind: 'ansokan', ref_id: a.id, to: a.email, ...applicantMail({ name: a.name, title: (a as any).vacancies?.title ?? null, company: companyOf(s) }) });
+    return reply(req, 200, { ok: !error });
   }
 
   // Öppna åtgärder: svaret är alltid detsamma, så att ingen kan ta reda på vilka adresser som finns.
@@ -342,6 +364,21 @@ Deno.serve(async (req) => {
         enabled_at: s.email_enabled_at,
         waiting: items.map(({ go: _go, ...rest }) => rest),
       });
+    }
+    // Direkt efter att något har hänt i administrationen (nytt jobb, betald faktura).
+    if (body.action === 'run_now') {
+      if (!ready) return reply(req, 200, { skipped: true });
+      return reply(req, 200, await sendDue(s, now));
+    }
+    if (body.action === 'reject') {
+      if (!ready) return reply(req, 400, { error: 'Email is not turned on.' });
+      const { data: a } = await db.from('applications').select('id, name, email, vacancies(title)').eq('id', String(body.id ?? '')).maybeSingle();
+      if (!a) return reply(req, 404, { error: 'Could not find the application.' });
+      if (!isEmail(a.email)) return reply(req, 400, { error: 'The application has no valid email address.' });
+      if ((await sentRefs('avslag', [a.id])).size) return reply(req, 200, { ok: true, already: true });
+      // deno-lint-ignore no-explicit-any
+      const error = await send(s, { kind: 'avslag', ref_id: a.id, to: a.email, created_by: me.id, ...rejectionMail({ name: a.name, title: (a as any).vacancies?.title ?? null, company: companyOf(s) }) });
+      return error ? reply(req, 502, { error }) : reply(req, 200, { ok: true, to: a.email });
     }
     if (body.action === 'test') {
       if (!apiKey()) return reply(req, 400, { error: 'Resend is not connected yet.' });

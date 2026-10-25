@@ -52,3 +52,12 @@ test('offert, omdöme, sökande, portallänk och lösenord', () => {
   assert.match(pw.text, /^Hi John!/);
   assert.match(pw.text, /aktivera\?th=h%2B1&typ=recovery/);
 });
+
+test('avslag till sökande', async () => {
+  const { rejectionMail } = await import('../supabase/functions/email/templates.js');
+  const m = rejectionMail({ name: 'Nina Berg', title: 'Städare', company });
+  assert.equal(m.subject, 'Angående din ansökan till Städare');
+  assert.match(m.text, /^Hej Nina!/);
+  assert.match(m.text, /valt att gå vidare med andra kandidater/);
+  assert.match(m.text, /lycka till/);
+});

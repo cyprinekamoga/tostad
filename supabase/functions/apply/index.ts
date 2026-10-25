@@ -20,6 +20,12 @@ const secretKey = (() => {
 })();
 const db = createClient(Deno.env.get('SUPABASE_URL')!, secretKey, { auth: { persistSession: false } });
 
+// Nyckel för anropet till mejlfunktionen, räknad ur projektets hemliga nyckel (samma som i email).
+async function derived(label: string) {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${secretKey}:${label}`));
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+}
+
 function cors(req: Request) {
   const origin = req.headers.get('origin') ?? '';
   return {
@@ -123,6 +129,16 @@ Deno.serve(async (req) => {
     console.error('insert failed', error.message);
     if (cvPath) await db.storage.from('cv').remove([cvPath]);
     return reply(req, 500, { error: 'Kunde inte skicka ansökan. Försök igen eller mejla oss.' });
+  }
+  // Bekräftelse till den sökande direkt (skickas bara när mejl är påslaget).
+  try {
+    await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-internal-key': await derived('email-internal') },
+      body: JSON.stringify({ action: 'application', id }),
+    });
+  } catch (e) {
+    console.error('confirmation email', e);
   }
   return reply(req, 200, { ok: true });
 });

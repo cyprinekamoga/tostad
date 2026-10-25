@@ -1,5 +1,5 @@
 // Jobb i planeringen: hämta, spara, flytta och ta bort, och hitta adresser på kartan.
-import { supabase } from '../../lib/supabase.js';
+import { supabase, callFunction } from '../../lib/supabase.js';
 import { toInstant, zoned, addDays, seriesDates } from '../../lib/planner.js';
 import { SERVICES, SERVICES_SV } from './submission.js';
 
@@ -137,6 +137,8 @@ export async function createJobs(form) {
   if (error) throw new Error(/submission_id/.test(error.message) ? 'There is already a job for this booking.' : 'Could not save the job.');
   const ids = data.map((r) => r.id);
   await setStaff(ids, form.staff);
+  // Bokningsbekräftelsen skickas direkt i stället för vid nästa timme (bara när mejl är påslaget).
+  callFunction('email', { action: 'run_now' }).catch(() => {});
   return ids;
 }
 
