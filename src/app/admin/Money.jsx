@@ -3,7 +3,8 @@ import { useEffect, useState } from 'preact/hooks';
 import { today } from '../../lib/planner.js';
 import { formatKrWhole } from '../../lib/money.js';
 import { ErrorMsg } from '../ui.jsx';
-import { loadInvoices, isOverdue } from './docs.js';
+import { loadInvoices, isOverdue, docUrl, companyFor } from './docs.js';
+import { vouchers, sie, encodeCp437, invoiceCsv, voucherCsv, ACCOUNTS } from '../../lib/accounting.js';
 
 const monthFmt = new Intl.DateTimeFormat('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 const monthName = (m) => monthFmt.format(new Date(`${m}-15T12:00:00Z`));
@@ -98,6 +99,108 @@ export default function Money() {
         </div>
         <p class="muted" style="margin:10px 0 0">Credit notes count as minus in the month they were sent. The bookkeeping is handled by your accountant.</p>
       </section>
+
+      {rows && <AccountantExport invoices={rows} />}
     </>
+  );
+}
+
+const lastDay = (month) => {
+  const [y, m] = month.split('-').map(Number);
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+};
+
+function periodFor(preset) {
+  const now = today();
+  const [y, m] = now.split('-').map(Number);
+  const month = (offset) => new Date(Date.UTC(y, m - 1 + offset, 1)).toISOString().slice(0, 7);
+  if (preset === 'this_month') return [`${month(0)}-01`, lastDay(month(0))];
+  if (preset === 'quarter') {
+    const q = Math.floor((m - 1) / 3) * 3;
+    const start = new Date(Date.UTC(y, q, 1)).toISOString().slice(0, 7);
+    return [`${start}-01`, lastDay(new Date(Date.UTC(y, q + 2, 1)).toISOString().slice(0, 7))];
+  }
+  if (preset === 'last_quarter') {
+    const q = Math.floor((m - 1) / 3) * 3 - 3;
+    return [new Date(Date.UTC(y, q, 1)).toISOString().slice(0, 10), lastDay(new Date(Date.UTC(y, q + 2, 1)).toISOString().slice(0, 7))];
+  }
+  if (preset === 'year') return [`${y}-01-01`, `${y}-12-31`];
+  return [`${month(-1)}-01`, lastDay(month(-1))];
+}
+
+// Export till redovisningskonsulten: SIE-fil och Excel-listor för en period.
+function AccountantExport({ invoices }) {
+  const [preset, setPreset] = useState('last_month');
+  const [range, setRange] = useState(() => periodFor('last_month'));
+  const [from, to] = range;
+  const list = from && to && from <= to ? vouchers(invoices, from, to) : [];
+  const count = (kind) => list.filter((v) => v.kind === kind).length;
+  const name = `tostad-${from}-${to}`;
+
+  function download(data, filename, type) {
+    const blob = new Blob([data], { type });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  const choose = (p) => {
+    setPreset(p);
+    if (p !== 'custom') setRange(periodFor(p));
+  };
+
+  return (
+    <section class="cp-panel" style="margin-top:16px">
+      <h3 class="cp-subhead">Export for the accountant</h3>
+      <p class="muted">
+        Invoices and credit notes on their invoice date, payments on the day they were paid, and RUT from Skatteverket on the day it was paid out. The SIE file can be
+        imported into Fortnox, Visma and most accounting programs. The Excel list has a link to every invoice.
+      </p>
+      <div class="form-3">
+        <div class="field">
+          <label for="ex-period">Period</label>
+          <select id="ex-period" value={preset} onChange={(e) => choose(e.currentTarget.value)}>
+            <option value="last_month">Last month</option>
+            <option value="this_month">This month</option>
+            <option value="last_quarter">Last quarter</option>
+            <option value="quarter">This quarter</option>
+            <option value="year">This year</option>
+            <option value="custom">Choose dates</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ex-from">From</label>
+          <input id="ex-from" type="date" value={from} onInput={(e) => { setPreset('custom'); setRange([e.currentTarget.value, to]); }} />
+        </div>
+        <div class="field">
+          <label for="ex-to">To</label>
+          <input id="ex-to" type="date" value={to} onInput={(e) => { setPreset('custom'); setRange([from, e.currentTarget.value]); }} />
+        </div>
+      </div>
+      <p>
+        {count('faktura')} invoices and credit notes, {count('betalning')} payments, {count('rut')} RUT payouts.
+      </p>
+      <div class="cp-actions">
+        <button class="btn btn--sm" type="button" disabled={!list.length} onClick={() => download(encodeCp437(sie(list, { company: companyFor(null), from, to, generated: today() })), `${name}.se`, 'application/octet-stream')}>
+          Download SIE file
+        </button>
+        <button class="btn btn--ghost btn--sm" type="button" disabled={!list.length} onClick={() => download(invoiceCsv(invoices, from, to, docUrl), `${name}-fakturor.csv`, 'text/csv;charset=utf-8')}>
+          Invoices (Excel)
+        </button>
+        <button class="btn btn--ghost btn--sm" type="button" disabled={!list.length} onClick={() => download(voucherCsv(list), `${name}-verifikationer.csv`, 'text/csv;charset=utf-8')}>
+          Vouchers (Excel)
+        </button>
+      </div>
+      <details style="margin-top:12px">
+        <summary>Accounts used (BAS)</summary>
+        <ul>
+          {[ACCOUNTS.receivable, ACCOUNTS.rutReceivable, ACCOUNTS.bank, ACCOUNTS.rounding, ...Object.values(ACCOUNTS.sales), ...Object.values(ACCOUNTS.vat)].map(([n, label]) => (
+            <li>{n} {label}</li>
+          ))}
+        </ul>
+        <p class="muted">If your accountant uses other accounts, they can change them when importing.</p>
+      </details>
+    </section>
   );
 }
