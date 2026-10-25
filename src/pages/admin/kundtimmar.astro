@@ -1,0 +1,7 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import AdminApp from '../../app/AdminApp.jsx';
+---
+<AppLayout title="Customer hours" bare>
+  <AdminApp client:only="preact" page="kundtimmar" />
+</AppLayout>
