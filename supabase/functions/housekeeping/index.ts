@@ -3,7 +3,7 @@
 // - nekade jobbansökningar och deras CV raderas 24 månader efter beslutet
 // - förfrågningar i inkorgen som inte blev uppdrag raderas efter 12 månader (skadeanmälningar sparas)
 // - WhatsApp-meddelanden och jobbassistentens utkast raderas efter 6 månader
-// - SMS-loggen raderas efter 12 månader
+// - SMS- och mejlloggarna raderas efter 12 månader
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
@@ -74,5 +74,6 @@ Deno.serve(async (req) => {
   const { count: removedMessages } = await db.from('whatsapp_messages').delete({ count: 'exact' }).lt('created_at', monthsAgo(6));
   const { count: removedDrafts } = await db.from('assistant_drafts').delete({ count: 'exact' }).lt('created_at', monthsAgo(6));
   const { count: removedSms } = await db.from('sms_log').delete({ count: 'exact' }).lt('created_at', monthsAgo(12));
-  return reply(req, 200, { ok: true, applications: oldApps?.length ?? 0, submissions: removedSubs, whatsapp: removedMessages ?? 0, drafts: removedDrafts ?? 0, sms: removedSms ?? 0 });
+  const { count: removedEmails } = await db.from('email_log').delete({ count: 'exact' }).lt('created_at', monthsAgo(12));
+  return reply(req, 200, { ok: true, applications: oldApps?.length ?? 0, submissions: removedSubs, whatsapp: removedMessages ?? 0, drafts: removedDrafts ?? 0, sms: removedSms ?? 0, emails: removedEmails ?? 0 });
 });

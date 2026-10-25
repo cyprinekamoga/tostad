@@ -1,6 +1,7 @@
 // Inloggning för alla med e-post och lösenord. Personal går vidare till /app och administratörer till /admin.
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, loadMe, isAdminRole, safeNext, go, callFunction } from '../lib/supabase.js';
+import { FUNCTIONS_URL, SUPABASE_KEY } from '../config/supabase.js';
 
 export default function Login() {
   const sb = supabase();
@@ -60,8 +61,48 @@ export default function Login() {
           <input id="li-pw" type="password" autocomplete="current-password" required value={password} onInput={(e) => setPassword(e.currentTarget.value)} />
         </div>
         <button class="btn btn--block" type="submit" disabled={busy}>{busy ? 'Logging in …' : 'Log in'}</button>
-        <p class="muted">Forgot your password? Ask an admin for a new login link.</p>
+        <ForgotPassword email={email} />
       </form>
+    </div>
+  );
+}
+
+// Nytt lösenord via mejl. Svaret är detsamma oavsett om adressen finns.
+function ForgotPassword({ email }) {
+  const [open, setOpen] = useState(false);
+  const [address, setAddress] = useState('');
+  const [state, setState] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function send() {
+    setBusy(true);
+    setState('');
+    try {
+      const res = await fetch(`${FUNCTIONS_URL}/email`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'password', email: address.trim() }) });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) setState(json.error || 'Something went wrong. Try again.');
+      else if (json.unavailable) setState('unavailable');
+      else setState('sent');
+    } catch {
+      setState('Something went wrong. Try again.');
+    }
+    setBusy(false);
+  }
+
+  if (!open)
+    return (
+      <p class="muted">
+        <button class="st-link" type="button" onClick={() => { setAddress(email); setOpen(true); }}>Forgot your password?</button>
+      </p>
+    );
+  if (state === 'sent') return <p class="msg msg--ok" role="status">If the address belongs to an account, a link to choose a new password is on its way. Check your inbox and spam folder. The link works for one hour.</p>;
+  if (state === 'unavailable') return <p class="muted">Ask an admin for a new login link.</p>;
+  return (
+    <div class="field">
+      <label for="fp-email">Your email address</label>
+      <input id="fp-email" type="email" autocomplete="username" value={address} onInput={(e) => setAddress(e.currentTarget.value)} />
+      {state && <p class="msg msg--error" role="alert">{state}</p>}
+      <button class="btn btn--ghost btn--sm" type="button" disabled={busy || !address.trim()} onClick={send}>{busy ? 'Sending …' : 'Email me a link'}</button>
     </div>
   );
 }

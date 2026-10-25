@@ -1,14 +1,35 @@
-// Skicka en länk till kunden: kopiera, mejl eller SMS. Automatiska mejl kommer när Resend är kopplat.
+// Skicka en länk till kunden: mejla direkt via Resend (när mejl är påslaget), kopiera, eget mejl eller SMS.
 import { useState } from 'preact/hooks';
+import { callFunction } from '../../lib/supabase.js';
 import { copyText } from '../ui.jsx';
 
-export default function SendBox({ title, intro, url, text, subject, email, phone, onClose }) {
+export default function SendBox({ title, intro, url, text, subject, email, phone, onClose, emailDoc }) {
   const [copied, setCopied] = useState('');
+  const [mailed, setMailed] = useState('');
+  const [busy, setBusy] = useState(false);
   const tel = (phone ?? '').replace(/[^\d+]/g, '');
+
+  // emailDoc: { type: 'offert' | 'faktura', id, reminder } när automatiska mejl är påslagna.
+  async function mailNow() {
+    setBusy(true);
+    try {
+      const r = await callFunction('email', { action: 'document', ...emailDoc });
+      setMailed(`Emailed to ${r.to}.`);
+    } catch (e) {
+      setMailed(e.message);
+    }
+    setBusy(false);
+  }
   return (
     <div class="cp-modal-body">
       <h3>{title}</h3>
       {intro && <p>{intro}</p>}
+      {emailDoc && email && (
+        <div class="cp-actions" style="margin-bottom:12px">
+          <button class="btn" type="button" disabled={busy || /^Emailed/.test(mailed)} onClick={mailNow}>{busy ? 'Sending …' : `Email it to ${email}`}</button>
+          {mailed && <span role="status">{mailed}</span>}
+        </div>
+      )}
       <div class="cp-link-box">{url}</div>
       <div class="cp-actions">
         <button class="btn btn--sm" type="button" onClick={async () => setCopied((await copyText(url)) ? 'link' : '')}>{copied === 'link' ? 'The link is copied' : 'Copy the link'}</button>

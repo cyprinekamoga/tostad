@@ -138,6 +138,7 @@ export default function Quotes() {
             subject={`Offert ${sending.number} från TO Städ & Flytt`}
             email={sending.buyer?.email}
             phone={sending.buyer?.phone}
+            emailDoc={settings?.email_enabled ? { type: 'offert', id: sending.id } : null}
             onClose={() => setSending(null)}
           />
         )}

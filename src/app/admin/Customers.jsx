@@ -185,7 +185,7 @@ function PortalBox({ customer }) {
     if (!next && !window.confirm('Turn off the customer\'s link? The customer cannot open their page until you create a new link.')) return;
     setError('');
     const value = next ? crypto.randomUUID() : null;
-    const { error: e } = await sb.from('customers').update({ portal_token: value, portal_created_at: next ? new Date().toISOString() : null }).eq('id', customer.id);
+    const { error: e } = await sb.from('customers').update({ portal_token: value, portal_created_at: next ? new Date().toISOString() : null, portal_off: !next }).eq('id', customer.id);
     if (e) return setError('Could not save the link.');
     setToken(value);
     setCopied(false);

@@ -96,7 +96,8 @@ export default function Portal() {
       <section class="kp-card kp-welcome">
         <h1>Mina sidor</h1>
         <p>Här ser du dina bokningar, fotorapporter, offerter och fakturor. Du kommer in med den personliga länk som du har fått av oss i ett SMS eller mejl.</p>
-        <p>Har du ingen länk, eller fungerar den inte längre? Ring oss på <a href={site.phoneHref}>{site.phone}</a> eller mejla <a href={`mailto:${site.email}`}>{site.email}</a> så skickar vi en ny.</p>
+        <AskForLink />
+        <p>Du kan också ringa oss på <a href={site.phoneHref}>{site.phone}</a> eller mejla <a href={`mailto:${site.email}`}>{site.email}</a> så skickar vi en ny länk.</p>
         <a class="btn" href="/boka">Boka ett nytt uppdrag</a>
       </section>
     );
@@ -270,5 +271,41 @@ export default function Portal() {
         <button class="kp-link" type="button" onClick={forget}>Logga ut från den här enheten</button>
       </footer>
     </div>
+  );
+}
+
+// Kunden ber om sin länk via mejl. Svaret är detsamma oavsett om adressen finns hos oss.
+function AskForLink() {
+  const [email, setEmail] = useState('');
+  const [state, setState] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function send(e) {
+    e.preventDefault();
+    setBusy(true);
+    setState('');
+    try {
+      const res = await fetch(`${FUNCTIONS_URL}/email`, { method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'portal_link', email: email.trim() }) });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) setState(json.error || 'Något gick fel. Försök igen.');
+      else setState(json.unavailable ? 'unavailable' : 'sent');
+    } catch {
+      setState('Något gick fel. Försök igen.');
+    }
+    setBusy(false);
+  }
+
+  if (state === 'unavailable') return <p>Har du ingen länk, eller fungerar den inte längre?</p>;
+  if (state === 'sent')
+    return <p class="kp-ok" role="status">Om adressen finns hos oss har vi skickat din personliga länk till den. Titta i inkorgen och i skräpposten.</p>;
+  return (
+    <form class="kp-ask" onSubmit={send}>
+      <label for="kp-ask-email">Har du ingen länk? Skriv din e-postadress så mejlar vi den till dig.</label>
+      <div>
+        <input id="kp-ask-email" type="email" autocomplete="email" required value={email} onInput={(e) => setEmail(e.currentTarget.value)} />
+        <button class="btn" type="submit" disabled={busy}>{busy ? 'Skickar …' : 'Skicka länken'}</button>
+      </div>
+      {state && <p class="kp-error" role="alert">{state}</p>}
+    </form>
   );
 }

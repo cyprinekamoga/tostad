@@ -236,6 +236,7 @@ export default function Invoices() {
             subject={`${sending.reminder ? 'Påminnelse: faktura' : 'Faktura'} ${sending.inv.number} från TO Städ & Flytt`}
             email={sending.inv.buyer?.email}
             phone={sending.inv.buyer?.phone}
+            emailDoc={settings?.email_enabled ? { type: 'faktura', id: sending.inv.id, reminder: sending.reminder } : null}
             onClose={() => setSending(null)}
           />
         )}

@@ -203,3 +203,17 @@
   text-align: center;
   padding: 60px 0;
 }
+.kp-ask {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.kp-ask > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.kp-ask input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
