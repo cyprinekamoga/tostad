@@ -2421,3 +2421,34 @@ a.cp-stat:hover {
 .st-onway .cp-check input {
   accent-color: var(--green-700, #146c3a);
 }
+/* Inbetalningar från banken */
+.bank-rows {
+  max-height: 55vh;
+  overflow: auto;
+}
+.bank-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.bank-row input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex: none;
+}
+.bank-row span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.bank-row small {
+  overflow-wrap: anywhere;
+}
+.bank-note {
+  color: #9a3412;
+}
+.cp-row.is-muted {
+  opacity: 0.7;
+}

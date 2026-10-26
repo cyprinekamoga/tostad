@@ -27,6 +27,7 @@ import {
 import { supabase, callFunction } from '../../lib/supabase.js';
 import DocEditor from './DocEditor.jsx';
 import SendBox from './SendBox.jsx';
+import BankImport from './BankImport.jsx';
 
 const FILTERS = [
   ['obetalda', 'Unpaid'],
@@ -54,6 +55,7 @@ export default function Invoices() {
   const [editing, setEditing] = useState(null);
   const [sending, setSending] = useState(null);
   const [paying, setPaying] = useState(null);
+  const [importing, setImporting] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
 
@@ -139,7 +141,10 @@ export default function Invoices() {
     <>
       <div class="cp-head">
         <h2>Invoices</h2>
-        <button class="btn btn--sm" type="button" onClick={() => setEditing({ buyer: {}, lines: [], rut_persons: 1, delivery_date: today() })}>New invoice</button>
+        <span class="cp-actions">
+          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setImporting(true)}>Import payments</button>
+          <button class="btn btn--sm" type="button" onClick={() => setEditing({ buyer: {}, lines: [], rut_persons: 1, delivery_date: today() })}>New invoice</button>
+        </span>
       </div>
       {settings && !settings.bankgiro && (
         <p class="msg msg--error">The bankgiro number is missing. <a href="/admin/installningar">Add it under Settings</a> before you send the first invoice.</p>
@@ -241,6 +246,9 @@ export default function Invoices() {
             onClose={() => setSending(null)}
           />
         )}
+      </Modal>
+      <Modal open={importing} label="Import payments" onClose={() => setImporting(false)}>
+        {importing && <BankImport invoices={rows ?? []} onDone={load} onClose={() => setImporting(false)} />}
       </Modal>
       <Modal open={!!paying} label="Payment" onClose={() => setPaying(null)}>
         {paying && <PayForm inv={paying} onDone={() => { setPaying(null); load(); }} />}
