@@ -2452,3 +2452,12 @@ a.cp-stat:hover {
 .cp-row.is-muted {
   opacity: 0.7;
 }
+/* Uppmaning att slå på notiser */
+.st-push-ask {
+  background: var(--green-50, #f1f8f4);
+  border-color: var(--green-200, #bfe3cc);
+  justify-items: start;
+}
+.st-push-ask p {
+  margin: 0;
+}

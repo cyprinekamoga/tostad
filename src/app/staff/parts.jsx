@@ -5,6 +5,7 @@ import { formatHours, parseHours, jobHours } from '../../lib/worktime.js';
 import { today, addDays } from '../../lib/planner.js';
 import { ErrorMsg } from '../ui.jsx';
 import { colleagues, reportHours, mapsLink, onTheWay } from './api.js';
+import { pushState, turnOn, turnOff, sendTest } from './push.js';
 
 export const jobTitle = (j) => j.customer_name || j.title || SERVICE_LABELS[j.service] || 'Job';
 
@@ -280,5 +281,77 @@ export function OnTheWay({ job, onDone, small = false }) {
         </button>
       </div>
     </div>
+  );
+}
+
+/** Pushnotiser på den här telefonen. compact: bara en uppmaning att slå på, visas tills de är på. */
+export function Notifications({ compact = false }) {
+  const [state, setState] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+
+  useEffect(() => {
+    pushState().then(setState).catch(() => setState('unsupported'));
+  }, []);
+
+  async function act(fn, done) {
+    setBusy(true);
+    setError('');
+    setInfo('');
+    try {
+      await fn();
+      setState(await pushState());
+      if (done) setInfo(done);
+    } catch (e) {
+      setError(e.message);
+    }
+    setBusy(false);
+  }
+
+  if (compact) {
+    if (state !== 'off') return null;
+    return (
+      <section class="st-card st-push-ask">
+        <p>
+          <strong>Get a notification</strong> when you get a new job, or a job is changed or cancelled.
+        </p>
+        <ErrorMsg error={error} />
+        <button class="btn btn--sm" type="button" disabled={busy} onClick={() => act(turnOn)}>
+          Turn on notifications
+        </button>
+      </section>
+    );
+  }
+
+  return (
+    <section class="st-card">
+      <h3>Notifications</h3>
+      <p class="muted">You get a notification on this phone when you get a new job, are taken off a job, or a job's time, address or status changes.</p>
+      <ErrorMsg error={error} />
+      {info && <p class="msg msg--ok">{info}</p>}
+      {state === null && <p class="muted">Checking …</p>}
+      {state === 'homescreen' && (
+        <p class="msg">On iPhone, first add the app to your Home Screen (see below), open it from there, and turn on notifications here.</p>
+      )}
+      {state === 'unsupported' && <p class="msg">This browser cannot show notifications. Use Chrome on Android or the app on your iPhone Home Screen.</p>}
+      {state === 'blocked' && <p class="msg">Notifications are blocked for tostadflytt.se. Allow them in the phone settings, then come back here.</p>}
+      {state === 'off' && (
+        <button class="btn btn--block" type="button" disabled={busy} onClick={() => act(turnOn, 'Notifications are on. Send a test to check.')}>
+          Turn on notifications
+        </button>
+      )}
+      {state === 'on' && (
+        <div class="st-actions st-actions--stack">
+          <p class="msg msg--ok">Notifications are on for this phone.</p>
+          <button class="btn btn--ghost" type="button" disabled={busy} onClick={() => act(sendTest, 'A test notification is on its way.')}>
+            Send a test notification
+          </button>
+          <button class="st-link" type="button" disabled={busy} onClick={() => act(turnOff, 'Notifications are off for this phone.')}>
+            Turn off on this phone
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

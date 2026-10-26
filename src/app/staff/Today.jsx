@@ -3,7 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { today, addDays } from '../../lib/planner.js';
 import { ErrorMsg } from '../ui.jsx';
 import { myJobs, myHours, openSwaps, telLink } from './api.js';
-import { JobCard, NavButton, OnTheWay, dayName, jobTitle } from './parts.jsx';
+import { JobCard, NavButton, OnTheWay, Notifications, dayName, jobTitle } from './parts.jsx';
 
 export default function Today({ me }) {
   const [jobs, setJobs] = useState(null);
@@ -46,6 +46,7 @@ export default function Today({ me }) {
       </header>
       <ErrorMsg error={error} />
       {info && <p class="msg msg--ok">{info}</p>}
+      <Notifications compact />
 
       {reported && (
         <section class="st-card st-report">

@@ -1,8 +1,9 @@
-// Konto: kalenderlänk, lägga appen på hemskärmen och logga ut.
+// Konto: notiser, kalenderlänk, lägga appen på hemskärmen och logga ut.
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, isAdminRole, go } from '../../lib/supabase.js';
 import { ErrorMsg, copyText } from '../ui.jsx';
 import { calendarToken, newCalendarToken, calendarUrl } from './api.js';
+import { Notifications } from './parts.jsx';
 
 export default function Account({ me }) {
   const [token, setToken] = useState(null);
@@ -40,6 +41,8 @@ export default function Account({ me }) {
         <p class="muted">Want a new password? Ask your manager and you will get a link where you choose a new one.</p>
         {isAdminRole(me.profile.role) && <a class="btn btn--block" href="/admin">Go to the admin dashboard</a>}
       </section>
+
+      <Notifications />
 
       <section class="st-card">
         <h3>Your jobs in your phone's calendar</h3>

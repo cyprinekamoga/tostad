@@ -28,6 +28,12 @@
   status = 301
   force = true
 
+# Pushnotisernas service worker ska alltid hämtas på nytt.
+[[headers]]
+  for = "/push-sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
 [[headers]]
   for = "/_astro/*"
   [headers.values]
