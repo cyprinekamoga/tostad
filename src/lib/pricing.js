@@ -32,6 +32,51 @@ export const PRICES = {
   },
 };
 
+// Kontorsstädning: uppskattat månadspris utifrån yta och hur ofta. Tiden per besök räknas fram ur hur många kvm
+// en städare hinner per timme (mer smuts hinner samlas när det städas mer sällan), gånger timpriset.
+// Planlösningen påverkar, så priset visas som ett spann (±10 %) och fast pris sätts efter besök på plats.
+export const OFFICE = {
+  frequencies: {
+    varannan: { label: 'Varannan vecka', visits: 26 / 12, sqmPerHour: 100, minHours: 2 },
+    1: { label: '1 gång i veckan', visits: 52 / 12, sqmPerHour: 120, minHours: 2 },
+    2: { label: '2 gånger i veckan', visits: 104 / 12, sqmPerHour: 150, minHours: 1.5 },
+    3: { label: '3 gånger i veckan', visits: 156 / 12, sqmPerHour: 170, minHours: 1 },
+    5: { label: 'Varje vardag', visits: 260 / 12, sqmPerHour: 200, minHours: 1 },
+  },
+  spread: 0.1,
+  // Förbrukningsmaterial (städmedel, toalettpapper, tvål, pappershanddukar, soppåsar), per kvm och månad.
+  suppliesPerSqm: [2.6, 4],
+  suppliesMin: 300,
+  quoteAbove: 1000,
+};
+
+const round100 = (n) => Math.round(n / 100) * 100;
+
+/** Uppskattat månadspris exkl. moms för kontorsstädning. Svarar spann, mittpris och tid per besök. */
+export function officeEstimate({ sqm = 0, frequency = '1', supplies = false } = {}) {
+  const f = OFFICE.frequencies[frequency] ?? OFFICE.frequencies[1];
+  const rate = PRICES.kontorsstadning.perHourExVat;
+  const hours = Math.max(f.minHours, sqm / f.sqmPerHour);
+  const perVisit = hours * rate;
+  const clean = [round100(perVisit * f.visits * (1 - OFFICE.spread)), round100(perVisit * f.visits * (1 + OFFICE.spread))];
+  const material = supplies ? OFFICE.suppliesPerSqm.map((k) => round100(Math.max(OFFICE.suppliesMin, sqm * k))) : [0, 0];
+  const low = clean[0] + material[0];
+  const high = clean[1] + material[1];
+  return {
+    low,
+    high,
+    mid: round100((low + high) / 2),
+    clean,
+    material,
+    hours: Math.round(hours * 4) / 4,
+    perVisit: [round100(perVisit * (1 - OFFICE.spread)), round100(perVisit * (1 + OFFICE.spread))],
+    visits: f.visits,
+    label: f.label,
+    rate,
+    quote: sqm > OFFICE.quoteAbove,
+  };
+}
+
 // Hur många arbetstimmar (mantimmar) ett normalt bohag brukar ta att bära ut och in.
 // Används för att räkna fram ett fast pris. BEKRÄFTA mot er erfarenhet.
 export const HOME_SIZES = {

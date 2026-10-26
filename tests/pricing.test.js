@@ -109,3 +109,20 @@ test('postnummerkontroll: Stockholms län ja, övriga frågar vi om', () => {
   assert.equal(postcodeStatus('722 11'), 'ask'); // Västerås
   assert.equal(postcodeStatus('123'), 'invalid');
 });
+
+test('kontorsstädning: uppskattning utifrån kvm och hur ofta', async () => {
+  const { officeEstimate } = await import('../src/lib/pricing.js');
+  // Kundförfrågan: 380 kvm en gång i veckan, vanlig städning
+  const e = officeEstimate({ sqm: 380, frequency: '1' });
+  assert.deepEqual([e.low, e.high], [3100, 3800]);
+  assert.equal(e.hours, 3.25);
+  const withSupplies = officeEstimate({ sqm: 380, frequency: '1', supplies: true });
+  assert.deepEqual(withSupplies.material, [1000, 1500]);
+  assert.deepEqual([withSupplies.low, withSupplies.high], [4100, 5300]);
+  // Litet kontor: minst två timmar per besök
+  assert.equal(officeEstimate({ sqm: 60, frequency: '1' }).hours, 2);
+  // Oftare städning ger lägre pris per besök men högre per månad
+  const daily = officeEstimate({ sqm: 380, frequency: '5' });
+  assert.ok(daily.perVisit[1] < e.perVisit[1] && daily.high > e.high);
+  assert.equal(officeEstimate({ sqm: 1200 }).quote, true);
+});

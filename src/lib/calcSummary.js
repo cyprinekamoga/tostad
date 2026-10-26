@@ -80,9 +80,12 @@ export function describeCalc(text) {
   }
   if (s === 'fonsterputs') rows.push(['Windows', windows(c.fp2, c.fp4)]);
   if (s === 'kontor') {
+    if (c.kontorKvm) rows.push(['Office area', `${num(c.kontorKvm)} m²`]);
+    if (c.frekvens) rows.push(['How often', { varannan: 'Every other week', 1: 'Once a week', 2: 'Twice a week', 3: '3 times a week', 5: 'Every weekday' }[c.frekvens] ?? c.frekvens]);
+    if (c.kontorKvm) rows.push(['Supplies', c.material === 'ja' ? 'Yes, we bring them' : 'No, the customer provides them']);
     if (c.kontorTimmar) rows.push(['Time per visit', plural(num(c.kontorTimmar), 'hour', 'hours')]);
     if (c.besok) rows.push(['Visits per month', String(num(c.besok))]);
   }
-  if (c.pris && num(c.pris)) rows.push(['Price', `${new Intl.NumberFormat('sv-SE').format(num(c.pris))} kr${s === 'kontor' || c.foretag === 'ja' ? ' excl. VAT' : ' after RUT'}`]);
+  if (c.pris && num(c.pris)) rows.push([s === 'kontor' && c.kontorKvm ? 'Estimated price per month' : 'Price', `${new Intl.NumberFormat('sv-SE').format(num(c.pris))} kr${s === 'kontor' || c.foretag === 'ja' ? ' excl. VAT' : ' after RUT'}`]);
   return rows;
 }

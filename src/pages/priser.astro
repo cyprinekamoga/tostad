@@ -91,7 +91,7 @@ const faq = [
             <thead><tr><th scope="col">Tjänst</th><th scope="col">Vardag</th><th scope="col">Helg</th></tr></thead>
             <tbody>
               {bizCrews.map((c) => <tr><th scope="row">Flytt, {c.label.toLowerCase()}</th><td>{c.weekday} kr/h</td><td>{c.weekend} kr/h</td></tr>)}
-              <tr><th scope="row"><a href="/kontorsstadning">Kontorsstädning</a></th><td colspan="2">{PRICES.kontorsstadning.perHourExVat} kr/h</td></tr>
+              <tr><th scope="row"><a href="/kontorsstadning">Kontorsstädning</a></th><td colspan="2">{PRICES.kontorsstadning.perHourExVat} kr/h, <a href="/kontorsstadning#kalkylator">räkna efter kvm</a></td></tr>
             </tbody>
           </table>
           <p class="small muted">Inget rutavdrag för företag. Vi ger gärna ett fast pris efter ett besök.</p>

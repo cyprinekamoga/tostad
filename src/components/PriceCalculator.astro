@@ -2,7 +2,7 @@
 // Interaktiv priskalkylator. Fungerar utan JavaScript som ett vanligt formulär till /boka,
 // och räknar live med samma prislogik som testerna (src/lib/pricing.js).
 import Icon from './Icon.astro';
-import { HOME_SIZES, PRICES, flyttstadningPrice, movePrice, hourlyCleaningPrice, fonsterputsPrice, formatKr } from '../lib/pricing.js';
+import { HOME_SIZES, PRICES, OFFICE, flyttstadningPrice, movePrice, hourlyCleaningPrice, fonsterputsPrice, officeEstimate, formatKr } from '../lib/pricing.js';
 import { site } from '../config/site.js';
 
 interface Props {
@@ -20,7 +20,7 @@ const allServices = [
   { key: 'hemstadning', label: 'Hemstädning', sub: '125 kr/h' },
   { key: 'storstadning', label: 'Storstädning', sub: '160 kr/h' },
   { key: 'fonsterputs', label: 'Fönsterputs', sub: '64 kr/fönster' },
-  { key: 'kontor', label: 'Kontor', sub: '249 kr/h ex. moms' },
+  { key: 'kontor', label: 'Kontor', sub: 'efter kvm, ex. moms' },
 ];
 const list = only ? allServices.filter((s) => only.includes(s.key)) : allServices;
 const start = list.some((s) => s.key === initial) ? initial : list[0].key;
@@ -34,7 +34,7 @@ const pre =
       : start === 'fonsterputs'
         ? fonsterputsPrice({ windows2: 8 }).pay
         : start === 'kontor'
-          ? 4 * 4 * PRICES.kontorsstadning.perHourExVat
+          ? officeEstimate({ sqm: 150, frequency: '1' }).mid
           : flyttstadningPrice({ sqm: 60 }).pay;
 const sizes = Object.entries(HOME_SIZES);
 const crews = Object.entries(PRICES.flytt.crews);
@@ -194,16 +194,25 @@ const crews = Object.entries(PRICES.flytt.crews);
     <!-- Kontor -->
     <fieldset class="panel" data-show="kontor">
       <legend class="calc-legend">Kontorsstädning</legend>
-      <div class="row-2">
-        <div class="field">
-          <label class="lbl" for={`${id}-kh`}>Timmar per besök: <output data-for="kontorTimmar">4</output></label>
-          <input type="range" id={`${id}-kh`} name="kontorTimmar" min="1" max="12" step="0.5" value="4" />
-        </div>
-        <div class="field">
-          <label class="lbl" for={`${id}-kb`}>Besök per månad: <output data-for="besok">4</output></label>
-          <input type="range" id={`${id}-kb`} name="besok" min="1" max="22" step="1" value="4" />
+      <div class="field">
+        <label class="lbl" for={`${id}-okvm`}>Kontorets yta: <output data-for="kontorKvm">150</output> kvm</label>
+        <input type="range" id={`${id}-okvm`} name="kontorKvm" min="30" max="1500" step="10" value="150" />
+      </div>
+      <div class="field">
+        <span class="lbl">Hur ofta?</span>
+        <div class="seg seg--wrap">
+          {
+            Object.entries(OFFICE.frequencies).map(([key, f]) => (
+              <label>
+                <input type="radio" name="frekvens" value={key} checked={key === '1'} />
+                <span>{f.label}</span>
+              </label>
+            ))
+          }
         </div>
       </div>
+      <label class="toggle"><input type="checkbox" name="material" value="ja" /> Vi tar med förbrukningsmaterial (städmedel, toalettpapper, tvål, pappershanddukar och soppåsar)</label>
+      <p class="small muted">Vanlig städning: dammtorkning av fria ytor och skrivbord, dammsugning och moppning, papperskorgar, toaletter och pentry.</p>
     </fieldset>
   </div>
 
@@ -213,12 +222,12 @@ const crews = Object.entries(PRICES.flytt.crews);
     <p class="r-sub" data-out="sub">efter rutavdrag, inkl. moms</p>
     <dl class="r-rows" data-out="rows"></dl>
     <ul class="r-promise">
-      <li><Icon name="check" /> Priset gäller om uppgifterna stämmer</li>
+      <li data-fixed><Icon name="check" /> Priset gäller om uppgifterna stämmer</li>
       <li><Icon name="check" /> Ingen förskottsbetalning</li>
-      <li><Icon name="check" /> RUT dras direkt på fakturan</li>
+      <li data-fixed><Icon name="check" /> RUT dras direkt på fakturan</li>
     </ul>
     <input type="hidden" name="pris" value={String(pre)} data-out="priceField" />
-    <button class="btn btn--block" type="submit">Boka till detta pris <Icon name="arrow" /></button>
+    <button class="btn btn--block" type="submit"><span data-out="cta">Boka till detta pris</span> <Icon name="arrow" /></button>
     <a class="r-alt" href={site.whatsappHref} rel="noopener"><Icon name="whatsapp" /> Hellre skicka bilder på WhatsApp?</a>
   </aside>
 </form>
@@ -542,7 +551,7 @@ const crews = Object.entries(PRICES.flytt.crews);
 </style>
 
 <script>
-  import { flyttstadningPrice, movePrice, hourlyCleaningPrice, fonsterputsPrice, PRICES, formatKr } from '../lib/pricing.js';
+  import { flyttstadningPrice, movePrice, hourlyCleaningPrice, fonsterputsPrice, officeEstimate, PRICES, formatKr } from '../lib/pricing.js';
 
   type Row = [string, string] | [string, string, 'note'];
 
@@ -646,14 +655,24 @@ const crews = Object.entries(PRICES.flytt.crews);
         total = r.pay;
         rows.push(['Pris före RUT', formatKr(r.full)], ['Rutavdrag 50 %', formatKr(r.rut)], ['Karmar och fönsterbrädor ingår', '', 'note']);
       } else if (svc === 'kontor') {
-        const hours = num('kontorTimmar') * num('besok');
-        total = hours * PRICES.kontorsstadning.perHourExVat;
-        label = 'Pris per månad';
-        sub = 'exkl. moms';
-        rows.push(['Timmar per månad', `${String(hours).replace('.', ',')} h`], ['Timpris', `${PRICES.kontorsstadning.perHourExVat} kr/h`], ['Fast månadspris efter besök på plats', '', 'note']);
+        const r = officeEstimate({ sqm: num('kontorKvm'), frequency: val('frekvens') || '1', supplies: val('material') === 'ja' });
+        total = r.mid;
+        label = 'Uppskattat pris per månad';
+        sub = `exkl. moms, ${formatKr(r.low)} till ${formatKr(r.high)}`;
+        rows.push(['Tid per besök', `ca ${String(r.hours).replace('.', ',')} h`], ['Pris per besök', `${formatKr(r.perVisit[0])} till ${formatKr(r.perVisit[1])}`], ['Timpris', `${r.rate} kr/h`]);
+        if (r.material[1]) rows.push(['Förbrukningsmaterial', `${formatKr(r.material[0])} till ${formatKr(r.material[1])}/mån`]);
+        rows.push([
+          r.quote
+            ? 'För kontor över 1 000 kvm ger vi alltid offert efter besök.'
+            : 'Uppskattning. Priset beror också på planlösningen, till exempel antal rum, toaletter och pentryn, så det kan bli något högre eller lägre. Vi tittar gratis på lokalen och ger sedan ett fast månadspris.',
+          '',
+          'note',
+        ]);
       }
 
       $('[data-out="label"]').textContent = label;
+      $('[data-out="cta"]').textContent = svc === 'kontor' ? 'Boka gratis besök' : 'Boka till detta pris';
+      form.querySelectorAll<HTMLElement>('[data-fixed]').forEach((el) => (el.style.display = svc === 'kontor' ? 'none' : ''));
       $('[data-out="sub"]').textContent = sub;
       animateNumber($('[data-out="total"]'), total);
       ($('[data-out="priceField"]') as HTMLInputElement).value = String(Math.round(total));

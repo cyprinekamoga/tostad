@@ -185,10 +185,10 @@ export const services = [
     slug: 'kontorsstadning',
     group: 'stad',
     name: 'Kontorsstädning',
-    short: '249 kr/h exkl. moms. Fast schema, en kontaktperson.',
-    title: 'Kontorsstädning i Stockholm för 249 kr/h exkl. moms',
+    short: 'Pris efter kvm och hur ofta, 249 kr/h exkl. moms. Fast schema, en kontaktperson.',
+    title: 'Kontorsstädning i Stockholm, pris efter kvm',
     description:
-      'Kontorsstädning och lokalvård för företag i Stockholm från 249 kr/h exkl. moms. Fast schema, samma team och en kontaktperson. Begär offert idag.',
+      'Kontorsstädning för företag i Stockholm. Räkna ut ett ungefärligt månadspris efter kvm och hur ofta. Gratis besök och fast månadspris.',
     h1: 'Kontorsstädning för företag i Stockholm',
     lead: 'Ett rent kontor utan att du behöver tänka på det. Vi kommer på fasta tider, med samma team, och du har en kontaktperson om något behöver ändras.',
     image: 'office',
@@ -199,12 +199,21 @@ export const services = [
     schemaType: 'Kontorsstädning',
     features: [],
     highlights: [
+      { title: 'Pris efter kvm', text: 'Räkna ut ett ungefärligt månadspris efter yta och hur ofta. Fast pris efter ett gratis besök.' },
       { title: 'Fast schema', text: 'Varje dag, varje vecka eller varannan vecka, efter era behov.' },
       { title: 'Samma team', text: 'Personalen lär sig era lokaler och rutiner.' },
       { title: 'Flytt av kontor', text: 'Vi flyttar även kontor. 2 flyttare och lastbil kostar från 952 kr/h exkl. moms.' },
     ],
     faq: [
-      { q: 'Vad kostar kontorsstädning?', a: 'Kontorsstädning kostar 249 kr per timme exklusive moms. Vi besöker gärna lokalen och ger ett fast månadspris.' },
+      {
+        q: 'Vad kostar kontorsstädning?',
+        a: 'Priset räknas på kontorets yta och hur ofta vi städar, med ett timpris på 249 kr exklusive moms. Ett kontor på 380 kvm med vanlig städning en gång i veckan kostar ungefär 3 100 till 3 800 kr i månaden exklusive moms. Planlösningen påverkar också, så vi tittar gratis på lokalen och ger sedan ett fast månadspris.',
+      },
+      {
+        q: 'Ingår städmedel och förbrukningsmaterial?',
+        a: 'Ni väljer själva. Antingen står ni för städmedel, toalettpapper, tvål, pappershanddukar och soppåsar, eller så tar vi med och fyller på dem. Materialet kostar ungefär 2,60 till 4 kr per kvm och månad, beroende främst på hur många som arbetar på kontoret.',
+      },
+      { q: 'Vad ingår i vanlig kontorsstädning?', a: 'Dammtorkning av fria ytor och skrivbord, dammsugning och moppning av golv, tömning av papperskorgar, städning av toaletter samt pentry med bänkar, diskho och kaffemaskin.' },
       { q: 'Kan ni städa utanför kontorstid?', a: 'Ja, tidigt på morgonen, på kvällen eller på helger.' },
     ],
     related: ['flyttfirma', 'fonsterputs', 'storstadning'],
