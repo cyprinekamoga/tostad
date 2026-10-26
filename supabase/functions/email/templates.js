@@ -135,13 +135,21 @@ export function quoteMail({ doc, url, company }) {
 
 /** Faktura, kreditfaktura eller påminnelse med länk. */
 export function invoiceMail({ doc, url, reminder = false, company }) {
+  const fee = Number(doc.reminder_fee) || 0;
   if (reminder)
     return mail(`Påminnelse: faktura ${doc.number} från ${company.name}`, {
-      preheader: `${kr(doc.to_pay)}, förföll ${doc.due_date}`,
+      preheader: `${kr(Number(doc.to_pay) + fee)}, förföll ${doc.due_date}`,
       blocks: [
         hello(doc.buyer?.name),
         `Vi har inte fått betalt för faktura ${doc.number} på ${kr(doc.to_pay)}, som förföll ${doc.due_date}. Har du redan betalat kan du bortse från det här mejlet.`,
-        { list: [`Bankgiro: ${company.bankgiro ?? 'se fakturan'}`, `OCR-nummer: ${doc.ocr}`, `Att betala: ${kr(doc.to_pay)}`] },
+        {
+          list: [
+            `Bankgiro: ${company.bankgiro ?? 'se fakturan'}`,
+            `OCR-nummer: ${doc.ocr}`,
+            ...(fee ? [`Fakturabelopp: ${kr(doc.to_pay)}`, `Påminnelseavgift: ${kr(fee)}`] : []),
+            `Att betala: ${kr(Number(doc.to_pay) + fee)}`,
+          ],
+        },
         { button: ['Visa fakturan', url] },
         'Har du frågor om fakturan? Svara på det här mejlet.',
       ],

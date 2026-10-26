@@ -250,7 +250,7 @@ async function due(s: Settings, now: Date): Promise<Item[]> {
     const lastDue = new Date(Date.parse(`${z.date}T12:00:00Z`) - days * DAY).toISOString().slice(0, 10);
     const { data } = await db
       .from('invoices')
-      .select('id, number, kind, buyer, customer_id, to_pay, due_date, ocr, token, reminder_count, last_reminder_at, issue_date')
+      .select('id, number, kind, buyer, customer_id, to_pay, due_date, ocr, token, reminder_count, last_reminder_at, reminder_fee, issue_date')
       .eq('kind', 'faktura')
       .eq('status', 'skickad')
       .gte('issue_date', String(since).slice(0, 10))
@@ -260,7 +260,9 @@ async function due(s: Settings, now: Date): Promise<Item[]> {
     for (const inv of data ?? []) {
       if (inv.last_reminder_at && Date.parse(inv.last_reminder_at) > now.getTime() - days * DAY) continue;
       const to = (inv.buyer as { email?: string } | null)?.email;
-      const mail = invoiceMail({ doc: inv, url: urls.doc(inv.token), reminder: true, company });
+      // Avgiften sätts av databasen när påminnelsen registreras; mejlet visar den redan nu.
+      const fee = Number(inv.reminder_fee) || (Number(s.reminder_fee) > 0 && s.reminder_fee_from && inv.issue_date >= String(s.reminder_fee_from) ? Number(s.reminder_fee) : 0);
+      const mail = invoiceMail({ doc: { ...inv, reminder_fee: fee }, url: urls.doc(inv.token), reminder: true, company });
       const base = { kind: `Payment reminder ${inv.reminder_count + 1}`, who: (inv.buyer as { name?: string } | null)?.name ?? '', subject: mail.subject };
       if (!isEmail(to)) items.push({ ...base, to: null, skip: 'No email on the invoice' });
       else if (z.hour < 9 || z.hour >= 18) items.push({ ...base, to, skip: 'Is sent between 9 and 18' });
@@ -401,7 +403,7 @@ Deno.serve(async (req) => {
         return error ? reply(req, 502, { error }) : reply(req, 200, { ok: true, to });
       }
       if (body.type === 'faktura') {
-        const { data: doc } = await db.from('invoices').select('id, number, kind, status, buyer, customer_id, to_pay, rut, due_date, ocr, token').eq('id', id).maybeSingle();
+        const { data: doc } = await db.from('invoices').select('id, number, kind, status, buyer, customer_id, to_pay, rut, due_date, ocr, token, reminder_fee').eq('id', id).maybeSingle();
         if (!doc || doc.status === 'utkast') return reply(req, 404, { error: 'The invoice is not sent yet.' });
         const to = (doc.buyer as { email?: string } | null)?.email;
         if (!isEmail(to)) return reply(req, 400, { error: 'The invoice has no email address. Add it to the customer.' });

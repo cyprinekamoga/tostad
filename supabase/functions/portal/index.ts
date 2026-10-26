@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       db.from('quotes').select('number, status, service, to_pay, rut, valid_until, sent_at, decided_at, token').eq('customer_id', c.id).neq('status', 'utkast').order('created_at', { ascending: false }).limit(50),
       db
         .from('invoices')
-        .select('number, kind, status, issue_date, due_date, to_pay, ocr, paid_at, token')
+        .select('number, kind, status, issue_date, due_date, to_pay, reminder_fee, ocr, paid_at, token')
         .eq('customer_id', c.id)
         .neq('status', 'utkast')
         .order('issue_date', { ascending: false })

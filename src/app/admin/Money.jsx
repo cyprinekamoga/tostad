@@ -179,7 +179,7 @@ function AccountantExport({ invoices }) {
         </div>
       </div>
       <p>
-        {count('faktura')} invoices and credit notes, {count('betalning')} payments, {count('rut')} RUT payouts.
+        {count('faktura')} invoices and credit notes, {count('betalning')} payments, {count('rut')} RUT payouts{count('avgift') ? `, ${count('avgift')} reminder fees` : ''}.
       </p>
       <div class="cp-actions">
         <button class="btn btn--sm" type="button" disabled={!list.length} onClick={() => download(encodeCp437(sie(list, { company: companyFor(null), from, to, generated: today() })), `${name}.se`, 'application/octet-stream')}>

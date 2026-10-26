@@ -188,6 +188,7 @@ export default function Invoices() {
                   {inv.sent_at ? `Sent ${formatDateTime(inv.sent_at)}` : `Created ${formatDateTime(inv.created_at)}`}
                   {inv.paid_at && ` · paid ${inv.paid_at}${inv.paid_amount != null && Number(inv.paid_amount) !== Number(inv.to_pay) ? ` (${formatKrWhole(inv.paid_amount)})` : ''}`}
                   {inv.reminder_count > 0 && ` · ${inv.reminder_count} reminder${inv.reminder_count > 1 ? 's' : ''}, latest ${formatDateTime(inv.last_reminder_at)}`}
+                  {Number(inv.reminder_fee) > 0 && ` · reminder fee ${formatKrWhole(inv.reminder_fee)}`}
                 </small>
                 <span class="cp-actions">
                   {inv.status === 'utkast' && (
@@ -230,7 +231,7 @@ export default function Invoices() {
         {sending && (
           <SendBox
             title={sending.reminder ? `Reminder for invoice ${sending.inv.number}` : `${sending.inv.kind === 'kredit' ? 'Credit note' : 'Invoice'} ${sending.inv.number} is sent`}
-            intro={sending.reminder ? 'No reminder fee is charged. Send the text to the customer.' : 'The invoice has a number and OCR. Send the link to the customer; the invoice is there as a PDF.'}
+            intro={sending.reminder ? (Number(sending.inv.reminder_fee) ? `A reminder fee of ${formatKrWhole(sending.inv.reminder_fee)} is added. Send the text to the customer.` : 'No reminder fee is charged on this invoice. Send the text to the customer.') : 'The invoice has a number and OCR. Send the link to the customer; the invoice is there as a PDF.'}
             url={docUrl(sending.inv.token)}
             text={messageFor('faktura', sending.inv, docUrl(sending.inv.token), sending.reminder)}
             subject={`${sending.reminder ? 'Påminnelse: faktura' : 'Faktura'} ${sending.inv.number} från TO Städ & Flytt`}
@@ -250,7 +251,7 @@ export default function Invoices() {
 
 function PayForm({ inv, onDone }) {
   const [date, setDate] = useState(today());
-  const [amount, setAmount] = useState(String(Math.round(Number(inv.to_pay))));
+  const [amount, setAmount] = useState(String(Math.round(Number(inv.to_pay) + Number(inv.reminder_fee || 0))));
   const [error, setError] = useState('');
   async function submit(e) {
     e.preventDefault();

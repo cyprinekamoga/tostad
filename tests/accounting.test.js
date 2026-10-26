@@ -61,3 +61,13 @@ test('Excel-listor med decimalkomma', () => {
   const vcsv = voucherCsv(vouchers([inv], '2026-10-01', '2026-10-31'));
   assert.match(vcsv, /"1";"2026-10-05";"Faktura 1005 Anna Ek";"1510";"Kundfordringar";"1249,00";""/);
 });
+
+test('påminnelseavgift bokförs momsfritt på 3930', () => {
+  const late = invoice(1004, [{ qty: 1, price: 1000, vat: 25 }], { reminder_fee: 60, reminder_fee_at: '2026-10-25', status: 'betald', paid_at: '2026-10-28', paid_amount: 1310 });
+  const list = vouchers([late], '2026-10-01', '2026-10-31');
+  const fee = list.find((v) => v.kind === 'avgift');
+  assert.equal(fee.text, 'Påminnelseavgift Faktura 1004 Anna Ek');
+  assert.deepEqual(fee.rows, [{ account: 1510, amount: 60 }, { account: 3930, amount: -60 }]);
+  // Fordran går jämnt ut när kunden betalar faktura och avgift.
+  assert.equal(list.flatMap((v) => v.rows).filter((r) => r.account === 1510).reduce((s, r) => s + r.amount, 0), 0);
+});

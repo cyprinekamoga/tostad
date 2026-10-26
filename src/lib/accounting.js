@@ -7,6 +7,7 @@ export const ACCOUNTS = {
   rutReceivable: [1513, 'Kundfordringar - delad faktura'],
   bank: [1930, 'Företagskonto'],
   rounding: [3740, 'Öres- och kronutjämning'],
+  reminderFee: [3930, 'Påminnelseavgifter'],
   sales: { 25: [3001, 'Försäljning tjänster 25 % moms'], 12: [3002, 'Försäljning tjänster 12 % moms'], 6: [3003, 'Försäljning tjänster 6 % moms'], 0: [3004, 'Försäljning tjänster momsfri'] },
   vat: { 25: [2611, 'Utgående moms 25 %'], 12: [2621, 'Utgående moms 12 %'], 6: [2631, 'Utgående moms 6 %'] },
 };
@@ -57,6 +58,11 @@ export function vouchers(invoices, from, to) {
       if (diff) rows.push({ account: account(ACCOUNTS.rounding), amount: -diff });
       out.push({ date: inv.issue_date, text: label, kind: 'faktura', rows });
     }
+    // Påminnelseavgiften är momsfri och bokförs den dag den lades på.
+    if (inRange(inv.reminder_fee_at) && Number(inv.reminder_fee)) {
+      const amount = round2(inv.reminder_fee);
+      out.push({ date: inv.reminder_fee_at, text: `Påminnelseavgift ${label}`, kind: 'avgift', rows: [{ account: account(ACCOUNTS.receivable), amount }, { account: account(ACCOUNTS.reminderFee), amount: -amount }] });
+    }
     if (inRange(inv.paid_at) && Number(inv.paid_amount)) {
       const amount = round2(inv.paid_amount);
       out.push({ date: inv.paid_at, text: `Inbetalning ${label}`, kind: 'betalning', rows: [{ account: account(ACCOUNTS.bank), amount }, { account: account(ACCOUNTS.receivable), amount: -amount }] });
@@ -70,7 +76,7 @@ export function vouchers(invoices, from, to) {
 }
 
 const allAccounts = () => {
-  const list = [ACCOUNTS.receivable, ACCOUNTS.rutReceivable, ACCOUNTS.bank, ACCOUNTS.rounding, ...Object.values(ACCOUNTS.sales), ...Object.values(ACCOUNTS.vat)];
+  const list = [ACCOUNTS.receivable, ACCOUNTS.rutReceivable, ACCOUNTS.bank, ACCOUNTS.rounding, ACCOUNTS.reminderFee, ...Object.values(ACCOUNTS.sales), ...Object.values(ACCOUNTS.vat)];
   return new Map(list.map(([n, name]) => [n, name]));
 };
 
@@ -121,7 +127,7 @@ const num = (n) => (n === null || n === undefined || n === '' ? '' : round2(n).t
 
 /** Fakturalista för Excel (semikolon och decimalkomma, som svenska Excel vill ha). */
 export function invoiceCsv(invoices, from, to, docUrl) {
-  const head = ['Nummer', 'Typ', 'Fakturadatum', 'Förfallodag', 'Kund', 'Netto 25 %', 'Moms 25 %', 'Netto övrigt', 'Moms övrigt', 'Totalt', 'RUT', 'Öresavrundning', 'Att betala', 'OCR', 'Status', 'Betald', 'Betalt belopp', 'RUT-status', 'RUT utbetalt', 'Länk'];
+  const head = ['Nummer', 'Typ', 'Fakturadatum', 'Förfallodag', 'Kund', 'Netto 25 %', 'Moms 25 %', 'Netto övrigt', 'Moms övrigt', 'Totalt', 'RUT', 'Öresavrundning', 'Att betala', 'Påminnelseavgift', 'OCR', 'Status', 'Betald', 'Betalt belopp', 'RUT-status', 'RUT utbetalt', 'Länk'];
   const rows = invoices
     .filter((i) => i.status !== 'utkast' && i.number && i.issue_date >= from && i.issue_date <= to)
     .sort((a, b) => a.number - b.number)
@@ -142,6 +148,7 @@ export function invoiceCsv(invoices, from, to, docUrl) {
         num(i.rut ?? 0),
         num(i.rounding ?? 0),
         num(i.to_pay),
+        num(i.reminder_fee ?? 0),
         i.ocr ?? '',
         { skickad: 'Obetald', betald: 'Betald', krediterad: 'Krediterad' }[i.status] ?? i.status,
         i.paid_at ?? '',

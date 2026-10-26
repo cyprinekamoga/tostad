@@ -167,8 +167,9 @@ export default function Portal() {
                     <strong>Faktura {i.number}</strong>
                     <small>{late ? 'Förföll' : 'Förfaller'} {short(i.due_date)}</small>
                   </span>
-                  <strong class="kp-amount">{formatKrWhole(i.to_pay)}</strong>
+                  <strong class="kp-amount">{formatKrWhole(Number(i.to_pay) + Number(i.reminder_fee || 0))}</strong>
                 </div>
+                {Number(i.reminder_fee) > 0 && <small>Inklusive påminnelseavgift {formatKrWhole(i.reminder_fee)}</small>}
                 {bankgiro && <p class="kp-pay">Bankgiro <strong>{bankgiro}</strong> · OCR <strong>{i.ocr}</strong></p>}
                 <a class="kp-link" href={docLink(i.token)}>Visa fakturan (PDF)</a>
               </article>

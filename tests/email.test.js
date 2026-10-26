@@ -61,3 +61,11 @@ test('avslag till sökande', async () => {
   assert.match(m.text, /valt att gå vidare med andra kandidater/);
   assert.match(m.text, /lycka till/);
 });
+
+test('påminnelse med påminnelseavgift', () => {
+  const doc = { number: 1005, kind: 'faktura', buyer: { name: 'Eva Ek' }, to_pay: 2450, rut: 0, due_date: '2026-11-10', ocr: '100574', reminder_fee: 60 };
+  const m = invoiceMail({ doc, url: urls.doc('t1'), reminder: true, company });
+  assert.match(m.text, /Påminnelseavgift: 60 kr/);
+  assert.match(m.text, /Att betala: 2 510 kr/);
+  assert.doesNotMatch(invoiceMail({ doc: { ...doc, reminder_fee: 0 }, url: urls.doc('t1'), reminder: true, company }).text, /Påminnelseavgift/);
+});

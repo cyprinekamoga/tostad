@@ -33,6 +33,9 @@ export default function Settings() {
         quote_days: Number(form.quote_days),
         invoice_note: form.invoice_note.trim() || null,
         late_interest: form.late_interest.trim(),
+        reminder_fee: Number(form.reminder_fee) || 0,
+        // Avgiften gäller fakturor utställda från den dag den slogs på.
+        reminder_fee_from: Number(form.reminder_fee) > 0 ? (form.reminder_fee_from ?? new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' })) : null,
         email: form.email.trim(),
         phone: form.phone.trim(),
       });
@@ -95,6 +98,16 @@ export default function Settings() {
         <div class="field">
           <label for="s-late">Late payment interest text (Swedish, shown on invoices)</label>
           <input id="s-late" type="text" maxLength={500} value={form.late_interest} onInput={set('late_interest')} />
+        </div>
+        <div class="field">
+          <label for="s-fee">Reminder fee</label>
+          <select id="s-fee" value={String(Number(form.reminder_fee) || 0)} onChange={set('reminder_fee')}>
+            <option value="0">No fee</option>
+            {[30, 40, 50, 60].map((n) => <option value={String(n)}>{n} kr</option>)}
+          </select>
+          <small class="hint">
+            Added once, with the first reminder, on invoices issued{form.reminder_fee_from ? ` from ${form.reminder_fee_from}` : ' from the day you turn it on'}. The law allows at most 60 kr, and the invoice must say so: keep it in the late payment text above.
+          </small>
         </div>
         <div class="field">
           <label for="s-note">Extra text on invoices (Swedish, optional)</label>

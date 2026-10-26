@@ -219,8 +219,11 @@ export function messageFor(kind, doc, url, reminder = false) {
   const first = (doc.buyer?.name ?? '').split(' ')[0];
   const hi = first ? `Hej ${first}!` : 'Hej!';
   if (kind === 'offert') return `${hi}\n\nHär är vår offert ${doc.number} från TO Städ & Flytt. Du kan läsa den och acceptera direkt via länken:\n${url}\n\nHör av dig om du har frågor.\n\nVänliga hälsningar\nTO Städ & Flytt\n072 222 88 00`;
-  if (reminder)
-    return `${hi}\n\nVi har inte fått betalt för faktura ${doc.number} på ${kr(doc.to_pay)}, som förföll ${doc.due_date}. Har du redan betalat kan du bortse från detta. Fakturan med OCR-nummer finns här:\n${url}\n\nVänliga hälsningar\nTO Städ & Flytt\n072 222 88 00`;
+  if (reminder) {
+    const fee = Number(doc.reminder_fee) || 0;
+    const owed = fee ? ` En påminnelseavgift på ${kr(fee)} har lagts till, så att betala är nu ${kr(Number(doc.to_pay) + fee)}.` : '';
+    return `${hi}\n\nVi har inte fått betalt för faktura ${doc.number} på ${kr(doc.to_pay)}, som förföll ${doc.due_date}.${owed} Har du redan betalat kan du bortse från detta. Fakturan med OCR-nummer finns här:\n${url}\n\nVänliga hälsningar\nTO Städ & Flytt\n072 222 88 00`;
+  }
   return `${hi}\n\nTack för att du anlitade TO Städ & Flytt! Här är faktura ${doc.number} på ${kr(doc.to_pay)} med förfallodag ${doc.due_date}:\n${url}\n\nVänliga hälsningar\nTO Städ & Flytt\n072 222 88 00`;
 }
 
