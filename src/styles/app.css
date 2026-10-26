@@ -2383,3 +2383,41 @@ a.cp-stat:hover {
 .as-setup code {
   font-size: 0.85rem;
 }
+/* "We are on our way": välj när ni är framme och om kunden får SMS */
+.st-onway {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  width: 100%;
+}
+.st-onway-q {
+  margin: 0;
+  font-weight: 700;
+}
+.st-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.st-chip {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.st-chip.is-on {
+  border-color: var(--green-600, #1a7f45);
+  background: var(--green-50, #f1f8f4);
+  color: var(--green-700, #146c3a);
+}
+.st-onway .cp-check input {
+  accent-color: var(--green-700, #146c3a);
+}

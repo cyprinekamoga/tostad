@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { smsPhone, fill, plan, isSendTime, swedishMidnight } from '../supabase/functions/sms/messages.js';
+import { smsPhone, fill, plan, isSendTime, swedishMidnight, onWayMessage } from '../supabase/functions/sms/messages.js';
 
 const settings = {
   phone: '072 222 88 00',
@@ -53,4 +53,17 @@ test('SMS till kunden kvällen före, inget till personalen', () => {
 
   const withCompanies = plan(jobs, { ...settings, sms_company_customers: true }, '2026-10-30');
   assert.match(withCompanies.find((m) => m.job_id === 'j2').body, /^Hej Spic and Span!/);
+});
+
+test('SMS när personalen är på väg', () => {
+  const s = { ...settings, sms_onway_enabled: true, sms_onway_text: 'Hej {namn}! {team} från TO Städ & Flytt är på väg till {adress} och är framme om ca {minuter} min. Frågor? Ring {telefon}' };
+  const job = { service: 'flyttstadning', street: 'Kungsgatan 12', city: 'Eskilstuna', customers: { name: 'Sara Lind', phone: '0701234567', kind: 'private' }, job_staff: [{ profiles: anna }, { profiles: omar }] };
+  const m = onWayMessage(job, s, 30);
+  assert.equal(m.phone, '+46701234567');
+  assert.equal(m.body, 'Hej Sara! Anna och Omar från TO Städ & Flytt är på väg till Kungsgatan 12, Eskilstuna och är framme om ca 30 min. Frågor? Ring 072 222 88 00');
+  assert.ok(m.body.length <= 160);
+  assert.equal(onWayMessage(job, s, 7).skip, 'Choose when you arrive');
+  assert.equal(onWayMessage({ ...job, customers: { ...job.customers, kind: 'company' } }, s, 30).skip, 'Company customers do not get SMS');
+  assert.equal(onWayMessage({ ...job, customers: { ...job.customers, phone: '016-12 34 56' } }, s, 30).skip, 'The customer has no mobile number');
+  assert.equal(onWayMessage(job, { ...s, sms_onway_enabled: false }, 30).skip, 'SMS when on the way is turned off');
 });

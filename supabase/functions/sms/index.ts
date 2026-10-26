@@ -1,8 +1,8 @@
 // SMS till kunderna kvällen före via 46elks. Anropas varje timme av databasens schema (pg_cron) och skickar när
 // klockan i Sverige har passerat sändtiden. Administratörer kan förhandsgranska, skicka direkt och
-// skicka ett test. Utan 46elks-nycklar (ELKS_API_USERNAME, ELKS_API_PASSWORD) skickas inget.
+// skicka ett test. Personalen skickar "Vi är på väg" från appen. Utan 46elks-nycklar (ELKS_API_USERNAME, ELKS_API_PASSWORD) skickas inget.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { plan, zoned, addDays, swedishMidnight, isSendTime, smsPhone } from './messages.js';
+import { plan, zoned, addDays, swedishMidnight, isSendTime, smsPhone, onWayMessage } from './messages.js';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
 const PREVIEW = /^https:\/\/[a-z0-9-]+--tostadflytt-preview\.netlify\.app$/;
@@ -51,7 +51,7 @@ async function sendSms(from: string, to: string, message: string) {
 }
 
 async function loadSettings() {
-  const { data } = await db.from('company_settings').select('phone, sms_enabled, sms_hour, sms_company_customers, sms_sender, sms_customer_text, sms_staff_text').eq('id', 1).maybeSingle();
+  const { data } = await db.from('company_settings').select('phone, sms_enabled, sms_hour, sms_company_customers, sms_sender, sms_customer_text, sms_onway_enabled, sms_onway_text').eq('id', 1).maybeSingle();
   return data;
 }
 
@@ -99,6 +99,45 @@ async function sendDue(date: string, settings: Record<string, unknown>) {
   return { date, sent, failed };
 }
 
+/** Personalen är på väg: markerar jobbet och skickar SMS till kunden om de valt det. Ett SMS per jobb. */
+async function onWay(profileId: string, jobId: string, minutes: number, sendSms_: boolean, settings: Record<string, unknown>) {
+  const { data: mine } = await db.from('job_staff').select('job_id').eq('job_id', jobId).eq('profile_id', profileId).maybeSingle();
+  if (!mine) return { status: 403, body: { error: 'You are not booked on this job.' } };
+  const { data: job } = await db
+    .from('jobs')
+    .select('id, status, service, street, city, on_way_at, customers(id, name, phone, kind), job_staff(profiles(id, full_name, phone, active))')
+    .eq('id', jobId)
+    .maybeSingle();
+  if (!job || job.status !== 'planerad') return { status: 400, body: { error: 'The job is not planned.' } };
+  if (!job.on_way_at) await db.from('jobs').update({ on_way_at: new Date().toISOString() }).eq('id', jobId);
+  if (!sendSms_) return { status: 200, body: { ok: true, sms: 'not_sent' } };
+
+  const { data: before } = await db.from('sms_log').select('id').eq('kind', 'pa_vag').eq('job_id', jobId).eq('status', 'skickat').limit(1);
+  if (before?.length) return { status: 200, body: { ok: true, sms: 'skipped', reason: 'The customer already got an SMS for this job' } };
+  if (!credentials()) return { status: 200, body: { ok: true, sms: 'skipped', reason: 'SMS is not connected' } };
+  // deno-lint-ignore no-explicit-any
+  const m = onWayMessage(job as any, settings, minutes);
+  if (m.skip) return { status: 200, body: { ok: true, sms: 'skipped', reason: m.skip } };
+  const r = await sendSms(String(settings.sms_sender), m.phone, m.body);
+  // deno-lint-ignore no-explicit-any
+  const customer = job.customers as any;
+  await db.from('sms_log').insert({
+    kind: 'pa_vag',
+    ref_date: zoned(new Date()).date,
+    job_id: jobId,
+    customer_id: customer?.id ?? null,
+    profile_id: profileId,
+    phone: m.phone,
+    body: m.body,
+    status: r.error ? 'fel' : 'skickat',
+    provider_id: r.id ?? null,
+    parts: r.parts ?? null,
+    error: r.error ?? null,
+  });
+  if (r.error) return { status: 200, body: { ok: true, sms: 'failed', reason: 'The SMS could not be sent. Call the customer instead.' } };
+  return { status: 200, body: { ok: true, sms: 'sent' } };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(req) });
   if (req.method !== 'POST') return reply(req, 405, { error: 'Wrong method' });
@@ -124,14 +163,28 @@ Deno.serve(async (req) => {
     return reply(req, 200, await sendDue(tomorrow, settings));
   }
 
-  // Allt annat kräver en inloggad administratör.
+  // Allt annat kräver inloggning.
   const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
   const { data: auth } = token ? await db.auth.getUser(token) : { data: null };
   if (!auth?.user) return reply(req, 401, { error: 'Please log in' });
   const { data: me } = await db.from('profiles').select('id, role, active, phone').eq('id', auth.user.id).maybeSingle();
-  if (!me?.active || !['owner', 'admin'].includes(me.role)) return reply(req, 403, { error: 'Admins only' });
+  if (!me?.active) return reply(req, 403, { error: 'Denied' });
   const settings = await loadSettings();
   if (!settings) return reply(req, 500, { error: 'The settings are missing' });
+
+  // Personalen (och administratörer som är bokade på jobbet).
+  if (body.action === 'on_way') {
+    if (typeof body.job_id !== 'string' || !/^[0-9a-f-]{36}$/.test(body.job_id)) return reply(req, 400, { error: 'Invalid job' });
+    try {
+      const r = await onWay(me.id, body.job_id, Number(body.minutes), body.sms === true, settings);
+      return reply(req, r.status, r.body);
+    } catch (e) {
+      console.error(e);
+      return reply(req, 500, { error: 'Could not save. Try again.' });
+    }
+  }
+
+  if (!['owner', 'admin'].includes(me.role)) return reply(req, 403, { error: 'Admins only' });
 
   try {
     if (body.action === 'preview') {

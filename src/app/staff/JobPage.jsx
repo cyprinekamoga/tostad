@@ -6,7 +6,7 @@ import { checklistFor, formatHours, entryHours } from '../../lib/worktime.js';
 import { addDays } from '../../lib/planner.js';
 import { formatDateTime } from '../../lib/supabase.js';
 import { myJob, myHours, jobAction, photos as loadPhotos, uploadPhoto, deletePhoto, offerSwap, cancelSwap, mapsLink, telLink } from './api.js';
-import { HoursForm, savedText, jobPlace, jobTitle, dayName } from './parts.jsx';
+import { HoursForm, savedText, jobPlace, jobTitle, dayName, OnTheWay } from './parts.jsx';
 
 const KINDS = { fore: 'Before', efter: 'After', skada: 'Damage' };
 
@@ -137,9 +137,7 @@ export default function JobPage({ me }) {
           {job.customer_phone && <a class="btn btn--ghost btn--sm" href={telLink(job.customer_phone)}>Call the customer</a>}
         </div>
         {planned && !job.on_way_at && future && (
-          <button class="btn btn--ghost btn--block" type="button" disabled={!!busy} onClick={() => run('vag', () => jobAction(job.id, 'on_way'), 'Marked that you are on your way.')}>
-            We are on our way
-          </button>
+          <OnTheWay job={job} onDone={(text) => run('vag', async () => {}, text)} />
         )}
         {job.on_way_at && <p class="muted">On the way since {formatDateTime(job.on_way_at)}</p>}
       </section>

@@ -109,6 +109,33 @@ export function plan(jobs, settings, date) {
   return out;
 }
 
+/** Minuter personalen kan välja för när de är framme. */
+export const ARRIVAL_MINUTES = [10, 15, 20, 30, 45, 60, 90];
+
+/**
+ * SMS:et när personalen trycker "We are on our way". job: med customers(name, phone, kind) och job_staff som i plan.
+ * Svarar { phone, body } eller { skip } med en orsak på engelska som visas för personalen.
+ */
+export function onWayMessage(job, settings, minutes) {
+  const c = job.customers;
+  if (!settings.sms_onway_enabled) return { skip: 'SMS when on the way is turned off' };
+  if (!c) return { skip: 'The job has no customer' };
+  if (c.kind === 'company' && !settings.sms_company_customers) return { skip: 'Company customers do not get SMS' };
+  const phone = smsPhone(c.phone);
+  if (!phone) return { skip: c.phone ? 'The customer has no mobile number' : 'The customer has no phone number' };
+  if (!ARRIVAL_MINUTES.includes(minutes)) return { skip: 'Choose when you arrive' };
+  const names = team(job).map((p) => firstName(p.full_name)).filter(Boolean);
+  const body = fill(settings.sms_onway_text, {
+    namn: c.kind === 'company' ? c.name : firstName(c.name),
+    team: names.length ? joinNames(names) : 'Vårt team',
+    tjanst: CUSTOMER_SERVICE[job.service] ?? 'uppdraget',
+    adress: place(job) || 'er adress',
+    minuter: minutes,
+    telefon: settings.phone,
+  });
+  return { phone, body };
+}
+
 /** Är det dags att skicka? Mellan sändtiden och 22 svensk tid. */
 export function isSendTime(now, hour) {
   const h = zoned(now).hour;

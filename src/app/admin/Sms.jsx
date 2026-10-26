@@ -4,7 +4,7 @@ import { supabase, callFunction, formatDateTime } from '../../lib/supabase.js';
 import { ErrorMsg } from '../ui.jsx';
 import { loadSettings, saveSettings } from './docs.js';
 
-const KIND = { kvall_kund: 'Customer', kvall_personal: 'Staff', test: 'Test' };
+const KIND = { kvall_kund: 'Evening before', kvall_personal: 'Staff', pa_vag: 'On the way', test: 'Test' };
 const dayFmt = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
 // Tecken som ryms i ett vanligt SMS (GSM-7). Andra tecken, t.ex. emoji, gör SMS:et dyrare.
@@ -55,6 +55,8 @@ export default function Sms() {
         sms_sender: form.sms_sender,
         sms_company_customers: form.sms_company_customers,
         sms_customer_text: form.sms_customer_text.trim(),
+        sms_onway_enabled: form.sms_onway_enabled,
+        sms_onway_text: form.sms_onway_text.trim(),
       });
       setInfo('Saved.');
       await loadPreview();
@@ -134,6 +136,17 @@ export default function Sms() {
           <textarea id="sms-customer" rows={4} maxLength={600} value={form.sms_customer_text} onInput={set('sms_customer_text')} />
           <small class="hint">
             {'{namn}'} first name, {'{tjanst}'} service, {'{datum}'} date (30/10), {'{tid}'} time, {'{adress}'} address, {'{team}'} who is coming, {'{telefon}'} your phone.
+          </small>
+        </div>
+        <h3 class="cp-subhead">On the way</h3>
+        <label class="cp-check">
+          <input type="checkbox" checked={form.sms_onway_enabled} onChange={set('sms_onway_enabled')} /> Staff can send an SMS to the customer when they tap "We are on our way"
+        </label>
+        <div class="field">
+          <label for="sms-onway">Text when on the way (Swedish)</label>
+          <textarea id="sms-onway" rows={3} maxLength={600} value={form.sms_onway_text} onInput={set('sms_onway_text')} />
+          <small class="hint">
+            {'{namn}'} first name, {'{team}'} who is coming, {'{adress}'} address, {'{minuter}'} minutes until they arrive (staff choose), {'{tjanst}'} service, {'{telefon}'} your phone.
           </small>
         </div>
         <div class="cp-actions">

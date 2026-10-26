@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'preact/hooks';
 import { today, addDays } from '../../lib/planner.js';
 import { ErrorMsg } from '../ui.jsx';
-import { myJobs, myHours, openSwaps, jobAction, telLink } from './api.js';
-import { JobCard, NavButton, dayName, jobTitle } from './parts.jsx';
+import { myJobs, myHours, openSwaps, telLink } from './api.js';
+import { JobCard, NavButton, OnTheWay, dayName, jobTitle } from './parts.jsx';
 
 export default function Today({ me }) {
   const [jobs, setJobs] = useState(null);
@@ -32,13 +32,10 @@ export default function Today({ me }) {
   // Jobb som har börjat idag men saknar dina timmar.
   const toReport = reported ? todays.filter((j) => j.status !== 'avbokad' && j.start <= Date.now() && !reported.has(j.id)) : [];
 
-  async function onWay(job) {
-    try {
-      await jobAction(job.id, 'on_way');
-      await load();
-    } catch (e) {
-      setError(e.message);
-    }
+  const [info, setInfo] = useState('');
+  function onWay(text) {
+    setInfo(text);
+    load();
   }
 
   return (
@@ -48,6 +45,7 @@ export default function Today({ me }) {
         <p>{dayName(now)}</p>
       </header>
       <ErrorMsg error={error} />
+      {info && <p class="msg msg--ok">{info}</p>}
 
       {reported && (
         <section class="st-card st-report">
@@ -80,7 +78,7 @@ export default function Today({ me }) {
                 <NavButton job={j} />
                 {j.customer_phone && <a class="btn btn--ghost btn--sm" href={telLink(j.customer_phone)}>Call the customer</a>}
                 {!j.on_way_at && j.start > Date.now() && (
-                  <button class="btn btn--ghost btn--sm" type="button" onClick={() => onWay(j)}>We are on our way</button>
+                  <OnTheWay job={j} small onDone={onWay} />
                 )}
                 {j.on_way_at && <span class="badge">On the way</span>}
               </div>
