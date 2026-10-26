@@ -128,8 +128,6 @@ begin
       timeout_milliseconds := 30000
     );
   end if;
-  -- Gamla rader behövs inte.
-  delete from public.push_queue where created_at < now() - interval '30 days';
 end;
 $$;
 revoke execute on function private.push_tick() from public, anon, authenticated;
