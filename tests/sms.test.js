@@ -36,7 +36,7 @@ test('sändtid i svensk tid', () => {
   assert.equal(isSendTime(new Date('2026-10-29T21:30:00Z'), 18), false); // 22:30
 });
 
-test('SMS till kund och personal kvällen före', () => {
+test('SMS till kunden kvällen före, inget till personalen', () => {
   const jobs = [
     { id: 'j1', status: 'planerad', service: 'flyttstadning', starts_at: '2026-10-30T07:00:00Z', street: 'Kungsgatan 12', city: 'Eskilstuna', customers: { id: 'c1', name: 'Sara Lind', phone: '0701234567', kind: 'private' }, job_staff: [{ profiles: anna }, { profiles: omar }] },
     { id: 'j2', status: 'planerad', service: 'hemstadning', starts_at: '2026-10-30T12:00:00Z', street: 'Storgatan 1', city: null, customers: { id: 'c2', name: 'Spic and Span', phone: '0709999999', kind: 'company' }, job_staff: [{ profiles: anna }] },
@@ -49,9 +49,7 @@ test('SMS till kund och personal kvällen före', () => {
   assert.equal(sara.body, 'Hej Sara! Påminnelse: flyttstädning imorgon 30/10 kl 08:00, Kungsgatan 12, Eskilstuna. Anna och Omar kommer. Frågor? Ring 072 222 88 00 /TO Städ & Flytt');
   assert.equal(out.find((m) => m.job_id === 'j2').skip, 'Company customer (turned off in the settings)');
   assert.equal(out.some((m) => m.job_id === 'j3' || m.job_id === 'j4'), false);
-  const staff = out.find((m) => m.profile_id === 'p1');
-  assert.equal(staff.body, 'Hi Anna! Your jobs tomorrow, Friday 30 October:\n08:00 Move-out cleaning, Kungsgatan 12, Eskilstuna\n13:00 Home cleaning, Storgatan 1\nDetails in the app: tostadflytt.se/app');
-  assert.equal(out.find((m) => m.profile_id === 'p2').skip, 'No phone number');
+  assert.equal(out.some((m) => m.kind === 'kvall_personal'), false);
 
   const withCompanies = plan(jobs, { ...settings, sms_company_customers: true }, '2026-10-30');
   assert.match(withCompanies.find((m) => m.job_id === 'j2').body, /^Hej Spic and Span!/);

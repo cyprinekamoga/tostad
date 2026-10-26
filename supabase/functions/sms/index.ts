@@ -1,4 +1,4 @@
-// SMS kvällen före via 46elks. Anropas varje timme av databasens schema (pg_cron) och skickar när
+// SMS till kunderna kvällen före via 46elks. Anropas varje timme av databasens schema (pg_cron) och skickar när
 // klockan i Sverige har passerat sändtiden. Administratörer kan förhandsgranska, skicka direkt och
 // skicka ett test. Utan 46elks-nycklar (ELKS_API_USERNAME, ELKS_API_PASSWORD) skickas inget.
 import { createClient } from 'npm:@supabase/supabase-js@2';

@@ -1,4 +1,4 @@
-// SMS: påminnelser kvällen före till kunder och personal via 46elks. Inställningar, förhandsgranskning och logg.
+// SMS: påminnelser kvällen före till kunderna via 46elks. Personalen ser sina jobb i appen. Inställningar, förhandsgranskning och logg.
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, callFunction, formatDateTime } from '../../lib/supabase.js';
 import { ErrorMsg } from '../ui.jsx';
@@ -55,7 +55,6 @@ export default function Sms() {
         sms_sender: form.sms_sender,
         sms_company_customers: form.sms_company_customers,
         sms_customer_text: form.sms_customer_text.trim(),
-        sms_staff_text: form.sms_staff_text.trim(),
       });
       setInfo('Saved.');
       await loadPreview();
@@ -136,11 +135,6 @@ export default function Sms() {
           <small class="hint">
             {'{namn}'} first name, {'{tjanst}'} service, {'{datum}'} date (30/10), {'{tid}'} time, {'{adress}'} address, {'{team}'} who is coming, {'{telefon}'} your phone.
           </small>
-        </div>
-        <div class="field">
-          <label for="sms-staff">Text to staff</label>
-          <textarea id="sms-staff" rows={4} maxLength={600} value={form.sms_staff_text} onInput={set('sms_staff_text')} />
-          <small class="hint">{'{namn}'} first name, {'{datum}'} date, {'{jobb}'} one line per job with time, service and address.</small>
         </div>
         <div class="cp-actions">
           <button class="btn" type="submit" disabled={busy}>Save</button>

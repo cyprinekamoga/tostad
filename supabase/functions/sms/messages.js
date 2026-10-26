@@ -54,20 +54,6 @@ const CUSTOMER_SERVICE = {
   pianoflytt: 'pianoflytt',
   annat: 'uppdraget',
 };
-const STAFF_SERVICE = {
-  flytt: 'Moving',
-  flyttstadning: 'Move-out cleaning',
-  paket: 'Moving + move-out cleaning',
-  hemstadning: 'Home cleaning',
-  storstadning: 'Deep cleaning',
-  fonsterputs: 'Window cleaning',
-  kontor: 'Office cleaning',
-  pianoflytt: 'Piano moving',
-  annat: 'Job',
-};
-
-const enDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
-const dateText = (date, fmt) => fmt.format(new Date(`${date}T12:00:00Z`));
 
 const firstName = (name) => String(name ?? '').trim().split(/\s+/)[0] ?? '';
 const joinNames = (names) => (names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} och ${names[names.length - 1]}`);
@@ -84,6 +70,7 @@ function team(job) {
 
 /**
  * Alla SMS för jobben en dag. Varje rad har antingen phone och body, eller skip med en orsak.
+ * Bara kunderna får SMS. Personalen ser sina jobb i appen, så job_staff används bara för vem som kommer.
  * jobs: med customers(name, phone, kind) och job_staff(profiles(id, full_name, phone, active)).
  */
 export function plan(jobs, settings, date) {
@@ -119,25 +106,6 @@ export function plan(jobs, settings, date) {
     out.push({ ...base, phone, body });
   }
 
-  // Personalen: ett SMS per person med alla jobb i tidsordning.
-  const people = new Map();
-  for (const job of todo) {
-    for (const p of team(job)) {
-      if (!people.has(p.id)) people.set(p.id, { person: p, jobs: [] });
-      people.get(p.id).jobs.push(job);
-    }
-  }
-  for (const { person, jobs: mine } of people.values()) {
-    const base = { kind: 'kvall_personal', ref_date: date, job_id: null, customer_id: null, profile_id: person.id, who: person.full_name };
-    const phone = smsPhone(person.phone);
-    if (!phone) {
-      out.push({ ...base, skip: person.phone ? 'Not a mobile number' : 'No phone number' });
-      continue;
-    }
-    const lines = mine.map((j) => [`${zoned(j.starts_at).time} ${STAFF_SERVICE[j.service] ?? 'Job'}`, place(j)].filter(Boolean).join(', '));
-    const body = fill(settings.sms_staff_text, { namn: firstName(person.full_name), datum: dateText(date, enDate), jobb: lines.join('\n'), telefon: settings.phone });
-    out.push({ ...base, phone, body });
-  }
   return out;
 }
 
