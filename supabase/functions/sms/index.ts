@@ -2,7 +2,7 @@
 // klockan i Sverige har passerat sändtiden. Administratörer kan förhandsgranska, skicka direkt och
 // skicka ett test. Personalen skickar "Vi är på väg" från appen. Utan 46elks-nycklar (ELKS_API_USERNAME, ELKS_API_PASSWORD) skickas inget.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { plan, zoned, addDays, swedishMidnight, isSendTime, smsPhone, onWayMessage } from './messages.js';
+import { plan, zoned, addDays, swedishMidnight, isSendTime, smsPhone, onWayMessage, bookingMessage } from './messages.js';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
 const PREVIEW = /^https:\/\/[a-z0-9-]+--tostadflytt-preview\.netlify\.app$/;
@@ -51,7 +51,7 @@ async function sendSms(from: string, to: string, message: string) {
 }
 
 async function loadSettings() {
-  const { data } = await db.from('company_settings').select('phone, sms_enabled, sms_hour, sms_company_customers, sms_sender, sms_customer_text, sms_onway_enabled, sms_onway_text').eq('id', 1).maybeSingle();
+  const { data } = await db.from('company_settings').select('phone, sms_enabled, sms_hour, sms_company_customers, sms_sender, sms_customer_text, sms_onway_enabled, sms_onway_text, sms_booking_text').eq('id', 1).maybeSingle();
   return data;
 }
 
@@ -194,6 +194,30 @@ Deno.serve(async (req) => {
     if (body.action === 'send_now') {
       if (!credentials()) return reply(req, 400, { error: '46elks is not connected yet.' });
       return reply(req, 200, await sendDue(tomorrow, settings));
+    }
+    // Bokningsbekräftelse från jobbet: först förhandsvisning, sedan skickas texten (som går att ändra).
+    if (body.action === 'booking_preview' || body.action === 'booking_send') {
+      if (typeof body.job_id !== 'string' || !/^[0-9a-f-]{36}$/.test(body.job_id)) return reply(req, 400, { error: 'Invalid job' });
+      const { data: job } = await db.from('jobs').select('id, status, service, starts_at, street, city, customer_id, customers(id, name, phone, kind)').eq('id', body.job_id).maybeSingle();
+      if (!job) return reply(req, 404, { error: 'Could not find the job.' });
+      // deno-lint-ignore no-explicit-any
+      const m = bookingMessage(job as any, settings);
+      const { data: last } = await db.from('sms_log').select('created_at, phone').eq('kind', 'bokning').eq('job_id', job.id).eq('status', 'skickat').order('created_at', { ascending: false }).limit(1);
+      if (body.action === 'booking_preview') return reply(req, 200, { connected: !!credentials(), ...m, last_sent: last?.[0]?.created_at ?? null });
+      if (m.skip) return reply(req, 400, { error: `${m.skip}.` });
+      if (!credentials()) return reply(req, 400, { error: '46elks is not connected yet.' });
+      if (job.status === 'avbokad') return reply(req, 400, { error: 'The job is cancelled.' });
+      const text = typeof body.body === 'string' ? body.body.trim() : '';
+      if (text.length < 5 || text.length > 600) return reply(req, 400, { error: 'Write the text, at most 600 characters.' });
+      const r = await sendSms(String(settings.sms_sender), m.phone, text);
+      const row = { kind: 'bokning', ref_date: zoned(now).date, job_id: job.id, customer_id: job.customer_id, profile_id: me.id, phone: m.phone, body: text, status: r.error ? 'fel' : 'skickat', provider_id: r.id ?? null, parts: r.parts ?? null, error: r.error ?? null };
+      const { error: logError } = await db.from('sms_log').insert(row);
+      // Loggen har en rad per jobb, nummer och dag. Skickas den igen samma dag uppdateras raden.
+      if (logError?.code === '23505') {
+        await db.from('sms_log').update({ ...row, created_at: new Date().toISOString() }).eq('kind', 'bokning').eq('job_id', job.id).eq('phone', m.phone).eq('ref_date', row.ref_date).eq('status', 'skickat');
+      }
+      if (r.error) return reply(req, 502, { error: 'The SMS could not be sent. Check the number and try again.' });
+      return reply(req, 200, { ok: true, phone: m.phone, parts: r.parts });
     }
     if (body.action === 'test') {
       if (!credentials()) return reply(req, 400, { error: '46elks is not connected yet.' });

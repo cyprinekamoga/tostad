@@ -109,6 +109,29 @@ export function plan(jobs, settings, date) {
   return out;
 }
 
+const svWeekday = new Intl.DateTimeFormat('sv-SE', { weekday: 'long', timeZone: TZ });
+
+/**
+ * Bokningsbekräftelse som SMS, som en administratör skickar från jobbet. Gäller även företagskunder,
+ * eftersom administratören väljer själv. Svarar { phone, body } eller { skip } med en orsak på engelska.
+ */
+export function bookingMessage(job, settings) {
+  const c = job.customers;
+  if (!c) return { skip: 'The job has no customer' };
+  const phone = smsPhone(c.phone);
+  if (!phone) return { skip: c.phone ? 'The customer has no mobile number' : 'The customer has no phone number' };
+  const z = zoned(job.starts_at);
+  const body = fill(settings.sms_booking_text, {
+    namn: c.kind === 'company' ? c.name : firstName(c.name),
+    tjanst: CUSTOMER_SERVICE[job.service] ?? 'uppdraget',
+    datum: `${svWeekday.format(new Date(job.starts_at))} ${Number(z.date.slice(8))}/${Number(z.date.slice(5, 7))}`,
+    tid: z.time,
+    adress: place(job) || 'adressen vi har fått',
+    telefon: settings.phone,
+  });
+  return { phone, body };
+}
+
 /** Minuter personalen kan välja för när de är framme. */
 export const ARRIVAL_MINUTES = [10, 15, 20, 30, 45, 60, 90];
 

@@ -4,7 +4,7 @@ import { supabase, callFunction, formatDateTime } from '../../lib/supabase.js';
 import { ErrorMsg } from '../ui.jsx';
 import { loadSettings, saveSettings } from './docs.js';
 
-const KIND = { kvall_kund: 'Evening before', kvall_personal: 'Staff', pa_vag: 'On the way', test: 'Test' };
+const KIND = { kvall_kund: 'Evening before', kvall_personal: 'Staff', pa_vag: 'On the way', bokning: 'Booking', test: 'Test' };
 const dayFmt = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
 
 // Tecken som ryms i ett vanligt SMS (GSM-7). Andra tecken, t.ex. emoji, gör SMS:et dyrare.
@@ -57,6 +57,7 @@ export default function Sms() {
         sms_customer_text: form.sms_customer_text.trim(),
         sms_onway_enabled: form.sms_onway_enabled,
         sms_onway_text: form.sms_onway_text.trim(),
+        sms_booking_text: form.sms_booking_text.trim(),
       });
       setInfo('Saved.');
       await loadPreview();
@@ -136,6 +137,14 @@ export default function Sms() {
           <textarea id="sms-customer" rows={4} maxLength={600} value={form.sms_customer_text} onInput={set('sms_customer_text')} />
           <small class="hint">
             {'{namn}'} first name, {'{tjanst}'} service, {'{datum}'} date (30/10), {'{tid}'} time, {'{adress}'} address, {'{team}'} who is coming, {'{telefon}'} your phone.
+          </small>
+        </div>
+        <h3 class="cp-subhead">Booking confirmation</h3>
+        <div class="field">
+          <label for="sms-booking">Text for the booking SMS (Swedish)</label>
+          <textarea id="sms-booking" rows={3} maxLength={600} value={form.sms_booking_text} onInput={set('sms_booking_text')} />
+          <small class="hint">
+            Sent from the job with "Send booking confirmation by SMS", where you can change it first. {'{namn}'} first name, {'{tjanst}'} service, {'{datum}'} weekday and date (fredag 30/10), {'{tid}'} time, {'{adress}'} address, {'{telefon}'} your phone.
           </small>
         </div>
         <h3 class="cp-subhead">On the way</h3>
