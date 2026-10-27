@@ -101,7 +101,7 @@ export const moveTimeline = [
   {
     phase: 'Flyttdagen',
     tasks: [
-      { id: 'sms', offset: 0, title: 'Håll koll på SMS:et från oss', text: 'Du får ett SMS när teamet är på väg.' },
+      { id: 'sms', offset: 0, title: 'Ha telefonen nära', text: 'Vi ringer eller skriver när teamet är på väg.' },
       { id: 'matare', offset: 0, title: 'Fotografera mätarställning', text: 'El och vatten i både gamla och nya bostaden.' },
       { id: 'genomgang', offset: 0, title: 'Gå igenom bostaden med teamet', text: 'Kolla förråd, vind och balkong innan lastbilen åker.' },
     ],

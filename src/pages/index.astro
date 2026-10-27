@@ -6,7 +6,6 @@ import PainSolution from '../components/PainSolution.astro';
 import StoryScroll from '../components/StoryScroll.astro';
 import PriceCalculator from '../components/PriceCalculator.astro';
 import ServiceGrid from '../components/ServiceGrid.astro';
-import TrackingDemo from '../components/TrackingDemo.astro';
 import Hotspots from '../components/Hotspots.astro';
 import PhotoReport from '../components/PhotoReport.astro';
 import Guarantees from '../components/Guarantees.astro';
@@ -38,20 +37,18 @@ const chapters = [
     icon: 'tag',
   },
   {
-    time: 'Kvällen före, 18:00',
-    title: 'Hon vet vilka som kommer',
-    text: 'Ett SMS med namnen på teamet och starttiden. Sara behöver inte ringa och dubbelkolla. Allt står där.',
+    time: 'När hon bokar',
+    title: 'Allt bekräftat på mejlen',
+    text: 'En bokningsbekräftelse med datum, tid och adress, och Mina sidor där hon ser sin bokning. Sara behöver inte ringa och dubbelkolla.',
     image: 'couple-boxes',
     alt: 'Två personer kramas bland flyttkartonger kvällen före flytten',
-    sms: ['Hej Sara! Imorgon kl 08:00 kommer Ali och Jonas. Fast pris ' + formatKr(exMove.price) + ', inget tillkommer.'],
   },
   {
     time: 'Flyttdagen, 07:42',
     title: 'Ingen väntan vid fönstret',
-    text: 'När teamet åker får Sara ett SMS med en länk. Hon ser när lastbilen är framme och kan ta en kaffe i lugn och ro.',
+    text: 'När teamet åker hör vi av oss och säger ungefär när vi är framme. Sara kan ta en kaffe i lugn och ro.',
     image: 'stockholm',
     alt: 'Stockholm från vattnet en solig dag',
-    sms: ['Vi har åkt från Upplands Väsby. Följ bilen live via länken.', 'Vi är framme om ca 5 minuter.'],
   },
   {
     time: 'Flyttdagen, 08:05',
@@ -86,7 +83,7 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
 ---
 <Base
   title="Flytt och flyttstädning i Stockholm, fast pris | TO Städ & Flytt"
-  description="Flytt och flyttstädning i Stockholm till fast pris efter RUT. Fotorapport, 14 dagars besiktningsgaranti, SMS när vi är på väg och betalning först efteråt."
+  description="Flytt och flyttstädning i Stockholm till fast pris efter RUT. Fotorapport, 14 dagars besiktningsgaranti, besked när vi är på väg och betalning först efteråt."
   jsonLd={ld}
   alternates={[
     { lang: 'sv', href: '/' },
@@ -100,7 +97,7 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
         <p class="eyebrow"><Icon name="leaf" /> Flytt & städ i Stockholm, Uppsala och Södermanland</p>
         <h1>Flytt och flyttstädning till ett fast pris som gäller</h1>
         <p class="lead">
-          Se priset direkt, få SMS när vi är på väg och en fotorapport när vi städat klart. RUT dras på fakturan, och den kommer först när jobbet är godkänt.
+          Se priset direkt, vi hör av oss när vi är på väg och du får en fotorapport när vi städat klart. RUT dras på fakturan, och den kommer först när jobbet är godkänt.
         </p>
         <div class="btn-row">
           <a class="btn" href="#kalkylator">Räkna ut ditt fasta pris <Icon name="arrow" /></a>
@@ -129,8 +126,8 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
           <div><strong>{formatKr(exMove.price)}</strong><span>Fast pris, 2 rok · efter RUT</span></div>
         </div>
         <div class="float f2">
-          <span class="f-icon"><Icon name="sms" /></span>
-          <div><strong>Vi är på väg!</strong><span>Framme om ca 12 min</span></div>
+          <span class="f-icon"><Icon name="phone" /></span>
+          <div><strong>Vi är på väg!</strong><span>Vi hör av oss innan vi kommer</span></div>
         </div>
         <div class="float f3">
           <span class="f-icon"><Icon name="camera" /></span>
@@ -176,19 +173,6 @@ const ld = [faqJsonLd(homeFaq)].filter(Boolean);
         <h2>Allt för flytten och för vardagen efter</h2>
       </div>
       <ServiceGrid />
-    </div>
-  </section>
-
-  <section class="section section--white" id="sms">
-    <div class="container">
-      <div class="section-head">
-        <p class="eyebrow">SMS när vi är på väg</p>
-        <h2>Du vet alltid när vi kommer</h2>
-        <p class="lead">
-          Dålig kommunikation är det vanligaste klagomålet på flyttfirmor efter skador. Därför får du namnen på teamet kvällen före och ett SMS när vi åker.
-        </p>
-      </div>
-      <TrackingDemo price={formatKr(exMove.price)} />
     </div>
   </section>
 

@@ -5,7 +5,6 @@ import PriceCalculator from '../components/PriceCalculator.astro';
 import Hotspots from '../components/Hotspots.astro';
 import CleaningChecklist from '../components/CleaningChecklist.astro';
 import PhotoReport from '../components/PhotoReport.astro';
-import TrackingDemo from '../components/TrackingDemo.astro';
 import CleanGallery from '../components/CleanGallery.astro';
 import Guarantees from '../components/Guarantees.astro';
 import ServiceGrid from '../components/ServiceGrid.astro';
@@ -193,21 +192,6 @@ const isClean = s.group === 'stad';
             <p class="lead">Bocka av själv om du vill. Listan sparas i din webbläsare och går att skriva ut.</p>
           </div>
           <CleaningChecklist />
-        </div>
-      </section>
-    )
-  }
-
-  {
-    has('tracking') && (
-      <section class="section section--white" id="sms">
-        <div class="container">
-          <div class="section-head">
-            <p class="eyebrow">SMS när vi är på väg</p>
-            <h2>Ingen väntan vid fönstret</h2>
-            <p class="lead">Namn på teamet kvällen före. Ett SMS när vi åker. Du vet exakt när vi kommer.</p>
-          </div>
-          <TrackingDemo />
         </div>
       </section>
     )
