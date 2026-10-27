@@ -1,11 +1,11 @@
-// SMS: påminnelser kvällen före till kunderna via 46elks. Personalen ser sina jobb i appen. Inställningar, förhandsgranskning och logg.
+// SMS för hand: skriv numret, välj en mall, fyll i det som saknas och skicka. Inga automatiska utskick.
+// Mallarna går att lägga till, ändra och ta bort. Loggen visar allt som har skickats.
 import { useEffect, useState } from 'preact/hooks';
 import { supabase, callFunction, formatDateTime } from '../../lib/supabase.js';
 import { ErrorMsg } from '../ui.jsx';
-import { loadSettings, saveSettings } from './docs.js';
+import { unfilled } from '../../../supabase/functions/sms/messages.js';
 
-const KIND = { kvall_kund: 'Evening before', kvall_personal: 'Staff', pa_vag: 'On the way', bokning: 'Booking', test: 'Test' };
-const dayFmt = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+const KIND = { manuell: 'Sent by hand', kvall_kund: 'Evening before', kvall_personal: 'Staff', pa_vag: 'On the way', bokning: 'Booking', test: 'Test' };
 
 // Tecken som ryms i ett vanligt SMS (GSM-7). Andra tecken, t.ex. emoji, gör SMS:et dyrare.
 const GSM = /^[@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&'()*+,\-./0-9:;<=>?¡A-ZÄÖÑÜ§¿a-zäöñüà]*$/;
@@ -19,70 +19,78 @@ export function smsParts(text) {
 
 export default function Sms() {
   const sb = supabase();
-  const [form, setForm] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [connected, setConnected] = useState(null);
+  const [templates, setTemplates] = useState(null);
   const [log, setLog] = useState(null);
-  const [testPhone, setTestPhone] = useState('');
+  const [phone, setPhone] = useState('');
+  const [picked, setPicked] = useState(null);
+  const [text, setText] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
-  const [busy, setBusy] = useState(false);
 
-  const loadPreview = () =>
-    callFunction('sms', { action: 'preview' })
-      .then(setPreview)
-      .catch((e) => setError(e.message));
+  const loadTemplates = () =>
+    sb.from('sms_templates').select('*').order('sort').order('created_at').then(({ data }) => setTemplates(data ?? []));
   const loadLog = () =>
     sb.from('sms_log').select('*').order('created_at', { ascending: false }).limit(50).then(({ data }) => setLog(data ?? []));
 
   useEffect(() => {
-    loadSettings().then(setForm);
-    loadPreview();
+    callFunction('sms', { action: 'status' }).then((r) => setConnected(r.connected), () => setConnected(false));
+    loadTemplates();
     loadLog();
   }, []);
 
-  const set = (key) => (e) => setForm({ ...form, [key]: e.currentTarget.type === 'checkbox' ? e.currentTarget.checked : e.currentTarget.value });
+  function pick(t) {
+    setPicked(t.id);
+    setText(t.body);
+    setInfo('');
+  }
 
-  async function save(e) {
+  const left = unfilled(text);
+  const parts = text.trim() ? smsParts(text.trim()) : 0;
+
+  async function send(e) {
     e.preventDefault();
     setError('');
     setInfo('');
-    if (!/^[A-Za-z0-9]{3,11}$/.test(form.sms_sender)) return setError('The sender name must be 3 to 11 letters or digits, without spaces or å, ä, ö.');
+    if (left.length) return setError(`Fill in ${left.join(', ')} before you send.`);
+    if (!window.confirm(`Send this SMS to ${phone}?`)) return;
     setBusy(true);
     try {
-      await saveSettings({
-        sms_enabled: form.sms_enabled,
-        sms_hour: Number(form.sms_hour),
-        sms_sender: form.sms_sender,
-        sms_company_customers: form.sms_company_customers,
-        sms_customer_text: form.sms_customer_text.trim(),
-        sms_onway_enabled: form.sms_onway_enabled,
-        sms_onway_text: form.sms_onway_text.trim(),
-        sms_booking_text: form.sms_booking_text.trim(),
-      });
-      setInfo('Saved.');
-      await loadPreview();
+      const r = await callFunction('sms', { action: 'send', phone, body: text });
+      setInfo(`The SMS is sent to ${r.phone}.`);
+      setPhone('');
+      setText('');
+      setPicked(null);
+      await loadLog();
     } catch (err) {
       setError(err.message);
     }
     setBusy(false);
   }
 
-  async function run(action, body = {}) {
+  async function saveTemplate(e) {
+    e.preventDefault();
     setError('');
-    setInfo('');
-    setBusy(true);
-    try {
-      const r = await callFunction('sms', { action, ...body });
-      setInfo(action === 'test' ? 'The test SMS is sent.' : `${r.sent} SMS sent${r.failed ? `, ${r.failed} failed` : ''}.`);
-      await Promise.all([loadPreview(), loadLog()]);
-    } catch (err) {
-      setError(err.message);
-    }
-    setBusy(false);
+    const values = { name: editing.name.trim(), body: editing.body.trim() };
+    if (!values.name || !values.body) return setError('Write a name and a text for the template.');
+    const q = editing.id
+      ? sb.from('sms_templates').update(values).eq('id', editing.id)
+      : sb.from('sms_templates').insert({ ...values, sort: (templates?.length ?? 0) + 1 });
+    const { error: err } = await q;
+    if (err) return setError('Could not save the template.');
+    setEditing(null);
+    await loadTemplates();
   }
 
-  if (!form) return <p class="muted">Loading …</p>;
-  const toSend = (preview?.messages ?? []).filter((m) => !m.skip && !m.sent);
+  async function removeTemplate(t) {
+    if (!window.confirm(`Delete the template "${t.name}"?`)) return;
+    const { error: err } = await sb.from('sms_templates').delete().eq('id', t.id);
+    if (err) return setError('Could not delete the template.');
+    if (picked === t.id) setPicked(null);
+    await loadTemplates();
+  }
 
   return (
     <>
@@ -90,113 +98,93 @@ export default function Sms() {
         <h2>SMS</h2>
       </div>
       <p class="muted">
-        The evening before each job, customers get a reminder with the time, address and who is coming, and each person in the team gets one SMS with all their jobs
-        for tomorrow. Cancelled jobs are skipped, and nobody gets the same reminder twice.
+        SMS are only sent when you send them here. Write the number, choose a template, fill in what is in [brackets] and send. Each SMS costs about 0.50 kr.
       </p>
       <ErrorMsg error={error} />
       {info && <p class="msg msg--ok" role="status">{info}</p>}
 
-      {preview && !preview.connected && (
+      {connected === false && (
         <section class="cp-panel" style="margin-bottom:16px">
           <h3 class="cp-subhead">Connect 46elks</h3>
-          <ol>
-            <li>Create an account at <a href="https://46elks.se" target="_blank" rel="noopener">46elks.se</a> and add credit (about 0.50 kr per SMS).</li>
-            <li>Copy the <strong>API username</strong> and <strong>API password</strong> from the 46elks dashboard.</li>
-            <li>
-              In Supabase, open the project, then <strong>Edge Functions → Secrets</strong>, and add <code>ELKS_API_USERNAME</code> and <code>ELKS_API_PASSWORD</code> with
-              those values.
-            </li>
-            <li>Come back here, send a test SMS to your own phone, then turn the reminders on.</li>
-          </ol>
+          <p>
+            In Supabase, open the project, then <strong>Edge Functions → Secrets</strong>, and add <code>ELKS_API_USERNAME</code> and <code>ELKS_API_PASSWORD</code> from the
+            46elks dashboard.
+          </p>
         </section>
       )}
 
-      <form class="cp-panel form-grid" onSubmit={save} style="max-width:760px;margin-bottom:16px">
-        <h3 class="cp-subhead">Settings</h3>
-        <label class="cp-check">
-          <input type="checkbox" checked={form.sms_enabled} onChange={set('sms_enabled')} /> Send reminders automatically the evening before
-        </label>
-        <div class="form-3">
-          <div class="field">
-            <label for="sms-hour">Send at</label>
-            <select id="sms-hour" value={form.sms_hour} onChange={set('sms_hour')}>
-              {[16, 17, 18, 19, 20, 21].map((h) => <option value={h}>{h}:00</option>)}
-            </select>
-          </div>
-          <div class="field">
-            <label for="sms-sender">Sender name</label>
-            <input id="sms-sender" type="text" maxLength={11} value={form.sms_sender} onInput={set('sms_sender')} />
-            <small class="hint">3 to 11 letters or digits</small>
-          </div>
-        </div>
-        <label class="cp-check">
-          <input type="checkbox" checked={form.sms_company_customers} onChange={set('sms_company_customers')} /> Also send to company customers (for example Spic and Span)
-        </label>
+      <form class="cp-panel form-grid" onSubmit={send} style="max-width:760px;margin-bottom:16px">
+        <h3 class="cp-subhead">Send an SMS</h3>
         <div class="field">
-          <label for="sms-customer">Text to customers (Swedish)</label>
-          <textarea id="sms-customer" rows={4} maxLength={600} value={form.sms_customer_text} onInput={set('sms_customer_text')} />
-          <small class="hint">
-            {'{namn}'} first name, {'{tjanst}'} service, {'{datum}'} date (30/10), {'{tid}'} time, {'{adress}'} address, {'{team}'} who is coming, {'{telefon}'} your phone.
-          </small>
+          <label for="sms-to">Mobile number</label>
+          <input id="sms-to" type="tel" inputmode="tel" autocomplete="off" required placeholder="070 123 45 67" value={phone} onInput={(e) => setPhone(e.currentTarget.value)} style="max-width:260px" />
         </div>
-        <h3 class="cp-subhead">Booking confirmation</h3>
         <div class="field">
-          <label for="sms-booking">Text for the booking SMS (Swedish)</label>
-          <textarea id="sms-booking" rows={3} maxLength={600} value={form.sms_booking_text} onInput={set('sms_booking_text')} />
-          <small class="hint">
-            Sent from the job with "Send booking confirmation by SMS", where you can change it first. {'{namn}'} first name, {'{tjanst}'} service, {'{datum}'} weekday and date (fredag 30/10), {'{tid}'} time, {'{adress}'} address, {'{telefon}'} your phone.
-          </small>
+          <span class="lbl">Template</span>
+          {templates === null ? (
+            <p class="muted">Loading …</p>
+          ) : (
+            <div class="cp-tabs sms-templates" role="group" aria-label="Templates">
+              {templates.map((t) => (
+                <button type="button" aria-pressed={picked === t.id} onClick={() => pick(t)}>
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        <h3 class="cp-subhead">On the way</h3>
-        <label class="cp-check">
-          <input type="checkbox" checked={form.sms_onway_enabled} onChange={set('sms_onway_enabled')} /> Staff can send an SMS to the customer when they tap "We are on our way"
-        </label>
         <div class="field">
-          <label for="sms-onway">Text when on the way (Swedish)</label>
-          <textarea id="sms-onway" rows={3} maxLength={600} value={form.sms_onway_text} onInput={set('sms_onway_text')} />
+          <label for="sms-text">Message</label>
+          <textarea id="sms-text" rows={5} maxLength={600} required value={text} onInput={(e) => setText(e.currentTarget.value)} placeholder="Choose a template or write your own message" />
           <small class="hint">
-            {'{namn}'} first name, {'{team}'} who is coming, {'{adress}'} address, {'{minuter}'} minutes until they arrive (staff choose), {'{tjanst}'} service, {'{telefon}'} your phone.
+            {text.length} characters{parts ? `, ${parts} SMS` : ''}
+            {left.length > 0 && <strong class="sms-left"> · Fill in {left.join(', ')}</strong>}
           </small>
         </div>
         <div class="cp-actions">
-          <button class="btn" type="submit" disabled={busy}>Save</button>
+          <button class="btn" type="submit" disabled={busy || !connected || !phone.trim() || !text.trim() || left.length > 0}>
+            {busy ? 'Sending …' : 'Send SMS'}
+          </button>
         </div>
       </form>
 
-      <section class="cp-panel" style="margin-bottom:16px">
-        <h3 class="cp-subhead">Tomorrow{preview ? `, ${dayFmt.format(new Date(`${preview.date}T12:00:00Z`))}` : ''}</h3>
-        {!preview ? (
-          <p class="muted">Loading …</p>
-        ) : preview.messages.length === 0 ? (
-          <p class="muted">No planned jobs tomorrow.</p>
-        ) : (
-          <ul class="cp-list">
-            {preview.messages.map((m) => (
-              <li class="cp-row cp-row--static">
-                <span class="cp-row-top">
-                  <strong>{KIND[m.kind]}: {m.who}</strong>
-                  <span>{m.skip ? 'Not sent' : m.sent ? 'Sent' : m.phone}</span>
-                </span>
-                {m.skip ? <p class="muted">{m.skip}</p> : <p style="white-space:pre-line">{m.body}</p>}
-                {!m.skip && <small class="muted">{smsParts(m.body)} SMS</small>}
-              </li>
-            ))}
-          </ul>
+      <section class="cp-panel" style="max-width:760px;margin-bottom:16px">
+        <div class="cp-head" style="margin-bottom:8px">
+          <h3 class="cp-subhead" style="margin:0">Templates</h3>
+          <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing({ name: '', body: '' })}>New template</button>
+        </div>
+        {editing && (
+          <form class="form-grid sms-edit" onSubmit={saveTemplate}>
+            <div class="field">
+              <label for="tpl-name">Name</label>
+              <input id="tpl-name" type="text" maxLength={60} required value={editing.name} onInput={(e) => setEditing({ ...editing, name: e.currentTarget.value })} />
+            </div>
+            <div class="field">
+              <label for="tpl-body">Text (Swedish)</label>
+              <textarea id="tpl-body" rows={4} maxLength={600} required value={editing.body} onInput={(e) => setEditing({ ...editing, body: e.currentTarget.value })} />
+              <small class="hint">Put what changes each time in brackets, for example [tid] or [adress]. You must fill them in before sending.</small>
+            </div>
+            <div class="cp-actions">
+              <button class="btn btn--sm" type="submit">Save template</button>
+              <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing(null)}>Cancel</button>
+            </div>
+          </form>
         )}
-        <div class="cp-actions" style="margin-top:12px">
-          <button class="btn btn--sm" type="button" disabled={busy || !preview?.connected || toSend.length === 0} onClick={() => window.confirm(`Send ${toSend.length} SMS now?`) && run('send_now')}>
-            Send tomorrow's SMS now ({toSend.length})
-          </button>
-        </div>
-        {preview?.connected && !preview.enabled && <p class="muted">Automatic sending is off. Turn it on in the settings above.</p>}
-      </section>
-
-      <section class="cp-panel" style="margin-bottom:16px">
-        <h3 class="cp-subhead">Test</h3>
-        <div class="cp-actions">
-          <input type="tel" placeholder="Your mobile number" aria-label="Mobile number for the test" value={testPhone} onInput={(e) => setTestPhone(e.currentTarget.value)} style="max-width:220px" />
-          <button class="btn btn--ghost btn--sm" type="button" disabled={busy || !preview?.connected} onClick={() => run('test', { phone: testPhone || undefined })}>Send a test SMS</button>
-        </div>
+        {templates?.length === 0 && <p class="muted">No templates yet.</p>}
+        <ul class="cp-list">
+          {(templates ?? []).map((t) => (
+            <li class="cp-row cp-row--static">
+              <span class="cp-row-top">
+                <strong>{t.name}</strong>
+                <span class="cp-actions" style="margin:0">
+                  <button class="btn btn--ghost btn--sm" type="button" onClick={() => setEditing({ id: t.id, name: t.name, body: t.body })}>Edit</button>
+                  <button class="btn btn--ghost btn--sm" type="button" onClick={() => removeTemplate(t)}>Delete</button>
+                </span>
+              </span>
+              <p style="white-space:pre-line">{t.body}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section class="cp-panel">
@@ -210,11 +198,11 @@ export default function Sms() {
             {log.map((r) => (
               <li class="cp-row cp-row--static">
                 <span class="cp-row-top">
-                  <strong>{KIND[r.kind]} · {r.phone}</strong>
+                  <strong>{KIND[r.kind] ?? r.kind} · {r.phone}</strong>
                   <span>{formatDateTime(r.created_at)}</span>
                 </span>
                 <p style="white-space:pre-line">{r.body}</p>
-                {r.status === 'fel' && <small class="msg msg--error">Failed: {r.error}</small>}
+                {r.status === 'fel' && <small class="msg msg--error">Failed</small>}
               </li>
             ))}
           </ul>

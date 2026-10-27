@@ -4,7 +4,7 @@ import { SERVICE_LABELS, serviceColor } from '../admin/jobs.js';
 import { formatHours, parseHours, jobHours } from '../../lib/worktime.js';
 import { today, addDays } from '../../lib/planner.js';
 import { ErrorMsg } from '../ui.jsx';
-import { colleagues, reportHours, mapsLink, onTheWay } from './api.js';
+import { colleagues, reportHours, mapsLink, jobAction } from './api.js';
 import { pushState, turnOn, turnOff, sendTest } from './push.js';
 
 export const jobTitle = (j) => j.customer_name || j.title || SERVICE_LABELS[j.service] || 'Job';
@@ -226,61 +226,28 @@ export function savedText(result) {
   return parts.join(' ');
 }
 
-const ARRIVAL = [10, 15, 20, 30, 45, 60, 90];
-const SMS_RESULT = { sent: 'The customer got an SMS.', not_sent: 'No SMS was sent.' };
-
-/** "We are on our way": personalen väljer när de är framme och om kunden ska få ett SMS. */
+/** "We are on our way": markerar jobbet, så att kunden ser det på Mina sidor. Inget SMS skickas. */
 export function OnTheWay({ job, onDone, small = false }) {
-  const [open, setOpen] = useState(false);
-  const [minutes, setMinutes] = useState(30);
-  const [sms, setSms] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-
-  async function send() {
+  async function mark() {
     setBusy(true);
     setError('');
     try {
-      const r = await onTheWay(job.id, minutes, sms);
-      setOpen(false);
-      onDone?.(`Marked that you are on your way. ${SMS_RESULT[r.sms] ?? `No SMS was sent: ${r.reason}.`}`);
+      await jobAction(job.id, 'on_way');
+      onDone?.('Marked that you are on your way.');
     } catch (e) {
       setError(e.message);
     }
     setBusy(false);
   }
-
-  if (!open) {
-    return (
-      <button class={`btn btn--ghost ${small ? 'btn--sm' : 'btn--block'}`} type="button" onClick={() => setOpen(true)}>
+  return (
+    <>
+      <ErrorMsg error={error} />
+      <button class={`btn btn--ghost ${small ? 'btn--sm' : 'btn--block'}`} type="button" disabled={busy} onClick={mark}>
         We are on our way
       </button>
-    );
-  }
-  return (
-    <div class="st-onway">
-      <ErrorMsg error={error} />
-      <p class="st-onway-q">When do you arrive?</p>
-      <div class="st-chips" role="radiogroup" aria-label="Arrive in">
-        {ARRIVAL.map((m) => (
-          <button type="button" role="radio" aria-checked={minutes === m} class={`st-chip${minutes === m ? ' is-on' : ''}`} onClick={() => setMinutes(m)}>
-            {m} min
-          </button>
-        ))}
-      </div>
-      <label class="cp-check">
-        <input type="checkbox" checked={sms} onChange={(e) => setSms(e.currentTarget.checked)} /> Send an SMS to {jobTitle(job)}
-      </label>
-      {sms && <p class="hint">The customer gets your first names, the address and that you arrive in about {minutes} minutes.</p>}
-      <div class="st-actions">
-        <button class="btn" type="button" disabled={busy} onClick={send}>
-          {sms ? 'Send' : 'Mark as on the way'}
-        </button>
-        <button class="btn btn--ghost" type="button" disabled={busy} onClick={() => setOpen(false)}>
-          Cancel
-        </button>
-      </div>
-    </div>
+    </>
   );
 }
 

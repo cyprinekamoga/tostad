@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import { ErrorMsg } from '../ui.jsx';
 import { ABSENCE_KIND, photos as loadPhotos } from '../staff/api.js';
 import { CHECKLISTS } from '../../lib/worktime.js';
-import { formatDateTime, callFunction } from '../../lib/supabase.js';
+import { formatDateTime } from '../../lib/supabase.js';
 import { addDays, toInstant, overlaps } from '../../lib/planner.js';
 import { serviceColor, SERVICE_LABELS, JOB_STATUS, DEFAULT_HOURS, createJobs, updateJobs, deleteJobs, jobLabel } from './jobs.js';
 
@@ -289,8 +289,6 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
         </fieldset>
       )}
 
-      {job && job.status === 'planerad' && job.customer_id && <BookingSms job={job} />}
-
       <ErrorMsg error={error} />
       <div class="cp-actions">
         <button class="btn" type="submit" disabled={busy}>{busy ? 'Saving …' : 'Save'}</button>
@@ -325,88 +323,6 @@ function JobProgress({ job, people }) {
             </a>
           ))}
         </div>
-      )}
-    </fieldset>
-  );
-}
-
-// Bokningsbekräftelse som SMS till kunden. Texten visas först och går att ändra innan den skickas.
-function BookingSms({ job }) {
-  const [open, setOpen] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const [text, setText] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [sent, setSent] = useState('');
-
-  async function start() {
-    setError('');
-    setSent('');
-    setBusy(true);
-    try {
-      const p = await callFunction('sms', { action: 'booking_preview', job_id: job.id });
-      setPreview(p);
-      setText(p.body ?? '');
-      setOpen(true);
-    } catch (e) {
-      setError(e.message);
-    }
-    setBusy(false);
-  }
-
-  async function send() {
-    setError('');
-    setBusy(true);
-    try {
-      const r = await callFunction('sms', { action: 'booking_send', job_id: job.id, body: text });
-      setSent(`Sent to ${r.phone}.`);
-      setOpen(false);
-    } catch (e) {
-      setError(e.message);
-    }
-    setBusy(false);
-  }
-
-  return (
-    <fieldset class="cp-fieldset">
-      <legend>Booking confirmation by SMS</legend>
-      {sent && <p class="msg msg--ok">{sent}</p>}
-      <ErrorMsg error={error} />
-      {!open && (
-        <div class="cp-actions" style="margin:0">
-          <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={start}>
-            {busy ? 'Loading …' : 'Send booking confirmation by SMS'}
-          </button>
-        </div>
-      )}
-      {open && preview && (
-        <>
-          {preview.skip ? (
-            <p class="msg msg--error">{preview.skip}. Add a mobile number to the customer first.</p>
-          ) : !preview.connected ? (
-            <p class="msg msg--error">SMS is not connected. See Company → SMS.</p>
-          ) : (
-            <>
-              <p class="muted" style="margin:0">
-                To <strong>{preview.phone}</strong>
-                {preview.last_sent && ` · last sent ${formatDateTime(preview.last_sent)}`}
-              </p>
-              <label class="visually-hidden" for={`bs-${job.id}`}>Text</label>
-              <textarea id={`bs-${job.id}`} rows={4} maxLength={600} value={text} onInput={(e) => setText(e.currentTarget.value)} />
-              <small class="hint">{text.length} characters{text.length > 160 ? ', more than one SMS' : ''}. You can change the text before you send it.</small>
-            </>
-          )}
-          <div class="cp-actions" style="margin:0">
-            {!preview.skip && preview.connected && (
-              <button class="btn btn--sm" type="button" disabled={busy || text.trim().length < 5} onClick={send}>
-                {busy ? 'Sending …' : 'Send SMS'}
-              </button>
-            )}
-            <button class="btn btn--ghost btn--sm" type="button" disabled={busy} onClick={() => setOpen(false)}>
-              Cancel
-            </button>
-          </div>
-        </>
       )}
     </fieldset>
   );

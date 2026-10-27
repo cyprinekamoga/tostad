@@ -84,7 +84,7 @@ export function bookingMail({ customer, job, date, time, repeatWeeks, portalUrl,
         ...(repeatWeeks ? [repeatWeeks === 1 ? 'Varje vecka' : `Var ${repeatWeeks}:e vecka`] : []),
       ],
     },
-    'Kvällen före får du en påminnelse. Behöver du ändra något? Svara på det här mejlet eller ring oss.',
+    'Behöver du ändra något? Svara på det här mejlet eller ring oss.',
   ];
   if (portalUrl) blocks.push({ button: ['Se din bokning på Mina sidor', portalUrl] });
   return mail(`Bokningsbekräftelse: ${serviceName(job.service)} ${date}`, { preheader: `${dayText(date)} kl ${time}`, blocks, company });

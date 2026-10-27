@@ -1,5 +1,5 @@
 // Personalens app: hämtar egna jobb, timmar, foton, ledighet och passbyten.
-import { supabase, callFunction } from '../../lib/supabase.js';
+import { supabase } from '../../lib/supabase.js';
 import { shrink } from '../../lib/inbox.js';
 import { zoned } from '../../lib/planner.js';
 import { SUPABASE_URL } from '../../config/supabase.js';
@@ -32,9 +32,6 @@ export async function jobAction(id, action, checklist) {
   const { error } = await supabase().rpc('staff_job', { p_job: id, p_action: action, p_checklist: checklist ?? null });
   if (error) fail(error, 'Could not save.');
 }
-
-/** "Vi är på väg". sms: om kunden ska få ett SMS. Svarar { sms: 'sent' | 'skipped' | 'failed' | 'not_sent', reason }. */
-export const onTheWay = (id, minutes, sms) => callFunction('sms', { action: 'on_way', job_id: id, minutes, sms });
 
 // Timmar
 export const colleagues = () => rpc('colleagues', {}, 'Could not load your colleagues.');
