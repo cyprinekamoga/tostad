@@ -14,6 +14,7 @@ import Sms from './admin/Sms.jsx';
 import Email from './admin/Email.jsx';
 import Quotes from './admin/Quotes.jsx';
 import Invoices from './admin/Invoices.jsx';
+import Products from './admin/Products.jsx';
 import Money from './admin/Money.jsx';
 import Settings from './admin/Settings.jsx';
 import Careers from './admin/Careers.jsx';
@@ -30,6 +31,7 @@ const PAGES = {
   kunder: { href: '/admin/kunder', label: 'Customers', Page: Customers },
   offerter: { href: '/admin/offerter', label: 'Quotes', Page: Quotes },
   fakturor: { href: '/admin/fakturor', label: 'Invoices', Page: Invoices },
+  produkter: { href: '/admin/produkter', label: 'Products', Page: Products },
   rut: { href: '/admin/rut', label: 'RUT', Page: Rut },
   ekonomi: { href: '/admin/ekonomi', label: 'Finances', Page: Money },
   ledighet: { href: '/admin/ledighet', label: 'Time off', Page: Absences },
@@ -46,7 +48,7 @@ const PAGES = {
 const GROUPS = [
   ['', ['oversikt', 'assistent']],
   ['Planning', ['planering', 'karta', 'ledighet', 'tider', 'kundtimmar']],
-  ['Customers and finances', ['inkorg', 'kunder', 'offerter', 'fakturor', 'rut', 'ekonomi']],
+  ['Customers and finances', ['inkorg', 'kunder', 'offerter', 'fakturor', 'produkter', 'rut', 'ekonomi']],
   ['Company', ['personal', 'rekrytering', 'sms', 'mejl', 'installningar']],
 ];
 const MENU_KEY = 'tostad-meny';

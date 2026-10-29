@@ -2475,3 +2475,8 @@ a.cp-stat:hover {
 .cp-thread-list small {
   color: var(--ink-2, #5b6b61);
 }
+/* Välj en produkt när en faktura eller offert skrivs */
+.doc-add select {
+  max-width: 100%;
+  min-height: 36px;
+}

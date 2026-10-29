@@ -1,5 +1,6 @@
 // Formulär för en offert eller ett fakturautkast: köpare, rader, RUT och summor.
-import { useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { supabase } from '../../lib/supabase.js';
 import { ErrorMsg } from '../ui.jsx';
 import { totals, exVat, incVat, formatMoney, formatKrWhole, normalizePnr, maskPnr } from '../../lib/money.js';
 import { SERVICE_LABELS } from './jobs.js';
@@ -30,6 +31,16 @@ export default function DocEditor({ type, value, customers, company, onSave, onC
   const [preview, setPreview] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    supabase()
+      .from('products')
+      .select('id, code, name, unit, price, vat, rut')
+      .eq('active', true)
+      .order('name')
+      .then(({ data }) => setProducts(data ?? []));
+  }, []);
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.currentTarget.value });
   const setBuyer = (key) => (e) => setForm({ ...form, buyer: { ...form.buyer, [key]: e.currentTarget.type === 'checkbox' ? e.currentTarget.checked : e.currentTarget.value } });
@@ -64,6 +75,15 @@ export default function DocEditor({ type, value, customers, company, onSave, onC
   };
   const addLine = () => setLines([...lines, { text: '', qty: 1, unit: 'st', input: '', vat: 25, rut: RUT_SERVICES.includes(form.service) && !form.buyer?.company }]);
   const removeLine = (i) => setLines(lines.filter((_, j) => j !== i));
+  // En produkt från produktlistan blir en ny rad. En tom första rad ersätts.
+  function addProduct(id) {
+    const p = products.find((x) => x.id === id);
+    if (!p) return;
+    const vat = Number(p.vat);
+    const line = { text: p.name, qty: 1, unit: p.unit, vat, input: show(incl ? incVat(Number(p.price), vat) : Number(p.price)), rut: p.rut && !form.buyer?.company };
+    const empty = (l) => !l.text.trim() && !num(l.input);
+    setLines(lines.length === 1 && empty(lines[0]) ? [line] : [...lines, line]);
+  }
   const setPerson = (i, key) => (e) => setPeople(people.map((p, j) => (j === i ? { ...p, [key]: e.currentTarget.value } : p)));
 
   async function submit(e) {
@@ -229,7 +249,19 @@ export default function DocEditor({ type, value, customers, company, onSave, onC
             <button class="st-link" type="button" aria-label="Remove the line" onClick={() => removeLine(i)}>Remove</button>
           </div>
         ))}
-        <button class="btn btn--ghost btn--sm" type="button" onClick={addLine}>Add line</button>
+        <div class="cp-actions doc-add">
+          <button class="btn btn--ghost btn--sm" type="button" onClick={addLine}>Add line</button>
+          {products.length > 0 && (
+            <select aria-label="Add a product" value="" onChange={(e) => addProduct(e.currentTarget.value)}>
+              <option value="">Add a product …</option>
+              {products.map((p) => (
+                <option value={p.id}>
+                  {p.name} · {formatMoney(Number(p.price))} excl. VAT/{p.unit}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </fieldset>
 
       {!form.buyer.company && (
