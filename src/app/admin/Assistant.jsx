@@ -5,6 +5,7 @@ import { today } from '../../lib/planner.js';
 import { ErrorMsg, copyText } from '../ui.jsx';
 import { SERVICE_LABELS, jobLabel } from './jobs.js';
 import { ABSENCE_KIND } from '../staff/api.js';
+import { totals, formatMoney, formatKrWhole } from '../../lib/money.js';
 import { KIND_LABEL, readText, openDrafts, loadDraft, closeDraft, referenceData, jobsFor, lastPrice, toCard, applyCard, conversations, readConversation, whatsappSetup } from './assistant.js';
 
 const REPEAT = [['0', 'Once'], ['1', 'Every week'], ['2', 'Every other week'], ['3', 'Every third week'], ['4', 'Every fourth week']];
@@ -37,7 +38,7 @@ export default function Assistant({ me }) {
     if (!ref) setRef(r);
     const j = await jobsFor(d.result?.actions ?? []);
     setJobs(j);
-    const list = (d.result?.actions ?? []).map((a, i) => toCard(a, i, { customers: r.customers, jobs: j }));
+    const list = (d.result?.actions ?? []).map((a, i) => toCard(a, i, { customers: r.customers, jobs: j, products: r.products }));
     // "Samma pris som förra": hämta kundens senaste pris.
     for (const c of list) {
       if (c.action.kind === 'create_job' && !c.e.price && c.action.price_basis?.same_as_last_time && c.e.customer_id) {
@@ -91,7 +92,7 @@ export default function Assistant({ me }) {
       if (!c.include || c.status === 'done') continue;
       try {
         const msg = await applyCard(c, ctx);
-        update(c.key, { status: 'done', message: msg });
+        update(c.key, typeof msg === 'object' ? { status: 'done', message: msg.text, link: msg.link, linkText: msg.linkText } : { status: 'done', message: msg });
         ok++;
       } catch (err) {
         update(c.key, { status: 'error', message: err.message });
@@ -274,7 +275,7 @@ function Card({ card, refs, jobs, onToggle, onChange }) {
 
       {card.include && !done && (
         <div class="as-fields">
-          {(kind === 'create_job' || kind === 'follow_up') && (
+          {(kind === 'create_job' || kind === 'follow_up' || kind === 'create_invoice') && (
             <CustomerField e={e} customers={refs.customers} onChange={onChange} />
           )}
 
@@ -425,6 +426,10 @@ function Card({ card, refs, jobs, onToggle, onChange }) {
             </div>
           )}
 
+          {kind === 'create_invoice' && (
+            <InvoiceFields e={e} job={job} products={refs.products} company={refs.customers.find((c) => c.id === e.customer_id)?.kind === 'company' || e.new_customer?.kind === 'company'} onChange={onChange} />
+          )}
+
           {kind === 'follow_up' && (
             <div class="field">
               <label>To-do for the inbox</label>
@@ -434,9 +439,93 @@ function Card({ card, refs, jobs, onToggle, onChange }) {
           )}
         </div>
       )}
-      {card.message && <p class={`msg ${card.status === 'done' ? 'msg--ok' : 'msg--error'}`}>{card.message}</p>}
+      {card.message && (
+        <p class={`msg ${card.status === 'done' ? 'msg--ok' : 'msg--error'}`}>
+          {card.message} {card.link && <a href={card.link}>{card.linkText}</a>}
+        </p>
+      )}
       {done && kind === 'create_job' && e.staff.length > 0 && <small class="muted">Booked: {e.staff.map(staffName).join(', ')}</small>}
     </article>
+  );
+}
+
+const toNum = (v) => {
+  const n = Number(String(v ?? '').replace(/\s/g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+};
+
+/** Fakturautkastet: rader med priser exklusive moms, RUT och summor. Sparas som utkast. */
+function InvoiceFields({ e, job, products, company, onChange }) {
+  const inv = e.invoice;
+  const setInv = (patch) => onChange({ invoice: { ...inv, ...patch } });
+  const setLine = (i, patch) => setInv({ lines: inv.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) });
+  const addProduct = (id) => {
+    const p = products.find((x) => x.id === id);
+    if (p) setInv({ lines: [...inv.lines, { text: p.name, qty: '1', unit: p.unit, price: String(p.price), vat: Number(p.vat), rut: p.rut && !company }] });
+  };
+  const rutPersons = company ? 0 : Number(inv.rut_persons) || 0;
+  const t = totals(inv.lines.map((l) => ({ qty: toNum(l.qty), price: toNum(l.price), vat: Number(l.vat ?? 25), rut: !company && l.rut })), rutPersons);
+  return (
+    <>
+      {job && <JobLine job={job} />}
+      <div class="form-3">
+        <div class="field">
+          <label>Work done (date)</label>
+          <input type="date" value={inv.delivery_date} onInput={(ev) => setInv({ delivery_date: ev.currentTarget.value })} />
+        </div>
+        <div class="field">
+          <label>Their reference</label>
+          <input type="text" maxLength={100} value={inv.your_ref} onInput={(ev) => setInv({ your_ref: ev.currentTarget.value })} />
+        </div>
+        {!company && (
+          <div class="field">
+            <label>RUT deduction</label>
+            <select value={inv.rut_persons} onChange={(ev) => setInv({ rut_persons: Number(ev.currentTarget.value) })}>
+              <option value={0}>No RUT</option>
+              <option value={1}>RUT for one person</option>
+              <option value={2}>RUT for two people</option>
+            </select>
+          </div>
+        )}
+      </div>
+      <fieldset class="cp-fieldset">
+        <legend>Lines (prices excl. VAT)</legend>
+        {inv.lines.map((l, i) => (
+          <div class="as-inv-line">
+            <input type="text" aria-label="Description" value={l.text} onInput={(ev) => setLine(i, { text: ev.currentTarget.value })} />
+            <input type="text" inputMode="decimal" aria-label="Quantity" value={l.qty} onInput={(ev) => setLine(i, { qty: ev.currentTarget.value })} />
+            <select aria-label="Unit" value={l.unit} onChange={(ev) => setLine(i, { unit: ev.currentTarget.value })}>
+              {['st', 'tim', 'kvm', 'km'].map((u) => <option>{u}</option>)}
+            </select>
+            <input type="text" inputMode="decimal" aria-label="Unit price excl. VAT" value={l.price} onInput={(ev) => setLine(i, { price: ev.currentTarget.value })} />
+            {!company && (
+              <label class="cp-check">
+                <input type="checkbox" checked={!!l.rut} onChange={(ev) => setLine(i, { rut: ev.currentTarget.checked })} /> RUT
+              </label>
+            )}
+            <span class="as-inv-sum">{formatMoney(t.rows[i]?.net)}</span>
+            <button class="st-link" type="button" aria-label="Remove the line" onClick={() => setInv({ lines: inv.lines.filter((_, j) => j !== i) })}>Remove</button>
+          </div>
+        ))}
+        <div class="cp-actions">
+          <button class="st-link" type="button" onClick={() => setInv({ lines: [...inv.lines, { text: '', qty: '1', unit: 'st', price: '', vat: 25, rut: false }] })}>Add line</button>
+          {products.length > 0 && (
+            <select aria-label="Add a product" value="" onChange={(ev) => addProduct(ev.currentTarget.value)}>
+              <option value="">Add a product …</option>
+              {products.map((p) => <option value={p.id}>{p.name} · {formatMoney(Number(p.price))}/{p.unit}</option>)}
+            </select>
+          )}
+        </div>
+        <p class="as-inv-total">
+          Total {formatKrWhole(t.total)} incl. VAT{t.rut ? ` · RUT ${formatKrWhole(t.rut)}` : ''} · <strong>to pay {formatKrWhole(t.toPay)}</strong>
+        </p>
+      </fieldset>
+      <div class="field">
+        <label>Message on the invoice (Swedish, optional)</label>
+        <input type="text" maxLength={500} value={inv.message} onInput={(ev) => setInv({ message: ev.currentTarget.value })} />
+      </div>
+      <small class="hint">Saved as a draft. You add personal identity numbers for RUT and send it from Invoices.</small>
+    </>
   );
 }
 
@@ -465,8 +554,10 @@ function CustomerField({ e, customers, onChange }) {
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
     const list = s ? customers.filter((c) => [c.name, c.phone, c.street].some((v) => v?.toLowerCase().includes(s))) : customers;
+    // Listan visar högst 200 kunder; den valda kunden ska alltid finnas med.
+    const top = list.slice(0, 200);
     const current = customers.find((c) => c.id === e.customer_id);
-    return current && !list.includes(current) ? [current, ...list] : list;
+    return current && !top.includes(current) ? [current, ...top] : top;
   }, [q, customers, e.customer_id]);
   const isNew = !e.customer_id;
   return (
@@ -476,7 +567,7 @@ function CustomerField({ e, customers, onChange }) {
         <input type="search" placeholder="Search customer" aria-label="Search customer" value={q} onInput={(ev) => setQ(ev.currentTarget.value)} />
         <select aria-label="Customer" value={e.customer_id} onChange={(ev) => onChange({ customer_id: ev.currentTarget.value })}>
           <option value="">{e.new_customer?.name ? `New customer: ${e.new_customer.name}` : 'No customer'}</option>
-          {shown.slice(0, 200).map((c) => <option value={c.id}>{c.name}{c.street ? `, ${c.street}` : ''}</option>)}
+          {shown.map((c) => <option value={c.id}>{c.name}{c.street ? `, ${c.street}` : ''}</option>)}
         </select>
       </div>
       {isNew && (

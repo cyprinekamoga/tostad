@@ -1,8 +1,9 @@
 // Jobbassistenten: gör om assistentens förslag till redigerbara kort och genomför de godkända.
 import { supabase, callFunction } from '../../lib/supabase.js';
-import { addMinutes, addDays, today } from '../../lib/planner.js';
+import { addMinutes, addDays, today, toInstant } from '../../lib/planner.js';
 import { suggestPrice } from '../../lib/assistantPrice.js';
-import { createJobs, updateJobs, loadJob } from './jobs.js';
+import { createJobs, updateJobs, loadJob, SERVICE_LABELS } from './jobs.js';
+import { buyerFrom, saveInvoice, lineFromCustomerPrice, RUT_SERVICES } from './docs.js';
 
 const sb = () => supabase();
 
@@ -14,6 +15,7 @@ export const KIND_LABEL = {
   report_hours: 'Hours',
   add_absence: 'Absence',
   follow_up: 'Follow-up',
+  create_invoice: 'Invoice draft',
 };
 
 /** Läser en text. Returnerar det sparade utkastet. */
@@ -72,11 +74,12 @@ export async function closeDraft(id, status, meId) {
 }
 
 export async function referenceData() {
-  const [c, p] = await Promise.all([
+  const [c, p, pr] = await Promise.all([
     sb().from('customers').select('id, kind, name, phone, street, city').order('name').limit(2000),
     sb().from('profiles').select('id, full_name, color').eq('active', true).order('full_name'),
+    sb().from('products').select('id, code, name, unit, price, vat, rut').eq('active', true).order('name'),
   ]);
-  return { customers: c.data ?? [], staff: p.data ?? [] };
+  return { customers: c.data ?? [], staff: p.data ?? [], products: pr.data ?? [] };
 }
 
 /** Jobben som förslagen pekar på, med id som nyckel. */
@@ -98,7 +101,37 @@ export async function lastPrice(customerId, service) {
 const hoursOf = (job) => (job ? Math.round(((job.end - job.start) / 3600000) * 4) / 4 : null);
 
 /** Redigerbart kort för ett förslag. */
-export function toCard(a, i, { customers, jobs }) {
+/**
+ * Fakturaraderna i ett förslag. Priset tas från produktlistan när raden är en produkt. En rad utan produkt
+ * och utan pris får jobbets överenskomna pris. Priserna är exklusive moms, som i fakturaformuläret.
+ * RUT följer produkten, eller jobbets tjänst när raden inte är en produkt, och gäller bara privatkunder.
+ */
+export function invoiceLines(a, { products, jobs, company }) {
+  const job = a.job_id ? jobs[a.job_id] : null;
+  const service = job?.service ?? a.service;
+  return (a.invoice_lines ?? []).map((l) => {
+    const product = products.find((p) => p.id === l.product_id);
+    if (!product && !Number(l.price_ex_vat) && job?.price) {
+      const line = lineFromCustomerPrice(l.text || `${SERVICE_LABELS[job.service]} ${job.date}`, job.price, !company && RUT_SERVICES.includes(job.service) ? job.service : 'kontor');
+      return { ...line, price: String(line.price) };
+    }
+    return {
+      text: l.text || product?.name || '',
+      qty: String(l.qty || 1),
+      unit: product?.unit || 'st',
+      price: String(product ? Number(product.price) : Number(l.price_ex_vat) || 0),
+      vat: product ? Number(product.vat) : 25,
+      rut: !company && (product ? !!product.rut : RUT_SERVICES.includes(service)),
+    };
+  });
+}
+
+export function toCard(a, i, { customers, jobs, products = [] }) {
+  // En faktura för ett jobb går alltid till jobbets kund, även om assistenten inte hittade kunden själv.
+  const linked = a.kind === 'create_invoice' && a.job_id ? jobs[a.job_id]?.customer_id : null;
+  if (linked && a.customer_id !== linked) {
+    a = { ...a, customer_id: linked, new_customer: null, questions: (a.questions ?? []).filter((q) => !/a customer that does not exist/.test(q)) };
+  }
   const customer = customers.find((c) => c.id === a.customer_id);
   const company = customer ? customer.kind === 'company' : a.new_customer?.kind === 'company' || !!a.price_basis?.company;
   const hours = a.hours ?? null;
@@ -137,10 +170,21 @@ export function toCard(a, i, { customers, jobs }) {
       entries: (a.hours_entries ?? []).map((h) => ({ profile_id: h.profile_id, hours: String(h.hours), note: h.note ?? '' })),
       absence: a.absence ? { ...a.absence, kind: a.absence.kind || 'sjuk' } : { profile_id: '', kind: 'sjuk', from: a.date ?? today(), to: a.date ?? today(), note: '' },
       title: a.title,
+      invoice:
+        a.kind === 'create_invoice'
+          ? (() => {
+              const lines = invoiceLines(a, { products, jobs, company });
+              return { lines, rut_persons: lines.some((l) => l.rut) ? 1 : 0, your_ref: '', message: '', delivery_date: a.date ?? (job ? job.date : today()) };
+            })()
+          : null,
     },
   };
 }
 
+const num = (v) => {
+  const n = Number(String(v ?? '').replace(/\s/g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : 0;
+};
 const hoursNum = (v) => {
   const n = Number(String(v ?? '').replace(',', '.'));
   return Number.isFinite(n) && n > 0 ? Math.round(n * 4) / 4 : null;
@@ -295,6 +339,40 @@ export async function applyCard(card, ctx) {
     const { error } = await sb().from('absences').insert({ profile_id: a.profile_id, kind: a.kind, starts_on: a.from, ends_on: a.to, note: a.note || null, status: 'godkand' });
     if (error) throw new Error('Could not save the absence.');
     return 'Absence saved';
+  }
+
+  if (kind === 'create_invoice') {
+    const inv = e.invoice;
+    const lines = inv.lines
+      .filter((l) => l.text.trim())
+      .map((l) => ({ text: l.text.trim(), qty: num(l.qty) || 1, unit: l.unit, price: num(l.price), vat: Number(l.vat ?? 25), rut: !!l.rut }));
+    if (!lines.length) throw new Error('Add at least one line.');
+    const customerId = await ensureCustomer(e, ctx.created);
+    if (!customerId) throw new Error('Choose the customer to invoice.');
+    const { data: c } = await sb().from('customers').select('*').eq('id', customerId).maybeSingle();
+    // Kopplade inte assistenten jobbet, men kunden har precis ett jobb den dagen, kopplas fakturan till det.
+    let jobId = e.job_id || null;
+    if (!jobId && inv.delivery_date) {
+      const { data: same } = await sb()
+        .from('jobs')
+        .select('id')
+        .eq('customer_id', customerId)
+        .neq('status', 'avbokad')
+        .gte('starts_at', toInstant(inv.delivery_date).toISOString())
+        .lt('starts_at', toInstant(addDays(inv.delivery_date, 1)).toISOString());
+      if (same?.length === 1) jobId = same[0].id;
+    }
+    const draft = await saveInvoice({
+      customer_id: customerId,
+      job_id: jobId,
+      buyer: buyerFrom(c),
+      delivery_date: inv.delivery_date || null,
+      your_ref: inv.your_ref || null,
+      message: inv.message || null,
+      rut_persons: c?.kind === 'company' ? 0 : Number(inv.rut_persons) || 0,
+      lines,
+    });
+    return { text: 'Saved as a draft invoice. Check it and send it from Invoices.', link: `/admin/fakturor?utkast=${draft.id}`, linkText: 'Open the draft' };
   }
 
   if (kind === 'follow_up') {

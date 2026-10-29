@@ -74,6 +74,17 @@ export default function Invoices() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('q')) setQuery(params.get('q'));
     if (params.get('jobb')) invoiceFromJob(params.get('jobb')).then((draft) => draft && setEditing(draft));
+    // Från jobbassistenten: öppna fakturautkastet direkt.
+    if (params.get('utkast')) {
+      setFilter('utkast');
+      supabase()
+        .from('invoices')
+        .select('*, rut_people(id, slot, name, pnr_last4)')
+        .eq('id', params.get('utkast'))
+        .eq('status', 'utkast')
+        .maybeSingle()
+        .then(({ data }) => data && setEditing(data));
+    }
     if (params.get('offert'))
       supabase().from('quotes').select('*').eq('id', params.get('offert')).maybeSingle().then(({ data }) => data && setEditing(invoiceFromQuote(data)));
     if (params.toString()) window.history.replaceState(null, '', window.location.pathname);

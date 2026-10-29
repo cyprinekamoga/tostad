@@ -1,5 +1,5 @@
 // Jobbassistenten: läser en text (från en kund, en hyresvärd eller personalen) och föreslår
-// jobb, ändringar, timmar och uppföljningar. Förslagen sparas som ett utkast; inget ändras i
+// jobb, ändringar, timmar, uppföljningar och fakturautkast. Förslagen sparas som ett utkast; inget ändras i
 // planeringen förrän en administratör har godkänt dem på /admin/assistent.
 // Används av administrationen (inloggad administratör) och av WhatsApp-funktionen (internt).
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -83,10 +83,10 @@ const ACTION = {
     'service', 'date', 'date_text', 'start', 'hours',
     'street', 'apartment', 'postal_code', 'city', 'to_street', 'to_postal_code', 'to_city',
     'staff_ids', 'remove_staff_ids', 'staff_note', 'internal_note', 'repeat_weeks', 'repeat_until',
-    'price_explicit', 'price_basis', 'hours_entries', 'absence',
+    'price_explicit', 'price_basis', 'hours_entries', 'absence', 'invoice_lines',
   ],
   properties: {
-    kind: { type: 'string', enum: ['create_job', 'update_job', 'cancel_jobs', 'mark_done', 'report_hours', 'add_absence', 'follow_up'] },
+    kind: { type: 'string', enum: ['create_job', 'update_job', 'cancel_jobs', 'mark_done', 'report_hours', 'add_absence', 'follow_up', 'create_invoice'] },
     title: { type: 'string', description: 'Short English description shown to the owner, e.g. "Move-out cleaning Hammargatan 12B lgh 1102".' },
     confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
     questions: { type: 'array', items: { type: 'string' }, description: 'Things the owner must check or decide, in English. Empty if nothing is unclear.' },
@@ -151,6 +151,21 @@ const ACTION = {
         properties: { profile_id: { type: 'string' }, hours: { type: 'number' }, note: str },
       },
     },
+    invoice_lines: {
+      type: 'array',
+      description: 'Only for create_invoice: the invoice lines. Empty otherwise. The date the work was done goes in date.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['product_id', 'text', 'qty', 'price_ex_vat'],
+        properties: {
+          product_id: { ...str, description: 'Product id from the product list, or empty for a line that is not a product.' },
+          text: { ...str, description: 'Swedish line text shown on the invoice, e.g. "Hemstädning 21/10, 3 tim".' },
+          qty: num,
+          price_ex_vat: { ...num, description: 'Only for a line without product_id: unit price excl. VAT converted from a price in the text. 0 means the agreed price on the linked job.' },
+        },
+      },
+    },
     absence: {
       type: 'object',
       additionalProperties: false,
@@ -186,6 +201,7 @@ Action kinds:
 - mark_done: staff say a job is finished. Use job_id; put remarks (e.g. "balkongen låst", "nycklar tillbaka i skåpet") in internal_note.
 - report_hours: staff report hours. One action per job with job_id and date, and one hours_entries item per person. "jag" means the sender. Use decimal hours ("5,5h" = 5.5).
 - add_absence: a staff member is sick or away (e.g. "Anna sjuk").
+- create_invoice: the owner asks for an invoice ("fakturera", "skicka faktura", "invoice"), or a job is finished and the text says to invoice it. Only a draft is made; the owner checks and sends it. See Invoicing below.
 - follow_up: anything that needs the owner and does not fit above: a price question, a lead from a customer that will call, a change of a recurring schedule's rhythm, problems on site, a customer asking what something costs. Write the title as a clear to-do.
 
 Matching:
@@ -216,9 +232,18 @@ Prices: do not calculate prices yourself; the system uses the company's price ca
 
 Hours for create_job: a sensible job length, e.g. move-out cleaning about 1 hour per 15 m² for a team of two, window cleaning about 15 minutes per window.
 
+Invoicing (create_invoice):
+- Link the job with job_id when the invoice is for a job in the job list, set date to the job date (the date the work was done) and service to the job's service. Use the job's customer as customer_id. If the job list says the job is already invoiced, still make the draft but add a question.
+- Build invoice_lines from the PRODUCTS list: product_id and qty (hours worked, square metres, number of windows). The price, unit, VAT and RUT come from the product. Use the hours actually worked from the job list ("worked") for hourly products; if none are reported, use the job length and add a question. Write text in Swedish, e.g. "Hemstädning 21/10, 3 tim".
+- If the job has an agreed price ("price") and the text does not give another basis, make one line without product_id and with price_ex_vat 0: that line gets the job's agreed price.
+- A price written in the text is what the customer pays: incl. VAT and, for private customers with RUT work, after RUT. Put it on a line without product_id and convert it to price_ex_vat: divide by 1.25, and for RUT work first double it. Say in questions how you converted it.
+- Never write personal identity numbers. For a private customer with RUT work, add the question "Add the personal identity number for RUT in the draft."
+- Put the customer's reference or a requested invoice message in questions, so the owner can add it to the draft.
+- One invoice per customer. Several jobs for the same customer in one request can be one invoice with one line per job (job_id empty, the dates in the texts).
+
 Notes: staff_note is Swedish and shown to the staff (door code, key box code, "ugnen mkt smutsig", pets, balcony included). internal_note is for the owner (invoicing, reference, inspection time, "återkommer om pris").
 
-Every field must be present. Use an empty string, 0, false or an empty list when something is unknown or does not apply; fill new_customer (name empty when not needed), price_basis and absence (profile_id empty when not used) with empty values in the same way.
+Every field must be present. Use an empty string, 0, false or an empty list when something is unknown or does not apply; fill new_customer (name empty when not needed), price_basis, absence (profile_id empty when not used) with empty values in the same way.
 
 Write titles, summary and questions in English. Keep names, addresses and staff notes as written. If the text contains nothing to do, return an empty actions list and explain in summary. A personal identity number may have been removed from the text; if so, add a question asking the owner to add it on the invoice.`;
 
@@ -235,17 +260,18 @@ function compactCalendar(today: string) {
 async function context(today: string) {
   const from = `${addDays(today, -60)}T00:00:00Z`;
   const to = `${addDays(today, 150)}T00:00:00Z`;
-  const [customers, staff, jobs] = await Promise.all([
+  const [customers, staff, jobs, products] = await Promise.all([
     db.from('customers').select('id, kind, name, phone, email, street, postal_code, city').order('name').limit(1500),
     db.from('profiles').select('id, full_name, phone, role').eq('active', true).order('full_name'),
     db
       .from('jobs')
-      .select('id, service, title, status, starts_at, ends_at, street, city, series_id, customer_id, customers(name), job_staff(profile_id)')
+      .select('id, service, title, status, starts_at, ends_at, street, city, series_id, customer_id, price, customers(name), job_staff(profile_id), work_hours(hours), invoices(number, status)')
       .gte('starts_at', from)
       .lt('starts_at', to)
       .neq('status', 'avbokad')
       .order('starts_at')
       .limit(1500),
+    db.from('products').select('id, code, name, unit, price, vat, rut').eq('active', true).order('name'),
   ]);
   const names = Object.fromEntries((staff.data ?? []).map((p) => [p.id, p.full_name]));
   const customerLines = (customers.data ?? []).map((c) =>
@@ -259,16 +285,35 @@ async function context(today: string) {
     const cust = (j as any).customers?.name ?? '';
     // deno-lint-ignore no-explicit-any
     const team = ((j as any).job_staff ?? []).map((x: { profile_id: string }) => names[x.profile_id] ?? '').filter(Boolean).join(', ');
-    return [j.id, `${s.date} ${s.time}-${e.time}`, j.service, j.status, cust, j.title, [j.street, j.city].filter(Boolean).join(', '), team && `staff: ${team}`, j.series_id && 'recurring']
+    // deno-lint-ignore no-explicit-any
+    const worked = ((j as any).work_hours ?? []).reduce((n: number, w: { hours: number }) => n + Number(w.hours), 0);
+    // deno-lint-ignore no-explicit-any
+    const inv = ((j as any).invoices ?? []).filter((i: { status: string }) => i.status !== 'krediterad').map((i: { number: number | null }) => i.number ?? 'draft');
+    return [
+      j.id,
+      `${s.date} ${s.time}-${e.time}`,
+      j.service,
+      j.status,
+      cust,
+      j.title,
+      [j.street, j.city].filter(Boolean).join(', '),
+      team && `staff: ${team}`,
+      j.series_id && 'recurring',
+      j.price && `price: ${j.price} kr`,
+      worked && `worked: ${worked} h`,
+      inv.length && `invoiced: ${inv.join(', ')}`,
+    ]
       .filter(Boolean)
       .join(' | ');
   });
+  const productLines = (products.data ?? []).map((p) => [p.id, p.code, p.name, `${p.price} kr excl. VAT per ${p.unit}`, `VAT ${p.vat} %`, p.rut ? 'RUT' : 'no RUT'].filter(Boolean).join(' | '));
   return {
-    text: `CUSTOMERS (id | type | name | phone | email | address)\n${customerLines.join('\n') || '(none)'}\n\nSTAFF (id | name | phone | role)\n${staffLines.join('\n') || '(none)'}\n\nJOBS from 2 months ago to 5 months ahead (id | date time | service | status | customer | title | address | staff)\n${jobLines.join('\n') || '(none)'}`,
+    text: `PRODUCTS for invoices (id | code | name | price | VAT | RUT)\n${productLines.join('\n') || '(none)'}\n\nCUSTOMERS (id | type | name | phone | email | address)\n${customerLines.join('\n') || '(none)'}\n\nSTAFF (id | name | phone | role)\n${staffLines.join('\n') || '(none)'}\n\nJOBS from 2 months ago to 5 months ahead (id | date time | service | status | customer | title | address | staff | agreed price the customer pays | hours worked | invoice numbers)\n${jobLines.join('\n') || '(none)'}`,
     ids: {
       customers: new Set((customers.data ?? []).map((c) => c.id)),
       staff: new Set((staff.data ?? []).map((p) => p.id)),
       jobs: new Set((jobs.data ?? []).map((j) => j.id)),
+      products: new Set((products.data ?? []).map((p) => p.id)),
     },
   };
 }
@@ -288,13 +333,15 @@ function blankToNull(result: any) {
       if (!b.sqm && !b.rooms && !b.windows2 && !b.windows4 && !b.clean_hours && !b.recurring && !b.company && !b.same_as_last_time) a.price_basis = null;
     }
     for (const h of a.hours_entries ?? []) h.note = blank(h.note);
+    if (a.kind !== 'create_invoice') a.invoice_lines = [];
+    for (const l of a.invoice_lines ?? []) l.product_id = blank(l.product_id);
   }
   return result;
 }
 
 // Tar bort id:n som inte finns, så att ett påhittat id aldrig når planeringen.
 // deno-lint-ignore no-explicit-any
-function clean(result: any, ids: { customers: Set<string>; staff: Set<string>; jobs: Set<string> }) {
+function clean(result: any, ids: { customers: Set<string>; staff: Set<string>; jobs: Set<string>; products: Set<string> }) {
   for (const a of result.actions ?? []) {
     const flag = (what: string) => a.questions.push(`The assistant referred to a ${what} that does not exist. Choose it yourself.`);
     if (a.customer_id && !ids.customers.has(a.customer_id)) {
@@ -319,6 +366,12 @@ function clean(result: any, ids: { customers: Set<string>; staff: Set<string>; j
     if (a.absence && !ids.staff.has(a.absence.profile_id)) {
       a.absence = null;
       flag('staff member');
+    }
+    for (const l of a.invoice_lines ?? []) {
+      if (l.product_id && !ids.products.has(l.product_id)) {
+        l.product_id = null;
+        flag('product');
+      }
     }
   }
   return result;
