@@ -1,0 +1,130 @@
+---
+// "Det här ingår": vad som ingår och inte ingår i en tjänst, från src/data/included.js.
+// Har sidan redan den interaktiva checklistan visas bara det som inte ingår, med en länk dit.
+import Icon from './Icon.astro';
+import { included } from '../data/included.js';
+
+interface Props {
+  slug: string;
+  name: string;
+  hasChecklist?: boolean;
+}
+const { slug, name, hasChecklist = false } = Astro.props;
+const data = included[slug];
+---
+{
+  data && (
+    <section class="section" id="ingar">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Det här ingår</p>
+          <h2>Vad ingår i {name.toLowerCase()}?</h2>
+          {hasChecklist ? (
+            <p class="lead">
+              Allt i vår checklista ingår, rum för rum. <a href="#checklista">Se hela checklistan</a>.
+            </p>
+          ) : (
+            <p class="lead">Så här ser det ut när inget annat är överenskommet. Har du önskemål skriver du det i bokningen.</p>
+          )}
+        </div>
+        {!hasChecklist && (
+          <div class="inc-grid">
+            {data.groups.map((g) => (
+              <div class="card inc-card">
+                <h3>{g.title}</h3>
+                <ul class="inc-list">
+                  {g.items.map((item) => (
+                    <li>
+                      <Icon name="check" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        <div class="inc-bottom">
+          <div class="card inc-card inc-not">
+            <h3>Ingår inte</h3>
+            <ul class="inc-list">
+              {data.notIncluded.map((item) => (
+                <li>
+                  <Icon name="close" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {data.note && (
+            <p class="inc-note">
+              <Icon name="sparkle" /> {data.note}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .inc-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    margin-bottom: 16px;
+  }
+  .inc-card h3 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+  }
+  .inc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+  .inc-list li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 8px;
+    align-items: start;
+    line-height: 1.45;
+  }
+  .inc-list :global(svg) {
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    color: var(--green-600);
+  }
+  .inc-not .inc-list :global(svg) {
+    color: var(--ink-2, #5b6b61);
+  }
+  .inc-bottom {
+    display: grid;
+    gap: 16px;
+  }
+  .inc-note {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 0;
+    padding: 14px 16px;
+    border-radius: var(--radius-lg, 16px);
+    background: var(--mint, #eaf5ee);
+  }
+  .inc-note :global(svg) {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    color: var(--green-600);
+  }
+  @media (min-width: 900px) {
+    .inc-bottom {
+      grid-template-columns: 2fr 1fr;
+      align-items: start;
+    }
+  }
+</style>
