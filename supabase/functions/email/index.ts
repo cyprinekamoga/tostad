@@ -4,7 +4,7 @@
 // om sin egen länk till Mina sidor eller ett nytt lösenord, och svaret avslöjar aldrig om adressen finns.
 // Utan RESEND_API_KEY, eller när mejl är avstängt, skickas inget.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, rejectionMail, portalLinkMail, passwordMail, urls, serviceName } from './templates.js';
+import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, rejectionMail, replyMail, portalLinkMail, passwordMail, urls, serviceName } from './templates.js';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
 const PREVIEW = /^https:\/\/[a-z0-9-]+--tostadflytt-preview\.netlify\.app$/;
@@ -381,6 +381,31 @@ Deno.serve(async (req) => {
       // deno-lint-ignore no-explicit-any
       const error = await send(s, { kind: 'avslag', ref_id: a.id, to: a.email, created_by: me.id, ...rejectionMail({ name: a.name, title: (a as any).vacancies?.title ?? null, company: companyOf(s) }) });
       return error ? reply(req, 502, { error }) : reply(req, 200, { ok: true, to: a.email });
+    }
+    // Svar till en kund som har skrivit på Mina sidor. Svaret sparas i tråden och mejlas om det går.
+    if (body.action === 'portal_reply') {
+      const text = typeof body.body === 'string' ? body.body.trim() : '';
+      if (text.length < 1 || text.length > 4000) return reply(req, 400, { error: 'Write the reply, at most 4000 characters.' });
+      const { data: c } = await db.from('customers').select('id, name, email, portal_token, portal_off').eq('id', String(body.customer_id ?? '')).maybeSingle();
+      if (!c) return reply(req, 404, { error: 'Could not find the customer.' });
+      const submissionId = typeof body.submission_id === 'string' && /^[0-9a-f-]{36}$/.test(body.submission_id) ? body.submission_id : null;
+      const { data: saved, error: saveError } = await db
+        .from('portal_messages')
+        .insert({ customer_id: c.id, submission_id: submissionId, from_customer: false, body: text, created_by: me.id })
+        .select('id, created_at')
+        .single();
+      if (saveError) return reply(req, 500, { error: 'Could not save the reply.' });
+      if (submissionId) await db.from('submissions').update({ status: 'hanterad' }).eq('id', submissionId).eq('status', 'ny');
+      let emailed: string | null = null;
+      let emailError: string | null = null;
+      if (!ready) emailError = 'Email is turned off';
+      else if (!isEmail(c.email)) emailError = 'The customer has no email address';
+      else {
+        const url = await portalUrl(c);
+        emailError = await send(s, { kind: 'svar', ref_id: saved.id, customer_id: c.id, to: c.email, created_by: me.id, ...replyMail({ name: c.name, body: text, url, company: companyOf(s) }) });
+        if (!emailError) emailed = c.email;
+      }
+      return reply(req, 200, { ok: true, id: saved.id, emailed, email_error: emailError });
     }
     if (body.action === 'test') {
       if (!apiKey()) return reply(req, 400, { error: 'Resend is not connected yet.' });

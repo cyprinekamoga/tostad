@@ -1,6 +1,6 @@
 // Kundportalen (/kund). Kunden öppnar en personlig länk med en hemlig nyckel och ser sina
 // bokningar, fotorapporter, offerter och fakturor. Kunden kan också skicka ett meddelande,
-// som hamnar i inkorgen. Inga priser för personal eller interna anteckningar visas.
+// som hamnar i inkorgen, och ser våra svar i samma tråd. Inga priser för personal eller interna anteckningar visas.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     if (!c) return reply(req, 404, { error: 'Länken fungerar inte' });
     await db.from('customers').update({ portal_seen_at: new Date().toISOString() }).eq('id', c.id);
 
-    const [jobs, quotes, invoices, settings] = await Promise.all([
+    const [jobs, quotes, invoices, settings, messages] = await Promise.all([
       db
         .from('jobs')
         .select('id, service, title, status, starts_at, ends_at, street, postal_code, city, to_street, to_postal_code, to_city, on_way_at, done_at, job_staff(profiles(full_name))')
@@ -61,7 +61,10 @@ Deno.serve(async (req) => {
         .order('issue_date', { ascending: false })
         .limit(100),
       db.from('company_settings').select('bankgiro').eq('id', 1).maybeSingle(),
+      db.from('portal_messages').select('id, from_customer, body, created_at').eq('customer_id', c.id).order('created_at', { ascending: false }).limit(50),
     ]);
+    // Våra svar räknas som lästa när kunden har öppnat sidan.
+    await db.from('portal_messages').update({ read_at: new Date().toISOString() }).eq('customer_id', c.id).eq('from_customer', false).is('read_at', null);
 
     // Fotorapporter för jobb som är klara.
     const doneIds = (jobs.data ?? []).filter((j) => j.status === 'klar').map((j) => j.id);
@@ -86,6 +89,7 @@ Deno.serve(async (req) => {
       })),
       quotes: quotes.data ?? [],
       invoices: invoices.data ?? [],
+      messages: (messages.data ?? []).reverse().map(({ id, ...m }) => ({ ...m, key: id.slice(0, 8) })),
     });
   }
 
@@ -108,7 +112,7 @@ Deno.serve(async (req) => {
   if ((count ?? 0) >= 10) return reply(req, 429, { error: 'För många meddelanden. Ring oss om det är bråttom.' });
   await db.from('form_rate').insert({ ip_hash: key });
 
-  const { error } = await db.from('submissions').insert({
+  const { data: submission, error } = await db.from('submissions').insert({
     kind: 'kontakt',
     status: 'ny',
     name: c.name,
@@ -116,7 +120,9 @@ Deno.serve(async (req) => {
     phone: c.phone,
     customer_id: c.id,
     data: { namn: c.name, kontakt: c.email || c.phone || '', meddelande: topic ? `${topic}: ${message}` : message, samtycke: 'ja', kalla: 'Kundportalen' },
-  });
+  }).select('id').single();
   if (error) return reply(req, 500, { error: 'Kunde inte skicka. Försök igen eller ring oss.' });
-  return reply(req, 200, { ok: true });
+  const text = topic ? `${topic}: ${message}` : message;
+  const { data: saved } = await db.from('portal_messages').insert({ customer_id: c.id, submission_id: submission.id, from_customer: true, body: text }).select('id, created_at').single();
+  return reply(req, 200, { ok: true, message: saved ? { key: saved.id.slice(0, 8), from_customer: true, body: text, created_at: saved.created_at } : null });
 });

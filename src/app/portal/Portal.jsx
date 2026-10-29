@@ -26,6 +26,7 @@ const dayName = (d) => {
   const s = dayFmt.format(new Date(`${d}T12:00:00Z`));
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
+const whenFmt = new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' });
 const short = (d) => (d ? shortFmt.format(new Date(`${d.slice(0, 10)}T12:00:00Z`)) : '');
 const place = (j, to = false) =>
   [to ? j.to_street : j.street, [to ? j.to_postal_code : j.postal_code, to ? j.to_city : j.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
@@ -84,6 +85,7 @@ export default function Portal() {
       if (!res.ok) throw new Error(json.error || 'Kunde inte skicka. Försök igen eller ring oss.');
       setSent(true);
       setMessage('');
+      if (json.message) setData({ ...data, messages: [...(data.messages ?? []), json.message] });
     } catch (err) {
       setError(err.message);
     }
@@ -245,25 +247,32 @@ export default function Portal() {
       </section>
 
       <section class="kp-section" id="meddelande">
-        <h2>Skicka ett meddelande</h2>
-        {sent ? (
-          <p class="kp-card kp-ok" role="status">Tack! Vi har fått ditt meddelande och svarar {site.responseTime}.</p>
-        ) : (
-          <form class="kp-card form-grid" onSubmit={send}>
-            <div class="field">
-              <label for="kp-topic">Gäller</label>
-              <select id="kp-topic" value={topic} onChange={(e) => setTopic(e.currentTarget.value)}>
-                {TOPICS.map((t) => <option>{t}</option>)}
-              </select>
-            </div>
-            <div class="field">
-              <label for="kp-msg">Meddelande</label>
-              <textarea id="kp-msg" rows={4} required minLength={3} maxLength={4000} value={message} onInput={(e) => setMessage(e.currentTarget.value)} />
-            </div>
-            {error && <p class="kp-error" role="alert">{error}</p>}
-            <button class="btn" type="submit" disabled={sending}>{sending ? 'Skickar …' : 'Skicka'}</button>
-          </form>
+        <h2>{data.messages?.length ? 'Meddelanden' : 'Skicka ett meddelande'}</h2>
+        {data.messages?.length > 0 && (
+          <ol class="kp-thread" aria-label="Meddelanden mellan dig och oss">
+            {data.messages.map((m) => (
+              <li class={m.from_customer ? 'is-me' : 'is-us'}>
+                <small>{m.from_customer ? 'Du' : site.name} · {whenFmt.format(new Date(m.created_at))}</small>
+                <p>{m.body}</p>
+              </li>
+            ))}
+          </ol>
         )}
+        {sent && <p class="kp-card kp-ok" role="status">Tack! Vi har fått ditt meddelande och svarar {site.responseTime}.</p>}
+        <form class="kp-card form-grid" onSubmit={send}>
+          <div class="field">
+            <label for="kp-topic">Gäller</label>
+            <select id="kp-topic" value={topic} onChange={(e) => setTopic(e.currentTarget.value)}>
+              {TOPICS.map((t) => <option>{t}</option>)}
+            </select>
+          </div>
+          <div class="field">
+            <label for="kp-msg">Meddelande</label>
+            <textarea id="kp-msg" rows={4} required minLength={3} maxLength={4000} value={message} onInput={(e) => setMessage(e.currentTarget.value)} />
+          </div>
+          {error && <p class="kp-error" role="alert">{error}</p>}
+          <button class="btn" type="submit" disabled={sending}>{sending ? 'Skickar …' : 'Skicka'}</button>
+        </form>
         <p class="kp-muted kp-fine">Bråttom? Ring <a href={site.phoneHref}>{site.phone}</a>.</p>
       </section>
 

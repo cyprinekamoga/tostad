@@ -69,3 +69,14 @@ test('påminnelse med påminnelseavgift', () => {
   assert.match(m.text, /Att betala: 2 510 kr/);
   assert.doesNotMatch(invoiceMail({ doc: { ...doc, reminder_fee: 0 }, url: urls.doc('t1'), reminder: true, company }).text, /Påminnelseavgift/);
 });
+
+test('svar till kunden från Mina sidor', async () => {
+  const { replyMail } = await import('../supabase/functions/email/templates.js');
+  const m = replyMail({ name: 'Eva Ek', body: 'Hej Eva, vi kan komma kl 10 i stället.\nMvh Cyprine', url: urls.portal('k1'), company });
+  assert.equal(m.subject, 'Svar från TO Städ & Flytt');
+  assert.match(m.text, /^Hej Eva!/);
+  assert.match(m.text, /vi kan komma kl 10/);
+  assert.match(m.html, /kl 10 i stället\.<br>Mvh Cyprine/);
+  assert.match(m.text, /Läs och svara på Mina sidor: https:\/\/tostadflytt\.se\/kund\?k=k1/);
+  assert.match(replyMail({ name: 'Bo', body: 'x', url: null, company }).text, /Du kan svara på det här mejlet/);
+});

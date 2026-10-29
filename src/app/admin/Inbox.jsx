@@ -1,6 +1,6 @@
 // Inkorgen: bokningar, meddelanden och skadeanmälningar från webbplatsen.
 import { useEffect, useState } from 'preact/hooks';
-import { supabase, formatDateTime } from '../../lib/supabase.js';
+import { supabase, formatDateTime, callFunction } from '../../lib/supabase.js';
 import { ErrorMsg, Phone, Email } from '../ui.jsx';
 import { KIND, STATUS, FIELDS, fieldValue, summary, ensureCustomer } from './submission.js';
 import { describeCalc } from '../../lib/calcSummary.js';
@@ -31,8 +31,8 @@ export default function Inbox({ onInboxChange }) {
     if (wanted) {
       const hit = data.find((s) => s.id === wanted);
       if (hit) setSelected(hit);
-      else if (!keepId) {
-        // Länkat ärende som inte syns med nuvarande filter.
+      else {
+        // Ärendet syns inte med nuvarande filter (länkat, eller nyss hanterat): hämta det ändå.
         const { data: one } = await sb.from('submissions').select(COLUMNS).eq('id', wanted).maybeSingle();
         if (one) setSelected(one);
       }
@@ -226,6 +226,7 @@ function Detail({ item, names, onChanged, onDeleted }) {
           })}
         </div>
       )}
+      {item.customer_id && data.kalla === 'Kundportalen' && <Conversation item={item} onReplied={() => onChanged(item.id)} />}
       <div class="field">
         <label for="note">Internal note</label>
         <textarea id="note" maxLength={5000} value={note} onInput={(e) => setNote(e.currentTarget.value)} />
@@ -258,5 +259,76 @@ function Detail({ item, names, onChanged, onDeleted }) {
         <button class="btn btn--danger btn--sm" type="button" disabled={busy} onClick={remove}>Remove</button>
       </div>
     </article>
+  );
+}
+
+// Tråden med kunden på Mina sidor. Svaret syns där och mejlas till kunden.
+function Conversation({ item, onReplied }) {
+  const sb = supabase();
+  const [messages, setMessages] = useState(null);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+
+  const load = () =>
+    sb
+      .from('portal_messages')
+      .select('id, from_customer, body, created_at, read_at')
+      .eq('customer_id', item.customer_id)
+      .order('created_at')
+      .limit(100)
+      .then(({ data }) => setMessages(data ?? []));
+
+  useEffect(() => {
+    setText('');
+    setInfo('');
+    load();
+  }, [item.id]);
+
+  async function send(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    setInfo('');
+    try {
+      const r = await callFunction('email', { action: 'portal_reply', customer_id: item.customer_id, submission_id: item.id, body: text });
+      setText('');
+      setInfo(r.emailed ? `The reply is on the customer's page and emailed to ${r.emailed}.` : `The reply is on the customer's page. Not emailed: ${r.email_error}.`);
+      await load();
+      onReplied();
+    } catch (err) {
+      setError(err.message);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <section class="cp-thread" aria-label="Conversation with the customer">
+      <h4>Conversation on Mina sidor</h4>
+      {messages === null && <p class="muted">Loading …</p>}
+      <ol class="cp-thread-list">
+        {(messages ?? []).map((m) => (
+          <li class={m.from_customer ? 'is-customer' : 'is-us'}>
+            <small>
+              {m.from_customer ? item.name || 'Customer' : 'You'} · {formatDateTime(m.created_at)}
+              {!m.from_customer && (m.read_at ? ' · read' : ' · not read yet')}
+            </small>
+            <p>{m.body}</p>
+          </li>
+        ))}
+      </ol>
+      <form class="field" onSubmit={send}>
+        <label for={`reply-${item.id}`}>Reply (Swedish)</label>
+        <textarea id={`reply-${item.id}`} rows={4} maxLength={4000} required value={text} onInput={(e) => setText(e.currentTarget.value)} placeholder="Hej! …" />
+        <ErrorMsg error={error} />
+        {info && <p class="msg msg--ok">{info}</p>}
+        <div>
+          <button class="btn btn--sm" type="submit" disabled={busy || !text.trim()}>
+            {busy ? 'Sending …' : 'Send reply'}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }

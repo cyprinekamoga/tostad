@@ -201,6 +201,14 @@ export function rejectionMail({ name, title, company }) {
   });
 }
 
+/** Vårt svar på ett meddelande från Mina sidor. Hela svaret står i mejlet, och tråden finns på Mina sidor. */
+export function replyMail({ name, body, url, company }) {
+  const blocks = [hello(name), 'Vi har svarat på ditt meddelande:', body];
+  if (url) blocks.push({ button: ['Läs och svara på Mina sidor', url] });
+  else blocks.push('Du kan svara på det här mejlet.');
+  return mail(`Svar från ${company.name}`, { preheader: body.slice(0, 90), blocks, company });
+}
+
 /** Länk till Mina sidor när kunden ber om den själv. */
 export function portalLinkMail({ name, url, company }) {
   return mail('Din länk till Mina sidor', {
