@@ -2034,14 +2034,24 @@ input[type='search'] {
     bottom: 0;
     z-index: 35;
     width: min(280px, 82vw);
-    max-height: none;
-    height: auto;
+    /* Menyn är lika hög som skärmen och rullar själv när den är längre. */
+    height: calc(100dvh - 56px);
+    max-height: calc(100dvh - 56px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
     transform: translateX(-105%);
     transition: transform 0.2s ease;
     box-shadow: var(--shadow-lg);
   }
   .adm.is-drawer-open .adm-nav {
     transform: none;
+  }
+  /* Sidan bakom står still medan menyn är öppen. */
+  html:has(.adm.is-drawer-open) {
+    overflow: hidden;
   }
   .adm.is-drawer-open .adm-scrim {
     display: block;
