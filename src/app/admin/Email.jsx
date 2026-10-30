@@ -12,6 +12,7 @@ const KIND = {
   offert: 'Quote',
   faktura: 'Invoice',
   ansokan: 'Application',
+  ny_bokning: 'New booking to you',
   portallank: 'Mina sidor link',
   losenord: 'New password',
   test: 'Test',

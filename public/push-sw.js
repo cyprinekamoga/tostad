@@ -1,4 +1,4 @@
-// Tar emot pushnotiser till personalappen och öppnar rätt sida när man trycker på notisen.
+// Tar emot pushnotiser till personalappen och administrationen och öppnar rätt sida när man trycker på notisen.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
@@ -26,7 +26,9 @@ self.addEventListener('notificationclick', (event) => {
   const url = new URL(event.notification.data?.url || '/app', self.location.origin).href;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      const open = list.find((c) => new URL(c.url).pathname.startsWith('/app'));
+      // Öppna i ett fönster som redan visar samma del (personalappen eller administrationen).
+      const part = new URL(url).pathname.startsWith('/admin') ? '/admin' : '/app';
+      const open = list.find((c) => new URL(c.url).pathname.startsWith(part)) ?? list.find((c) => new URL(c.url).pathname.startsWith('/app'));
       if (open) return open.navigate(url).then((c) => (c ?? open).focus());
       return self.clients.openWindow(url);
     }),

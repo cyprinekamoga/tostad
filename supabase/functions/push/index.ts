@@ -1,10 +1,11 @@
 // Pushnotiser (Web Push) till personalens telefoner. Schemat anropar funktionen när det finns ändringar i
-// kön (nytt jobb, bortplockad, ändrad tid eller adress, avbokat). Inloggad personal hämtar nyckeln,
+// kön (nytt jobb, bortplockad, ändrad tid eller adress, avbokat). Formulärfunktionen anropar den när en
+// bokning eller ett meddelande kommer in, och då får administratörerna en notis. Inloggad personal hämtar nyckeln,
 // registrerar sin telefon, stänger av och skickar ett test. VAPID-nycklarna skapas här första gången
 // och sparas i Vault, så att ingen annan behöver se dem.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import * as webpush from 'jsr:@negrel/webpush@0.5.0';
-import { outcome, notification } from './messages.js';
+import { outcome, notification, submissionNotification } from './messages.js';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
 const PREVIEW = /^https:\/\/[a-z0-9-]+--tostadflytt-preview\.netlify\.app$/;
@@ -21,12 +22,29 @@ function cors(req: Request) {
   return {
     'Access-Control-Allow-Origin': ORIGINS.includes(origin) || PREVIEW.test(origin) ? origin : ORIGINS[0],
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-client-info',
+    'Access-Control-Allow-Headers': 'apikey, authorization, content-type, x-client-info, x-internal-key',
     Vary: 'Origin',
   };
 }
 const reply = (req: Request, status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors(req), 'Content-Type': 'application/json' } });
+
+// Nyckel för anrop från formulärfunktionen, räknad ur projektets hemliga nyckel.
+async function derived(label: string) {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${secretKey}:${label}`));
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+}
+
+/** Besked till administratörernas telefoner om en ny bokning, ett meddelande eller en skadeanmälan. */
+async function notifyAdmins(id: string) {
+  const { data: settings } = await db.from('company_settings').select('notify_new_push').eq('id', 1).maybeSingle();
+  if (!settings?.notify_new_push) return { skipped: 'off' };
+  const { data: sub } = await db.from('submissions').select('id, kind, data').eq('id', id).maybeSingle();
+  if (!sub) return { skipped: 'missing' };
+  const { data: subs } = await db.from('push_subscriptions').select('id, endpoint, p256dh, auth, profiles!inner(active, role)').eq('profiles.active', true).in('profiles.role', ['owner', 'admin']);
+  if (!subs?.length) return { sent: 0 };
+  return { sent: await sendTo(subs, submissionNotification(sub)) };
+}
 
 let server: webpush.ApplicationServer | null = null;
 let publicKey = '';
@@ -124,6 +142,12 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const internal = req.headers.get('x-internal-key');
+    if (internal) {
+      if (internal !== (await derived('push-internal'))) return reply(req, 403, { error: 'Denied' });
+      if (body.action !== 'submission' || typeof body.id !== 'string') return reply(req, 400, { error: 'Unknown action' });
+      return reply(req, 200, await notifyAdmins(body.id));
+    }
     const cronToken = req.headers.get('x-cron-token');
     if (cronToken) {
       const { data: ok } = await db.rpc('check_cron_token', { p_token: cronToken });
@@ -159,7 +183,7 @@ Deno.serve(async (req) => {
     if (body.action === 'test') {
       const { data: subs } = await db.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('profile_id', me.id);
       if (!subs?.length) return reply(req, 400, { error: 'Turn on notifications on this phone first.' });
-      const sent = await sendTo(subs, { title: 'Notifications work', body: 'You will get a notification when your schedule changes.', url: '/app', tag: 'test' });
+      const sent = await sendTo(subs, { title: 'Notifications work', body: 'Notifications reach this phone.', url: '/app', tag: 'test' });
       return sent ? reply(req, 200, { ok: true, sent }) : reply(req, 502, { error: 'The notification could not be sent. Turn notifications off and on again.' });
     }
     return reply(req, 400, { error: 'Unknown action' });

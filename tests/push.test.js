@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { outcome, notification } from '../supabase/functions/push/messages.js';
+import { outcome, notification, submissionNotification } from '../supabase/functions/push/messages.js';
 
 const ev = (...kinds) => kinds.map((kind) => ({ kind }));
 
@@ -25,4 +25,14 @@ test('en notis per person, sammanfattad när det är flera', () => {
   assert.equal(many.body, 'Job cancelled: Wed 28 Oct 08:00 · Home cleaning · Eskilstuna\nNew job: Fri 30 Oct 08:00 · Moving');
   assert.equal(many.url, '/app/schema');
   assert.equal(notification([{ kind: 'ny', job_id: 'a', service: 'flytt', starts_at: '2026-10-30T07:00:00Z' }, { kind: 'ny', job_id: 'b', service: 'flytt', starts_at: '2026-10-31T07:00:00Z' }]).title, '2 new jobs');
+});
+
+test('notis till administratörerna om en ny bokning eller ett meddelande', () => {
+  const b = submissionNotification({ id: 'abc', kind: 'bokning', data: { namn: 'Anna Svensson', tjanst: 'flyttstadning', datum: '2026-11-12', adress: 'Storgatan 1' } });
+  assert.equal(b.title, 'New booking');
+  assert.equal(b.body, 'Anna Svensson · Move-out cleaning · Thu 12 Nov · Storgatan 1');
+  assert.equal(b.url, '/admin/inkorg#abc');
+  const m = submissionNotification({ id: 'x', kind: 'kontakt', data: { namn: 'Bo', meddelande: 'Hej! Kan ni städa?' } });
+  assert.equal(m.title, 'New message');
+  assert.equal(m.body, 'Bo · Hej! Kan ni städa?');
 });

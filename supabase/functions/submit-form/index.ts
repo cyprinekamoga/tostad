@@ -66,6 +66,29 @@ async function sha256(text: string) {
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Nycklar för anrop till andra funktioner, räknade ur projektets hemliga nyckel.
+async function derived(label: string) {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${secretKey}:${label}`));
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+}
+
+/** Mejl och pushnotis till företaget om det som kom in. Fel här ska aldrig stoppa själva inskicket. */
+async function notify(id: string) {
+  const call = async (fn: string) => {
+    try {
+      const res = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/${fn}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-internal-key': await derived(`${fn}-internal`) },
+        body: JSON.stringify({ action: 'submission', id }),
+      });
+      if (!res.ok) console.error('notify', fn, res.status, (await res.text()).slice(0, 200));
+    } catch (e) {
+      console.error('notify', fn, e);
+    }
+  };
+  await Promise.all([call('email'), call('push')]);
+}
+
 function safeName(name: string) {
   return name.normalize('NFKD').replace(/[^\w.-]+/g, '_').slice(-80) || 'fil';
 }
@@ -139,5 +162,10 @@ Deno.serve(async (req) => {
     console.error('insert failed', error.message);
     return reply(req, 500, { error: 'Kunde inte spara. Försök igen eller ring oss.' });
   }
+  // Beskeden skickas efter svaret, så att kunden inte behöver vänta på dem.
+  // deno-lint-ignore no-explicit-any
+  const runtime = (globalThis as any).EdgeRuntime;
+  if (runtime?.waitUntil) runtime.waitUntil(notify(id));
+  else await notify(id);
   return reply(req, 200, { ok: true });
 });

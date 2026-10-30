@@ -45,3 +45,17 @@ export function notification(items) {
   const body = sorted.slice(0, 4).map((i) => `${TITLE[i.kind]}: ${line(i)}`).join('\n') + (items.length > 4 ? `\nand ${items.length - 4} more` : '');
   return { title, body, url: '/app/schema', tag: 'schedule' };
 }
+
+const NEW_KIND = { bokning: 'New booking', kontakt: 'New message', skadeanmalan: 'New damage report' };
+const dayFmt = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+/** Notisen till administratörerna om något nytt från webbplatsen. sub: { id, kind, data }. */
+export function submissionNotification(sub) {
+  const d = sub.data ?? {};
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(d.datum ?? '') ? dayFmt.format(new Date(`${d.datum}T12:00:00Z`)) : d.datum;
+  const parts =
+    sub.kind === 'bokning'
+      ? [d.namn, SERVICE[d.tjanst] ?? d.tjanst, date, d.adress]
+      : [d.namn, String(d.meddelande ?? d.beskrivning ?? '').slice(0, 120)];
+  return { title: NEW_KIND[sub.kind] ?? 'New message', body: parts.filter(Boolean).join(' · '), url: `/admin/inkorg#${sub.id}`, tag: `sub-${sub.id}` };
+}

@@ -4,7 +4,7 @@
 // om sin egen länk till Mina sidor eller ett nytt lösenord, och svaret avslöjar aldrig om adressen finns.
 // Utan RESEND_API_KEY, eller när mejl är avstängt, skickas inget.
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, rejectionMail, replyMail, portalLinkMail, passwordMail, urls, serviceName } from './templates.js';
+import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, rejectionMail, replyMail, portalLinkMail, passwordMail, newSubmissionMail, urls, serviceName } from './templates.js';
 
 const ORIGINS = ['https://tostadflytt.se', 'https://www.tostadflytt.se', 'https://tostadflytt-preview.netlify.app', 'http://localhost:4321', 'http://127.0.0.1:4321'];
 const PREVIEW = /^https:\/\/[a-z0-9-]+--tostadflytt-preview\.netlify\.app$/;
@@ -315,9 +315,18 @@ Deno.serve(async (req) => {
     return reply(req, 200, await sendDue(s, now));
   }
 
-  // Från jobbansökan: svara den sökande direkt i stället för vid nästa timme.
+  // Anrop från andra funktioner: svar till den som sökt jobb, och besked om det som kommer in via webbplatsen.
   if (req.headers.get('x-internal-key')) {
     if (req.headers.get('x-internal-key') !== (await derived('email-internal'))) return reply(req, 403, { error: 'Denied' });
+    // Från formuläret på webbplatsen: besked till företaget om det som kom in.
+    if (body.action === 'submission') {
+      if (!ready || !s.notify_new_email || typeof body.id !== 'string') return reply(req, 200, { skipped: true });
+      const { data: sub } = await db.from('submissions').select('id, kind, data').eq('id', body.id).maybeSingle();
+      if (!sub || (await sentRefs('ny_bokning', [sub.id])).size) return reply(req, 200, { skipped: true });
+      const to = isEmail(s.notify_email) ? s.notify_email : s.email;
+      const error = await send(s, { kind: 'ny_bokning', ref_id: sub.id, to, ...newSubmissionMail({ sub, url: urls.inbox(sub.id), company: companyOf(s) }) });
+      return reply(req, 200, { ok: !error });
+    }
     if (!ready || !s.email_applicant || body.action !== 'application' || typeof body.id !== 'string') return reply(req, 200, { skipped: true });
     const { data: a } = await db.from('applications').select('id, name, email, vacancies(title)').eq('id', body.id).maybeSingle();
     if (!a || !isEmail(a.email) || (await sentRefs('ansokan', [a.id])).size) return reply(req, 200, { skipped: true });

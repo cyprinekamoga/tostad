@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, portalLinkMail, passwordMail, escape, urls } from '../supabase/functions/email/templates.js';
+import { bookingMail, photoReportMail, reviewMail, quoteMail, invoiceMail, applicantMail, portalLinkMail, passwordMail, newSubmissionMail, escape, urls } from '../supabase/functions/email/templates.js';
 
 const company = { name: 'TO Städ & Flytt', phone: '072 222 88 00', email: 'info@tostadflytt.se', bankgiro: '123-4567' };
 
@@ -79,4 +79,14 @@ test('svar till kunden från Mina sidor', async () => {
   assert.match(m.html, /kl 10 i stället\.<br>Mvh Cyprine/);
   assert.match(m.text, /Läs och svara på Mina sidor: https:\/\/tostadflytt\.se\/kund\?k=k1/);
   assert.match(replyMail({ name: 'Bo', body: 'x', url: null, company }).text, /Du kan svara på det här mejlet/);
+});
+
+test('mejl till företaget om en ny bokning', () => {
+  const sub = { id: 'abc', kind: 'bokning', data: { namn: 'Anna <b>', tjanst: 'hemstadning', datum: '2026-11-12', pris: '1700', telefon: '0701234567', ovrigt: 'Katt hemma' } };
+  const m = newSubmissionMail({ sub, url: urls.inbox(sub.id), company });
+  assert.equal(m.subject, 'New booking: Anna <b>, Home cleaning 2026-11-12');
+  assert.match(m.text, /Price from the calculator: 1.700 kr/);
+  assert.match(m.text, /Katt hemma/);
+  assert.match(m.text, /https:\/\/tostadflytt\.se\/admin\/inkorg#abc/);
+  assert.ok(m.html.includes('Anna &lt;b&gt;'));
 });

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { ErrorMsg } from '../ui.jsx';
 import { loadSettings, saveSettings, nextInvoiceNumber, setInvoiceStart } from './docs.js';
+import Alerts from './Alerts.jsx';
 
 export default function Settings() {
   const [form, setForm] = useState(null);
@@ -57,6 +58,7 @@ export default function Settings() {
       <div class="cp-head">
         <h2>Settings</h2>
       </div>
+      <Alerts />
       <form class="cp-panel form-grid" onSubmit={submit} style="max-width:720px">
         <h3 class="cp-subhead">Invoices and quotes</h3>
         <div class="form-2">

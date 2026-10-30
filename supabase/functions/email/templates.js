@@ -238,8 +238,54 @@ export function passwordMail({ name, url, company }) {
   });
 }
 
+// Besked till administratörerna om något nytt från webbplatsen (engelska, som administrationen).
+const NEW_KIND = { bokning: 'New booking', kontakt: 'New message', skadeanmalan: 'New damage report' };
+const SERVICE_EN = {
+  flytt: 'Moving',
+  flyttstadning: 'Move-out cleaning',
+  paket: 'Moving + move-out cleaning',
+  hemstadning: 'Home cleaning',
+  storstadning: 'Deep cleaning',
+  fonsterputs: 'Window cleaning',
+  kontor: 'Office cleaning',
+  pianoflytt: 'Piano moving / heavy lifting',
+};
+const NEW_FIELDS = [
+  ['tjanst', 'Service'],
+  ['pris', 'Price from the calculator'],
+  ['datum', 'Date'],
+  ['tid', 'Time'],
+  ['flexibel', 'Flexible with the date'],
+  ['adress', 'Address'],
+  ['postnummer', 'Postcode'],
+  ['nyAdress', 'New address'],
+  ['kvm', 'Square metres'],
+  ['vaningOchHiss', 'Floor and lift'],
+  ['typ', 'Concerns'],
+  ['namn', 'Name'],
+  ['telefon', 'Phone'],
+  ['epost', 'Email'],
+  ['kontakt', 'Contact'],
+  ['kontaktsatt', 'Wants to be contacted by'],
+];
+
+/** Mejl till företaget när en bokning, ett meddelande eller en skadeanmälan kommer in. */
+export function newSubmissionMail({ sub, url, company }) {
+  const d = sub.data ?? {};
+  const value = (k, v) => (k === 'tjanst' ? SERVICE_EN[v] ?? v : k === 'pris' && /^\d+$/.test(v) ? `${Number(v).toLocaleString('sv-SE')} kr` : v);
+  const rows = NEW_FIELDS.filter(([k]) => d[k] && String(d[k]).trim()).map(([k, label]) => `${label}: ${value(k, String(d[k]).trim())}`);
+  const text = d.meddelande || d.beskrivning || d.ovrigt;
+  const what = NEW_KIND[sub.kind] ?? 'New message';
+  const head = sub.kind === 'bokning' ? [SERVICE_EN[d.tjanst] ?? d.tjanst, d.datum].filter(Boolean).join(' ') : '';
+  const blocks = [`${what} from ${d.namn || 'the website'}.`, { list: rows }];
+  if (text) blocks.push(String(text).slice(0, 2000));
+  blocks.push({ button: ['Open in the inbox', url] });
+  return mail(`${what}: ${[d.namn, head].filter(Boolean).join(', ')}`.slice(0, 200), { lang: 'en', preheader: rows.slice(0, 3).join(' · '), blocks, company });
+}
+
 export const urls = {
   portal: (token) => `${SITE}/kund?k=${token}`,
   doc: (token) => `${SITE}/dokument?t=${token}`,
+  inbox: (id) => `${SITE}/admin/inkorg#${id}`,
   activate: (hash, type) => `${SITE}/app/aktivera?th=${encodeURIComponent(hash)}&typ=${type}`,
 };
