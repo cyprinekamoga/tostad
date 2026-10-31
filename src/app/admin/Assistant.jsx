@@ -6,7 +6,7 @@ import { ErrorMsg, copyText } from '../ui.jsx';
 import { SERVICE_LABELS, jobLabel } from './jobs.js';
 import { ABSENCE_KIND } from '../staff/api.js';
 import { totals, formatMoney, formatKrWhole } from '../../lib/money.js';
-import { KIND_LABEL, readText, openDrafts, loadDraft, closeDraft, referenceData, jobsFor, lastPrice, toCard, applyCard, conversations, readConversation, whatsappSetup } from './assistant.js';
+import { KIND_LABEL, readText, openDrafts, loadDraft, closeDraft, referenceData, jobsFor, invoiceData, lastPrice, toCard, applyCard, conversations, readConversation, whatsappSetup } from './assistant.js';
 
 const REPEAT = [['0', 'Once'], ['1', 'Every week'], ['2', 'Every other week'], ['3', 'Every third week'], ['4', 'Every fourth week']];
 
@@ -36,9 +36,9 @@ export default function Assistant({ me }) {
     setDone('');
     const r = ref ?? (await referenceData());
     if (!ref) setRef(r);
-    const j = await jobsFor(d.result?.actions ?? []);
+    const [j, invoicing] = await Promise.all([jobsFor(d.result?.actions ?? []), invoiceData(d.result?.actions ?? [], r.customers)]);
     setJobs(j);
-    const list = (d.result?.actions ?? []).map((a, i) => toCard(a, i, { customers: r.customers, jobs: j, products: r.products }));
+    const list = (d.result?.actions ?? []).map((a, i) => toCard(a, i, { customers: r.customers, jobs: j, products: r.products, invoicing }));
     // "Samma pris som förra": hämta kundens senaste pris.
     for (const c of list) {
       if (c.action.kind === 'create_job' && !c.e.price && c.action.price_basis?.same_as_last_time && c.e.customer_id) {
@@ -465,9 +465,33 @@ function InvoiceFields({ e, job, products, company, onChange }) {
   };
   const rutPersons = company ? 0 : Number(inv.rut_persons) || 0;
   const t = totals(inv.lines.map((l) => ({ qty: toNum(l.qty), price: toNum(l.price), vat: Number(l.vat ?? 25), rut: !company && l.rut })), rutPersons);
+  const period = inv.period;
+  // Nytt timpris: alla rader som räknas per timme får produktens pris.
+  const setRate = (id) => {
+    const p = products.find((x) => x.id === id);
+    if (p) setInv({ rate_id: id, lines: inv.lines.map((l) => (l.hourly ? { ...l, price: String(Number(p.price)), vat: Number(p.vat), rut: p.rut && !company } : l)) });
+  };
+  const fmtDay = (d) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }) : '');
   return (
     <>
       {job && <JobLine job={job} />}
+      {inv.already && <p class="msg">This job is already on another invoice. Check before you send this one.</p>}
+      {period && (
+        <div class="as-period">
+          <p>
+            <strong>{period.count} {period.count === 1 ? 'job' : 'jobs'}</strong> from the planner, {fmtDay(period.from)} to {fmtDay(period.to)}, {String(period.hours).replace('.', ',')} hours in total.
+            {period.skipped > 0 && ` ${period.skipped} already invoiced ${period.skipped === 1 ? 'job is' : 'jobs are'} left out.`}
+          </p>
+          {period.noHours > 0 && <p class="msg">{period.noHours} {period.noHours === 1 ? 'job has' : 'jobs have'} no reported hours. The planned time is used and marked "planned". Check them.</p>}
+          {period.count === 0 && <p class="msg">No jobs to invoice for this customer in the period. Check the customer and the dates.</p>}
+          <div class="field">
+            <label>Price per hour</label>
+            <select value={inv.rate_id} onChange={(ev) => setRate(ev.currentTarget.value)}>
+              {products.filter((p) => p.unit === 'tim').map((p) => <option value={p.id}>{p.name} · {formatMoney(Number(p.price))} excl. VAT</option>)}
+            </select>
+          </div>
+        </div>
+      )}
       <div class="form-3">
         <div class="field">
           <label>Work done (date)</label>
@@ -503,7 +527,7 @@ function InvoiceFields({ e, job, products, company, onChange }) {
                 <input type="checkbox" checked={!!l.rut} onChange={(ev) => setLine(i, { rut: ev.currentTarget.checked })} /> RUT
               </label>
             )}
-            <span class="as-inv-sum">{formatMoney(t.rows[i]?.net)}</span>
+            <span class="as-inv-sum">{l.estimated && <small class="badge badge--ny">planned</small>} {formatMoney(t.rows[i]?.net)}</span>
             <button class="st-link" type="button" aria-label="Remove the line" onClick={() => setInv({ lines: inv.lines.filter((_, j) => j !== i) })}>Remove</button>
           </div>
         ))}

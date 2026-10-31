@@ -239,7 +239,8 @@ Invoicing (create_invoice):
 - A price written in the text is what the customer pays: incl. VAT and, for private customers with RUT work, after RUT. Put it on a line without product_id and convert it to price_ex_vat: divide by 1.25, and for RUT work first double it. Say in questions how you converted it.
 - Never write personal identity numbers. For a private customer with RUT work, add the question "Add the personal identity number for RUT in the draft."
 - Put the customer's reference or a requested invoice message in questions, so the owner can add it to the draft.
-- One invoice per customer. Several jobs for the same customer in one request can be one invoice with one line per job (job_id empty, the dates in the texts).
+- One invoice per customer.
+- Invoice for all jobs in a period: when the owner asks to invoice all jobs (or "everything", a month, a week, "not invoiced yet") for a customer, usually a company such as Spic and Span, do not list the jobs. Set customer_id, leave job_id and job_ids empty, set date to the first day of the period and repeat_until to the last day (repeat_until is required for this). For "all jobs" with no period, leave date empty and set repeat_until to today. "Oktober" means 1 to 31 October; "förra månaden" means the previous calendar month. Give exactly one invoice_lines item: the hourly product to charge (product_id, qty 0, empty text). The app finds the jobs in the planner itself, uses the hours the staff reported, and leaves out jobs already invoiced. Write the title like "Invoice Spic and Span, October 2026".
 
 Notes: staff_note is Swedish and shown to the staff (door code, key box code, "ugnen mkt smutsig", pets, balcony included). internal_note is for the owner (invoicing, reference, inspection time, "återkommer om pris").
 

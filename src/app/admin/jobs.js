@@ -33,7 +33,7 @@ export function startFromWish(wish = '') {
 }
 
 const COLUMNS =
-  'id, customer_id, submission_id, series_id, service, title, status, starts_at, ends_at, street, postal_code, city, to_street, to_postal_code, to_city, lat, lng, price, staff_note, internal_note, checklist, on_way_at, done_at, done_by, customers(name, phone), job_staff(profile_id)';
+  'id, customer_id, submission_id, series_id, service, title, status, starts_at, ends_at, street, postal_code, city, to_street, to_postal_code, to_city, lat, lng, price, staff_note, internal_note, checklist, on_way_at, done_at, done_by, customers(name, phone), job_staff(profile_id), work_hours(hours, profile_id)';
 
 function shape(row) {
   const start = Date.parse(row.starts_at);
@@ -48,6 +48,8 @@ function shape(row) {
     endTime: zoned(end).time,
     staff: (row.job_staff ?? []).map((s) => s.profile_id),
     customerName: row.customers?.name ?? '',
+    // Timmar som personalen har rapporterat på jobbet, sammanlagt för alla.
+    worked: Math.round((row.work_hours ?? []).reduce((n, w) => n + (Number(w.hours) || 0), 0) * 100) / 100,
   };
 }
 

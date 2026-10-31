@@ -4,6 +4,7 @@ import { addMinutes, addDays, today, toInstant } from '../../lib/planner.js';
 import { suggestPrice } from '../../lib/assistantPrice.js';
 import { createJobs, updateJobs, loadJob, SERVICE_LABELS } from './jobs.js';
 import { buyerFrom, saveInvoice, lineFromCustomerPrice, RUT_SERVICES } from './docs.js';
+import { invoicedJobIds, periodLines, pickRate } from '../../lib/periodInvoice.js';
 
 const sb = () => supabase();
 
@@ -89,6 +90,45 @@ export async function jobsFor(actions) {
   return Object.fromEntries(jobs.filter(Boolean).map((j) => [j.id, j]));
 }
 
+/** En faktura för alla jobb under en period: assistenten anger kund och period (date till repeat_until) utan jobb. */
+export const isPeriodInvoice = (a) => a.kind === 'create_invoice' && !a.job_id && !!a.repeat_until;
+
+/**
+ * Hämtar det fakturorna i förslagen behöver ur planeringen. För en period: kundens jobb som har varit, med rapporterade
+ * timmar, utom de som redan är fakturerade. För ett enskilt jobb: om det redan finns på en faktura.
+ */
+export async function invoiceData(actions, customers) {
+  const out = {};
+  for (const [i, a] of actions.entries()) {
+    if (a.kind !== 'create_invoice') continue;
+    const customerId = a.customer_id;
+    if (isPeriodInvoice(a) && customerId) {
+      const to = a.repeat_until < today() ? a.repeat_until : today();
+      const from = a.date && a.date <= to ? a.date : addDays(to, -365);
+      const [{ data: list }, { data: invs }] = await Promise.all([
+        sb()
+          .from('jobs')
+          .select('id, service, title, status, starts_at, ends_at, street, city, price, job_staff(profile_id), work_hours(hours)')
+          .eq('customer_id', customerId)
+          .neq('status', 'avbokad')
+          .gte('starts_at', toInstant(from).toISOString())
+          .lt('starts_at', toInstant(addDays(to, 1)).toISOString())
+          .lte('starts_at', new Date().toISOString())
+          .order('starts_at')
+          .limit(1000),
+        sb().from('invoices').select('job_id, job_ids, status, kind').eq('customer_id', customerId),
+      ]);
+      const invoiced = invoicedJobIds(invs);
+      const all = (list ?? []).map((j) => ({ ...j, staff: (j.job_staff ?? []).map((x) => x.profile_id) }));
+      out[i] = { from, to, jobs: all.filter((j) => !invoiced.has(j.id)), skipped: all.filter((j) => invoiced.has(j.id)).length };
+    } else if (a.job_id) {
+      const { data: invs } = await sb().from('invoices').select('number, job_id, job_ids, status, kind').or(`job_id.eq.${a.job_id},job_ids.cs.{${a.job_id}}`);
+      if (invoicedJobIds(invs).has(a.job_id)) out[i] = { alreadyInvoiced: true };
+    }
+  }
+  return out;
+}
+
 /** Senaste priset för kunden och tjänsten, för "samma pris som förra". */
 export async function lastPrice(customerId, service) {
   if (!customerId) return null;
@@ -126,7 +166,7 @@ export function invoiceLines(a, { products, jobs, company }) {
   });
 }
 
-export function toCard(a, i, { customers, jobs, products = [] }) {
+export function toCard(a, i, { customers, jobs, products = [], invoicing = {} }) {
   // En faktura för ett jobb går alltid till jobbets kund, även om assistenten inte hittade kunden själv.
   const linked = a.kind === 'create_invoice' && a.job_id ? jobs[a.job_id]?.customer_id : null;
   if (linked && a.customer_id !== linked) {
@@ -173,8 +213,16 @@ export function toCard(a, i, { customers, jobs, products = [] }) {
       invoice:
         a.kind === 'create_invoice'
           ? (() => {
+              const data = invoicing[i];
+              if (isPeriodInvoice(a)) {
+                const rate = pickRate(products, a.invoice_lines?.[0]?.product_id);
+                const found = data?.jobs ?? [];
+                const { lines, noHours, hours } = periodLines(found, { rate, company });
+                const period = { from: data?.from ?? a.date ?? '', to: data?.to ?? a.repeat_until, count: found.length, skipped: data?.skipped ?? 0, noHours, hours, loaded: !!data };
+                return { lines, rate_id: rate?.id ?? '', period, job_ids: found.map((j) => j.id), rut_persons: lines.some((l) => l.rut) ? 1 : 0, your_ref: '', message: '', delivery_date: period.to };
+              }
               const lines = invoiceLines(a, { products, jobs, company });
-              return { lines, rut_persons: lines.some((l) => l.rut) ? 1 : 0, your_ref: '', message: '', delivery_date: a.date ?? (job ? job.date : today()) };
+              return { lines, rut_persons: lines.some((l) => l.rut) ? 1 : 0, your_ref: '', message: '', delivery_date: a.date ?? (job ? job.date : today()), already: !!data?.alreadyInvoiced };
             })()
           : null,
     },
@@ -352,7 +400,7 @@ export async function applyCard(card, ctx) {
     const { data: c } = await sb().from('customers').select('*').eq('id', customerId).maybeSingle();
     // Kopplade inte assistenten jobbet, men kunden har precis ett jobb den dagen, kopplas fakturan till det.
     let jobId = e.job_id || null;
-    if (!jobId && inv.delivery_date) {
+    if (!jobId && !inv.period && inv.delivery_date) {
       const { data: same } = await sb()
         .from('jobs')
         .select('id')
@@ -364,7 +412,8 @@ export async function applyCard(card, ctx) {
     }
     const draft = await saveInvoice({
       customer_id: customerId,
-      job_id: jobId,
+      job_id: inv.period ? null : jobId,
+      job_ids: inv.period ? inv.lines.map((l) => l.job_id).filter(Boolean) : [],
       buyer: buyerFrom(c),
       delivery_date: inv.delivery_date || null,
       your_ref: inv.your_ref || null,

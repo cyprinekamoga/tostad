@@ -112,6 +112,18 @@ export default function Planner() {
     }
   }
 
+  // Planeringen hämtas på nytt varje minut och när fliken visas igen, så att rapporterade timmar och
+  // jobb som personalen har markerat klara syns utan att man laddar om sidan.
+  useEffect(() => {
+    const again = () => document.visibilityState === 'visible' && reload();
+    const timer = setInterval(again, 60000);
+    document.addEventListener('visibilitychange', again);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', again);
+    };
+  }, [view, from, to]);
+
   useEffect(() => {
     reload();
     const url = new URL(window.location.href);
@@ -287,11 +299,12 @@ export default function Planner() {
         onDragStart={(e) => dragStart(e, job, person, grabFrom ? grabFrom(e) : 0)}
         onClick={() => setEditing({ job })}
         onKeyDown={(e) => e.key === 'Enter' && setEditing({ job })}
-        title={`${job.startTime} to ${job.endTime} ${jobLabel(job)}`}
+        title={`${job.startTime} to ${job.endTime} ${jobLabel(job)}${job.worked > 0 ? `, ${hoursText(job.worked)} h reported` : ''}`}
       >
         <strong>{job.startTime} to {job.endTime}</strong>
         <span>{jobLabel(job)}</span>
         <small>
+          {job.worked > 0 && <b>{hoursText(job.worked)} h reported · </b>}
           {SERVICE_LABELS[job.service]}
           {job.staff.length > 1 && <span class="pl-dots">{job.staff.map((id) => <i style={`background:${colorOf(id)}`} title={nameOf(id)} />)}</span>}
           {job.series_id && ' · recurring'}
@@ -606,7 +619,7 @@ function Agenda({ days, week, selected, now, jobs, warnings, colorOf, nameOf, on
                     <small>{hoursText(hours)} h</small>
                   </span>
                   <span class="pl-abody">
-                    <span class="pl-atag">{SERVICE_LABELS[j.service]}{j.series_id ? ' · recurring' : ''}{j.status !== 'planerad' ? ` · ${j.status === 'klar' ? 'done' : 'cancelled'}` : ''}</span>
+                    <span class="pl-atag">{SERVICE_LABELS[j.service]}{j.series_id ? ' · recurring' : ''}{j.status !== 'planerad' ? ` · ${j.status === 'klar' ? 'done' : 'cancelled'}` : ''}{j.worked > 0 ? ` · ${hoursText(j.worked)} h reported` : ''}</span>
                     <strong>{jobLabel(j)}</strong>
                     {jobAddress(j) && <small class="pl-aaddr">{jobAddress(j)}{j.to_street ? ` → ${jobAddress(j, true)}` : ''}</small>}
                     <span class="pl-astaff">

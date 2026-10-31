@@ -101,7 +101,7 @@ export async function deleteDraft(table, id) {
 }
 
 // Fakturor
-const INVOICE_FIELDS = ['customer_id', 'job_id', 'quote_id', 'buyer', 'your_ref', 'delivery_date', 'issue_date', 'due_date', 'lines', 'rut_persons', 'message', 'internal_note'];
+const INVOICE_FIELDS = ['customer_id', 'job_id', 'job_ids', 'quote_id', 'buyer', 'your_ref', 'delivery_date', 'issue_date', 'due_date', 'lines', 'rut_persons', 'message', 'internal_note'];
 
 export async function loadInvoices() {
   const { data, error } = await sb()

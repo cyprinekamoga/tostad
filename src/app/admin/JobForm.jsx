@@ -300,7 +300,7 @@ export default function JobForm({ job, prefill, people, customers, jobs, absentO
   );
 }
 
-// Vad personalen har gjort: på väg, klart och foton.
+// Vad personalen har gjort: på väg, klart, rapporterade timmar och foton.
 function JobProgress({ job, people }) {
   const [pics, setPics] = useState(null);
   useEffect(() => {
@@ -308,12 +308,14 @@ function JobProgress({ job, people }) {
   }, [job.id]);
   const name = (id) => people.find((p) => p.id === id)?.full_name ?? '';
   const kinds = { fore: 'Before', efter: 'After', skada: 'Damage' };
-  if (!job.on_way_at && !job.done_at && !pics?.length) return null;
+  const reported = (job.work_hours ?? []).map((w) => `${name(w.profile_id) || 'Someone'} ${String(Number(w.hours)).replace('.', ',')} h`);
+  if (!job.on_way_at && !job.done_at && !pics?.length && !reported.length) return null;
   return (
     <fieldset class="cp-fieldset">
       <legend>From the staff</legend>
       {job.on_way_at && <p class="muted" style="margin:0">On the way {formatDateTime(job.on_way_at)}</p>}
       {job.done_at && <p class="muted" style="margin:0">Done {formatDateTime(job.done_at)}{job.done_by ? ` by ${name(job.done_by)}` : ''}</p>}
+      {reported.length > 0 && <p style="margin:0">Hours reported: {reported.join(', ')}</p>}
       {pics?.length > 0 && (
         <div class="cp-files">
           {pics.map((p) => (

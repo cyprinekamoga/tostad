@@ -2507,6 +2507,20 @@ a.cp-stat:hover {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+.as-period {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--green-50);
+}
+.as-period p {
+  margin: 0;
+}
+.as-period .field {
+  max-width: 420px;
+}
 .as-inv-total {
   margin: 8px 0 0;
 }
