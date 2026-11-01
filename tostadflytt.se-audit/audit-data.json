@@ -1,0 +1,222 @@
+{
+  "summary": {
+    "health_score": 81,
+    "business_type": "Local service business (moving and cleaning), service area business based in Eskilstuna",
+    "top_findings": [
+      "43 town pages share about 78 % of their text (doorway risk)",
+      "No people, history or real job photos (weak experience signals)",
+      "Few reviews and outside mentions",
+      "Low-contrast text in the homepage story section",
+      "12 titles are 61 to 65 characters"
+    ],
+    "quick_wins": [
+      "Darken the faded homepage story text",
+      "Shorten 12 long titles",
+      "Add names and photos of the team to the about page",
+      "Replace stock photos on the 3 main service pages",
+      "Add lastmod to the sitemap"
+    ]
+  },
+  "categories": [
+    {
+      "name": "Technical SEO",
+      "score": 92,
+      "what_works": [
+        "All 67 pages 200 with self canonicals",
+        "HTTPS, HSTS and security headers",
+        "Clean 301s for www, trailing slash and case",
+        "Correct robots.txt and sitemap",
+        "Static HTML"
+      ],
+      "findings": [
+        {
+          "title": "No Content-Security-Policy",
+          "severity": "Low",
+          "description": "No CSP header on responses.",
+          "recommendation": "Add a CSP in netlify.toml, report-only first."
+        },
+        {
+          "title": "Sitemap without lastmod",
+          "severity": "Low",
+          "description": "sitemap-0.xml has no lastmod.",
+          "recommendation": "Add lastmod per page."
+        },
+        {
+          "title": "No llms.txt",
+          "severity": "Low",
+          "description": "/llms.txt returns 404.",
+          "recommendation": "Optional: add a short llms.txt."
+        }
+      ]
+    },
+    {
+      "name": "Content Quality",
+      "score": 62,
+      "what_works": [
+        "Long, specific service pages (median 946 words)",
+        "Strong trust facts: org nr, F-skatt, RUT, Trygg-Hansa, Bohag 2010, written guarantees"
+      ],
+      "findings": [
+        {
+          "title": "Near-duplicate town pages",
+          "severity": "High",
+          "description": "43 /omraden pages; after masking town names only 13-24 % of sentences are unique.",
+          "recommendation": "Real local content for the top 8-12 towns; merge the rest into county pages with 301s."
+        },
+        {
+          "title": "Weak experience signals",
+          "severity": "High",
+          "description": "No names, founding year, team photos or real case examples.",
+          "recommendation": "Add a team section and 2-3 real before/after cases."
+        },
+        {
+          "title": "Stock imagery",
+          "severity": "Medium",
+          "description": "Most photos are stock (23 credits on /bildkallor).",
+          "recommendation": "Use real job photos."
+        }
+      ]
+    },
+    {
+      "name": "On-Page SEO",
+      "score": 85,
+      "what_works": [
+        "One H1 per page with service and city",
+        "Unique titles and descriptions",
+        "Every page within one click of the homepage"
+      ],
+      "findings": [
+        {
+          "title": "Long titles",
+          "severity": "Low",
+          "description": "12 titles are 61-65 characters.",
+          "recommendation": "Shorten to 60 or less."
+        },
+        {
+          "title": "Footer-only town linking",
+          "severity": "Low",
+          "description": "All 43 towns linked from every page footer.",
+          "recommendation": "Link each town to neighbours and matching services."
+        }
+      ]
+    },
+    {
+      "name": "Schema / Structured Data",
+      "score": 88,
+      "what_works": [
+        "Valid JSON-LD everywhere",
+        "LocalBusiness+MovingCompany with geo, hours, org nr, areaServed",
+        "Service, BreadcrumbList, FAQPage, HowTo"
+      ],
+      "findings": [
+        {
+          "title": "No rating markup",
+          "severity": "Medium",
+          "description": "No aggregateRating or Review.",
+          "recommendation": "Add once reviews are collected and shown on site."
+        },
+        {
+          "title": "Few sameAs links",
+          "severity": "Low",
+          "description": "Only the Google profile.",
+          "recommendation": "Add Facebook, Instagram, Reco, Eniro."
+        }
+      ]
+    },
+    {
+      "name": "Performance (CWV)",
+      "score": 97,
+      "what_works": [
+        "Mobile 99: LCP 1.8 s, CLS 0, TBT 20 ms",
+        "Desktop 100: LCP 0.4 s"
+      ],
+      "findings": [
+        {
+          "title": "No field data yet",
+          "severity": "Info",
+          "description": "CrUX has too little traffic; lab data only.",
+          "recommendation": "Set up Search Console."
+        }
+      ]
+    },
+    {
+      "name": "AI Search Readiness",
+      "score": 70,
+      "what_works": [
+        "All AI crawlers allowed",
+        "Answer-first content and FAQs",
+        "Clear company facts in schema"
+      ],
+      "findings": [
+        {
+          "title": "Few third-party mentions",
+          "severity": "High",
+          "description": "Not on Reco, Hitta, Bing Places or lists that AI tools cite.",
+          "recommendation": "Claim listings and pursue local mentions."
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "score": 85,
+      "what_works": [
+        "443 images with width/height and lazy loading",
+        "Alt present everywhere; empty alt only for decorative images"
+      ],
+      "findings": [
+        {
+          "title": "Low-resolution logo",
+          "severity": "Low",
+          "description": "Logo served slightly small for high-density screens.",
+          "recommendation": "Serve a 2x logo."
+        }
+      ]
+    }
+  ],
+  "action_plan": {
+    "phases": [
+      {
+        "name": "Phase 1: Critical Fixes",
+        "timeframe": "Week 1",
+        "items": [
+          "Fix homepage contrast",
+          "Align Eniro/Hitta/Allabolag and Google profile with Vårvägen 1C",
+          "Shorten long titles",
+          "Sitemap lastmod"
+        ]
+      },
+      {
+        "name": "Phase 2: High-Impact Improvements",
+        "timeframe": "Weeks 2-3",
+        "items": [
+          "Team and history on about page",
+          "Real job photos on main service pages",
+          "Claim Bing Places, Apple Business Connect, Reco.se"
+        ]
+      },
+      {
+        "name": "Phase 3: Content & Authority",
+        "timeframe": "Month 2",
+        "items": [
+          "Rewrite top town pages, merge the rest",
+          "Neighbour links between towns",
+          "Case stories",
+          "CSP header"
+        ]
+      },
+      {
+        "name": "Phase 4: Monitoring & Iteration",
+        "timeframe": "Ongoing",
+        "items": [
+          "Reviews and rating on homepage",
+          "Local mentions and trade bodies",
+          "Search Console and Bing Webmaster Tools"
+        ]
+      }
+    ]
+  },
+  "artifacts": {
+    "findings_dir": "findings/",
+    "screenshots_dir": "screenshots/"
+  }
+}
