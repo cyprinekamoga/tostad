@@ -10,7 +10,7 @@ export const services = [
     title: 'Flyttstädning i Stockholm med fast pris och besiktningsgaranti',
     description:
       'Flyttstädning i Stockholm för 45 kr/kvm efter RUT. Fast pris, fotorapport rum för rum och 14 dagars besiktningsgaranti. Räkna ut ditt pris direkt.',
-    h1: 'Flyttstädning med fotorapport och besiktningsgaranti',
+    h1: 'Flyttstädning i Stockholm med fotorapport och besiktningsgaranti',
     lead: 'Vi städar efter samma checklista som besiktningsmän använder, fotograferar varje rum när vi är klara och kommer tillbaka kostnadsfritt om något ändå anmärks.',
     image: 'empty-room',
     imageAlt: 'Tomt och nystädat rum med vita väggar, mörkt trägolv och balkongdörr',
@@ -74,7 +74,7 @@ export const services = [
     title: 'Flytt och flyttstädning i Stockholm som paket med 10 % rabatt',
     description:
       'Boka flytt och flyttstädning tillsammans: ett fast pris, en kontaktperson och en faktura med RUT avdraget. 10 % rabatt på flyttstädningen i Stockholm.',
-    h1: 'Flytt och flyttstädning i ett paket',
+    h1: 'Flytt och flyttstädning i Stockholm i ett paket',
     lead: 'Samma team, samma dag, ett pris. Vi bär ut, kör och bär in. Sedan städar vi den gamla bostaden så att du kan lämna nycklarna med gott samvete.',
     image: 'keys',
     imageAlt: 'Nycklar med en husformad nyckelring hålls upp i en ljus hall',
@@ -104,7 +104,7 @@ export const services = [
     title: 'Hemstädning i Stockholm från 125 kr/h efter RUT',
     description:
       'Hemstädning i Stockholm från 125 kr/h efter rutavdrag. Ingen bindningstid, 10 % rabatt vid regelbunden städning och samma städare så långt det går.',
-    h1: 'Hemstädning som passar din vardag',
+    h1: 'Hemstädning i Stockholm som passar din vardag',
     lead: 'Varannan vecka, varje vecka eller bara inför helgen. Du väljer. Vi skickar samma städare så långt det går och säger alltid till i förväg om någon annan kommer.',
     image: 'hero-livingroom',
     imageAlt: 'Ljust vardagsrum med grå soffa, mönstrad matta, bokhylla och gröna växter',
@@ -134,7 +134,7 @@ export const services = [
     title: 'Storstädning och djupstädning i Stockholm från 160 kr/h',
     description:
       'Storstädning och djupstädning i Stockholm från 160 kr/h efter RUT. Vi tar ugn, kyl, kakelfogar, lister och allt du inte hinner. Fast pris i förväg.',
-    h1: 'Storstädning när hemmet behöver lite extra',
+    h1: 'Storstädning i Stockholm när hemmet behöver lite extra',
     lead: 'Inför försäljning, efter renovering eller bara för att det var länge sedan. Vi tar det du inte hinner, från ugnens insida till kakelfogarna.',
     image: 'gloves-spray',
     imageAlt: 'Hand i blå städhandske torkar en vit bänkskiva med sprayflaska och duk',
@@ -162,7 +162,7 @@ export const services = [
     title: 'Fönsterputs i Stockholm från 64 kr per fönster efter RUT',
     description:
       'Fönsterputs i Stockholm från 64 kr per tvåsidigt fönster efter rutavdrag. Karmar och fönsterbleck ingår. Se priset direkt och boka online.',
-    h1: 'Fönsterputs utan ränder',
+    h1: 'Fönsterputs i Stockholm utan ränder',
     lead: 'Vi putsar insida och utsida, torkar karmar och fönsterbrädor och lämnar inga ränder efter oss.',
     image: 'window-cleaning',
     imageAlt: 'Kvinna i blå handskar putsar ett fönster med duk och sprayflaska',
@@ -226,7 +226,7 @@ export const services = [
     title: 'Packhjälp vid flytt i Stockholm så att du slipper packa',
     description:
       'Packhjälp i Stockholm: vi packar porslin, kläder och böcker säkert, märker kartongerna rum för rum och packar upp om du vill. Räknas in i ditt fasta flyttpris.',
-    h1: 'Packhjälp: vi packar, du gör annat',
+    h1: 'Packhjälp i Stockholm: vi packar, du gör annat',
     lead: 'Porslin, glas, böcker och kläder packas säkert och märks rum för rum, så att allt hamnar rätt i det nya hemmet.',
     image: 'packing-box',
     imageAlt: 'Person som tejpar igen en flyttkartong',
@@ -255,7 +255,7 @@ export const services = [
     title: 'Pianoflytt i Stockholm med rätt utrustning för tunga lyft',
     description:
       'Pianoflytt och tunga lyft i Stockholm. Vi flyttar piano, kassaskåp och tunga möbler säkert med rätt utrustning och försäkring. Begär fast pris.',
-    h1: 'Pianoflytt och tunga lyft',
+    h1: 'Pianoflytt och tunga lyft i Stockholm',
     lead: 'Ett piano väger ofta 200 till 300 kg. Vi kommer med rätt antal personer och utrustning, skyddar golv och dörrkarmar och lyfter säkert hela vägen.',
     image: 'piano',
     imageAlt: 'Person som spelar på ett mörkt piano i ett rum med parkettgolv',

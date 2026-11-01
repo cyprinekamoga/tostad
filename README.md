@@ -24,7 +24,7 @@ Webbplatsen lovar saker som kunderna efterfrågar mest. Allt samlas i två filer
 | Värde | Nu | Vad det betyder |
 |---|---|---|
 | `whatsappHref` | 072 222 88 00 | Numret måste ha WhatsApp |
-| `address` | Hasselgatan 58, Upplands Väsby | Visas i sidfot och strukturerad data |
+| `address` | Vårvägen 1C, Eskilstuna | Visas i sidfot och strukturerad data |
 | `responseTime` | inom 24 timmar | Utlovad svarstid |
 | `inspectionGuaranteeDays` | 14 | Besiktningsgaranti efter flyttstädning |
 | `inspectionFixHours` | 48 | Hur snabbt anmärkningar åtgärdas |

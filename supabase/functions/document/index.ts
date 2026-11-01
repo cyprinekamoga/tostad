@@ -9,9 +9,9 @@ const COMPANY = {
   name: 'TO Städ & Flytt',
   legalName: 'TO Städ och Flytt AB',
   orgNr: '559470-3398',
-  street: 'Hasselgatan 58',
-  postalCode: '194 37',
-  city: 'Upplands Väsby',
+  street: 'Vårvägen 1C',
+  postalCode: '633 53',
+  city: 'Eskilstuna',
   web: 'tostadflytt.se',
 };
 

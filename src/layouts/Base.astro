@@ -72,6 +72,8 @@ const graph: Record<string, unknown>[] = [
       addressRegion: site.address.region,
       addressCountry: site.address.country,
     },
+    geo: { '@type': 'GeoCoordinates', latitude: site.geo.latitude, longitude: site.geo.longitude },
+    openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: site.hours.days, opens: site.hours.opens, closes: site.hours.closes }],
     areaServed: [...counties.map((c) => ({ '@type': 'AdministrativeArea', name: c.name })), ...areas.map((a) => ({ '@type': 'City', name: a.name }))],
     priceRange: '125 till 1 145 kr/h efter RUT',
     paymentAccepted: 'Faktura, kort',

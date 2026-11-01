@@ -26,6 +26,7 @@ const year = new Date().getFullYear();
         <li><a href={site.whatsappHref} rel="noopener"><Icon name="whatsapp" /> WhatsApp</a></li>
         <li><a href={`mailto:${site.email}`}><Icon name="mail" /> {site.email}</a></li>
         <li><span><Icon name="map" /> {site.address.street}, {site.address.postalCode} {site.address.city}</span></li>
+        <li><span><Icon name="clock" /> {site.hours.text}</span></li>
       </ul>
       {
         (site.social.facebook || site.social.instagram) && (

@@ -14,12 +14,16 @@ export const site = {
   // BEKRÄFTA: att numret används för WhatsApp.
   whatsappHref: 'https://wa.me/46722228800',
   address: {
-    street: 'Hasselgatan 58',
-    postalCode: '194 37',
-    city: 'Upplands Väsby',
-    region: 'Stockholms län',
+    street: 'Vårvägen 1C',
+    postalCode: '633 53',
+    city: 'Eskilstuna',
+    region: 'Södermanlands län',
     country: 'SE',
   },
+  // Kontorets läge (Vårvägen i Skiftinge, Eskilstuna). Används i strukturerad data.
+  geo: { latitude: 59.38804, longitude: 16.54598 },
+  // Öppettider: alla dagar 8 till 22.
+  hours: { days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '08:00', closes: '22:00', text: 'Alla dagar 8–22' },
   insurer: 'Trygg-Hansa',
   fSkatt: true,
   rutApproved: true,
