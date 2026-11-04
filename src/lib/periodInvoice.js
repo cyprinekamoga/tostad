@@ -37,8 +37,9 @@ export function lineText(job) {
 
 /**
  * Raderna för en period. jobs: [{ id, service, street, city, title, starts_at, ends_at, price, staff: [...], work_hours: [{ hours }] }].
- * rate: produkten med timpriset ({ id, price, vat, rut }) exklusive moms. Utan rapporterade timmar används jobbets
- * överenskomna pris, annars den planerade tiden gånger antalet bokade, och raden markeras så att ägaren ser det.
+ * rate: produkten med timpriset ({ id, price, vat, rut }) exklusive moms. Har jobbet ett överenskommet pris används det.
+ * Annars räknas rapporterade timmar, eller den planerade tiden gånger antalet bokade när inga timmar finns, och raden
+ * markeras då så att ägaren ser det.
  */
 export function periodLines(jobs, { rate, company }) {
   const sorted = [...jobs].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
@@ -48,7 +49,8 @@ export function periodLines(jobs, { rate, company }) {
   for (const job of sorted) {
     const worked = round2((job.work_hours ?? []).reduce((s, w) => s + (Number(w.hours) || 0), 0));
     const text = lineText(job);
-    if (worked > 0 || !Number(job.price)) {
+    // Ett överenskommet pris gäller före timmarna. Timmarna används för jobb utan pris (t.ex. per timme).
+    if (!Number(job.price)) {
       const planned = quarter(((Date.parse(job.ends_at) - Date.parse(job.starts_at)) / 3600000) * Math.max(1, (job.staff ?? []).length));
       const qty = worked > 0 ? worked : planned;
       if (!(worked > 0)) noHours++;

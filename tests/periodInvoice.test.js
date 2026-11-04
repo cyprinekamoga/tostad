@@ -37,11 +37,14 @@ test('utan rapporterade timmar: planerad tid gånger antal bokade, markerad', ()
   assert.equal(noHours, 1);
 });
 
-test('överenskommet pris används när inga timmar är rapporterade', () => {
-  const { lines } = periodLines([job('a', '14', { price: 1250 })], { rate, company: true });
+test('överenskommet pris gäller före rapporterade timmar', () => {
+  const { lines } = periodLines([job('a', '14', { price: 1250, work_hours: [{ hours: 3 }] })], { rate, company: true });
   assert.equal(lines[0].qty, '1');
   assert.equal(lines[0].price, '1000');
   assert.equal(lines[0].hourly, false);
+  const priv = periodLines([job('b', '14', { price: 338, work_hours: [{ hours: 3 }] })], { rate, company: false }).lines[0];
+  assert.equal(priv.price, '540.8', 'privatkund med RUT: 338 × 2 / 1,25');
+  assert.equal(priv.rut, true);
 });
 
 test('timpris och radtext', () => {
